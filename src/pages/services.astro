@@ -1,0 +1,651 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { services } from '../data/services.js';
+
+const expertImg = 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20asian%20male%20consultant%20in%20minimalist%20nordic%20office%20portrait&image_size=portrait_4_3';
+const beforeImg = 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=cluttered%20messy%20living%20room%20dark%20unpleasant&image_size=landscape_4_3';
+const afterImg = 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=clean%20minimalist%20living%20room%20scandinavian%20design%20bright%20natural%20light%20crystals&image_size=landscape_4_3';
+
+const expertCreds = [
+  { key: 'services.expert_cred_1', text: '20+ Years Experience' },
+  { key: 'services.expert_cred_2', text: 'Certified Energy Consultant' },
+  { key: 'services.expert_cred_3', text: '10,000+ Clients Served' },
+  { key: 'services.expert_cred_4', text: 'International Practice' },
+];
+
+const guarantees = [
+  { titleKey: 'services.guarantee_1_title', descKey: 'services.guarantee_1_desc', icon: 'shield' },
+  { titleKey: 'services.guarantee_2_title', descKey: 'services.guarantee_2_desc', icon: 'clock' },
+  { titleKey: 'services.guarantee_3_title', descKey: 'services.guarantee_3_desc', icon: 'heart' },
+];
+
+const testimonials = [
+  {
+    name: "Sarah M.",
+    location: "Los Angeles, CA",
+    rating: 5,
+    textKey: "services.testimonial_1",
+    text: "Dr. Li's home consultation completely transformed our living space. The energy shift was immediate and lasting.",
+    avatar: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20woman%20portrait%20minimalist%20neutral%20background&image_size=square",
+  },
+  {
+    name: "Michael R.",
+    location: "New York, NY",
+    rating: 5,
+    textKey: "services.testimonial_2",
+    text: "The BaZi reading gave me clarity about my career path I had been searching for years.",
+    avatar: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20man%20portrait%20minimalist%20neutral%20background%20warm&image_size=square",
+  },
+  {
+    name: "Emma & James",
+    location: "London, UK",
+    rating: 5,
+    textKey: "services.testimonial_3",
+    text: "The comprehensive package was worth every penny. Our relationship has never been better.",
+    avatar: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20couple%20portrait%20minimalist%20neutral%20background&image_size=square",
+  },
+];
+
+const howItWorks = [
+  { step: 1, titleKey: "services.how_step_1_title", descKey: "services.how_step_1_desc", title: "Choose Your Service", desc: "Select the consultation that matches your needs and goals.", icon: "search" },
+  { step: 2, titleKey: "services.how_step_2_title", descKey: "services.how_step_2_desc", title: "Book Your Session", desc: "Pick a convenient date and time, share your details, and confirm.", icon: "calendar" },
+  { step: 3, titleKey: "services.how_step_3_title", descKey: "services.how_step_3_desc", title: "Get Your Consultation", desc: "Meet with our expert consultant and receive personalized guidance.", icon: "star" },
+  { step: 4, titleKey: "services.how_step_4_title", descKey: "services.how_step_4_desc", title: "Transform Your Space", desc: "Apply the insights and watch your space and life transform.", icon: "home" },
+];
+---
+
+<BaseLayout>
+  <!-- ===== Hero ===== -->
+  <section class="hero fade-in">
+    <div class="hero-content">
+      <p class="hero-subtitle" data-i18n="services.hero_subtitle">Professional Consultancy</p>
+      <h1 class="hero-title" data-i18n="services.hero_title">Space Energy Services</h1>
+      <p class="hero-description" data-i18n="services.hero_desc">Personalized guidance to harmonize your space and understand your life energy</p>
+      <a href="#booking" class="btn btn-primary btn-lg" style="margin-top: 2rem;" data-i18n="services.hero_cta">Book a Consultation</a>
+    </div>
+  </section>
+
+  <!-- ===== How It Works ===== -->
+  <section class="section fade-in">
+    <div class="container">
+      <div class="section-title">
+        <h2 data-i18n="services.how_title">How It Works</h2>
+        <p data-i18n="services.how_desc">Your journey to a harmonious space in four simple steps</p>
+      </div>
+      <div class="how-grid">
+        {howItWorks.map((item) => (
+          <div class="how-card">
+            <div class="how-step-num">{item.step}</div>
+            <div class="how-icon">
+              {item.icon === 'search' && <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>}
+              {item.icon === 'calendar' && <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>}
+              {item.icon === 'star' && <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>}
+              {item.icon === 'home' && <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>}
+            </div>
+            <h3 data-i18n={item.titleKey}>{item.title}</h3>
+            <p data-i18n={item.descKey}>{item.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Expert Introduction ===== -->
+  <section class="section fade-in">
+    <div class="container">
+      <div class="expert-grid">
+        <div class="expert-image">
+          <img src={expertImg} alt="Dr. Ming Li" loading="lazy" />
+        </div>
+        <div class="expert-info">
+          <span class="expert-role" data-i18n="services.expert_title">Oriental Space Energy Architect</span>
+          <h2 data-i18n="services.expert_name">Dr. Ming Li</h2>
+          <p data-i18n="services.expert_bio">With over 20 years of experience bridging traditional Chinese energy principles with modern Western lifestyles, Dr. Li has helped thousands of clients transform their living and working spaces.</p>
+          <div class="expert-creds">
+            {expertCreds.map((cred) => (
+              <span class="expert-cred" data-i18n={cred.key}>{cred.text}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Services Pricing ===== -->
+  <section class="section bundle-section fade-in" id="pricing">
+    <div class="container">
+      <div class="section-title">
+        <h2 data-i18n="services.services_title">Consultation Services</h2>
+        <p data-i18n="services.services_desc">Choose the service that matches your journey</p>
+      </div>
+      <div class="grid grid-3">
+        {services.map((service) => (
+          <div class={`card service-card${service.popular ? ' service-card-popular' : ''}${service.vip ? ' service-card-vip' : ''}`}>
+            {service.popular && <span class="badge badge-popular service-badge" data-i18n="common.most_popular">Most Popular</span>}
+            {service.vip && <span class="badge badge-vip service-badge" data-i18n="services.vip_badge">VIP</span>}
+            <h3 data-i18n={service.titleKey}>Service Title</h3>
+            <p data-i18n={service.descKey}>Service description.</p>
+            <div class="service-price" data-price-usd={service.priceUsd}>${service.priceUsd}</div>
+            <ul class="service-features">
+              {Array.from({ length: service.features }, (_, idx) => idx + 1).map((featIdx) => (
+                <li data-i18n={`services.service_${service.id}_feat_${featIdx}`}>Feature {featIdx}</li>
+              ))}
+            </ul>
+            <a href="#booking" class="btn btn-primary service-book-btn" data-i18n="common.book_now">Book Now</a>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Client Testimonials ===== -->
+  <section class="section fade-in">
+    <div class="container">
+      <div class="section-title">
+        <h2 data-i18n="services.testimonials_title">What Our Clients Say</h2>
+        <p data-i18n="services.testimonials_desc">Real stories from people who transformed their spaces and lives</p>
+      </div>
+      <div class="grid grid-3">
+        {testimonials.map((t) => (
+          <div class="card testimonial-card">
+            <div class="testimonial-header">
+              <div class="testimonial-avatar">
+                <img src={t.avatar} alt={t.name} loading="lazy" />
+              </div>
+              <div>
+                <div class="testimonial-name">{t.name}</div>
+                <div class="testimonial-location">{t.location}</div>
+              </div>
+            </div>
+            <div class="testimonial-stars">{Array.from({ length: t.rating }, () => '★').join('')}</div>
+            <p class="testimonial-text" data-i18n={t.textKey}>"{t.text}"</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Before / After ===== -->
+  <section class="section fade-in">
+    <div class="container">
+      <div class="section-title">
+        <h2 data-i18n="services.case_title">Client Transformations</h2>
+        <p data-i18n="services.case_desc">Real before & after stories from our clients</p>
+      </div>
+      <div class="case-grid">
+        <div class="case-column case-before">
+          <span class="case-label" data-i18n="services.case_before">Before</span>
+          <img src={beforeImg} alt="Before consultation" loading="lazy" />
+          <p data-i18n="services.case_before_text">"Our living room felt chaotic and draining. The energy felt stuck and we argued constantly in that space."</p>
+        </div>
+        <div class="case-column case-after">
+          <span class="case-label" data-i18n="services.case_after">After</span>
+          <img src={afterImg} alt="After consultation" loading="lazy" />
+          <p data-i18n="services.case_after_text">"After the consultation, we rearranged the furniture and added crystals. The space now feels calm and welcoming."</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Booking Form (Simplified) ===== -->
+  <section class="section bundle-section fade-in" id="booking">
+    <div class="container">
+      <div class="section-title">
+        <h2 data-i18n="services.booking_title">Book Your Consultation</h2>
+        <p data-i18n="services.booking_desc">Fill out the form below and we'll get back to you within 24 hours</p>
+      </div>
+      <div class="booking-form-wrap">
+        <form id="bookingForm" class="booking-form" onsubmit="return false;">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="bookService" data-i18n="services.booking_form_service">Service *</label>
+              <select id="bookService" required>
+                <option value="" disabled selected data-i18n="services.booking_form_service_placeholder">Select a service</option>
+                {services.map((s) => (
+                  <option value={s.id} data-price-usd={s.priceUsd} data-i18n={s.titleKey}>Service Title</option>
+                ))}
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="bookDate" data-i18n="services.booking_form_date">Preferred Date</label>
+              <input type="date" id="bookDate" min={new Date().toISOString().split('T')[0]} />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="bookName" data-i18n="services.booking_form_name">Full Name *</label>
+              <input type="text" id="bookName" required placeholder="Your full name" data-i18n-placeholder="services.booking_form_name_placeholder" autocomplete="name" />
+            </div>
+            <div class="form-group">
+              <label for="bookEmail" data-i18n="services.booking_form_email">Email *</label>
+              <input type="email" id="bookEmail" required placeholder="you@example.com" data-i18n-placeholder="services.booking_form_email_placeholder" autocomplete="email" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="bookPhone" data-i18n="services.booking_form_phone">Phone</label>
+              <input type="tel" id="bookPhone" placeholder="+1 (555) 123-4567" data-i18n-placeholder="services.booking_form_phone_placeholder" autocomplete="tel" />
+            </div>
+            <div class="form-group">
+              <label for="bookType" data-i18n="services.booking_form_type">Consultation Type</label>
+              <select id="bookType">
+                <option value="virtual" data-i18n="services.booking_type_virtual">Virtual (Zoom)</option>
+                <option value="inperson" data-i18n="services.booking_type_inperson">In-Person</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="bookNotes" data-i18n="services.booking_form_notes">What would you like to discuss?</label>
+            <textarea id="bookNotes" rows="4" placeholder="Tell us about your space, concerns, or goals..." data-i18n-placeholder="services.booking_form_notes_placeholder"></textarea>
+          </div>
+          <div class="form-group form-agreement">
+            <label class="checkbox-label">
+              <input type="checkbox" id="bookAgree" required />
+              <span data-i18n="services.booking_form_agree">I agree to the terms and privacy policy</span>
+            </label>
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg btn-block" id="bookSubmit" data-i18n="services.booking_form_submit">Submit Booking</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Success Modal ===== -->
+  <div class="modal-overlay" id="successModal">
+    <div class="modal-content">
+      <button class="modal-close" id="modalClose" aria-label="Close">&times;</button>
+      <div class="modal-body">
+        <div class="modal-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <h3 data-i18n="services.booking_success_title">Booking Confirmed!</h3>
+        <p data-i18n="services.booking_success_msg">Thank you for booking your consultation. A confirmation email has been sent with all the details.</p>
+        <div class="modal-booking-id" id="modalBookingId"></div>
+        <div class="modal-next-steps">
+          <h4 data-i18n="services.booking_success_next">What's Next</h4>
+          <ul>
+            <li data-i18n="services.booking_success_step1">Check your email for the confirmation and calendar invite</li>
+            <li data-i18n="services.booking_success_step2">Prepare any questions or photos of your space</li>
+            <li data-i18n="services.booking_success_step3">We'll send a reminder 24 hours before your session</li>
+          </ul>
+        </div>
+        <button class="btn btn-primary btn-lg" id="modalDone" data-i18n="common.close">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Service Guarantee ===== -->
+  <section class="section fade-in">
+    <div class="container">
+      <div class="section-title">
+        <h2 data-i18n="services.guarantee_title">Service Guarantee & Policy</h2>
+      </div>
+      <div class="grid grid-3">
+        {guarantees.map((g) => (
+          <div class="card guarantee-card">
+            <div class="guarantee-icon">
+              {g.icon === 'shield' && <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>}
+              {g.icon === 'clock' && <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>}
+              {g.icon === 'heart' && <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>}
+            </div>
+            <h3 data-i18n={g.titleKey}>Guarantee Title</h3>
+            <p data-i18n={g.descKey}>Guarantee description.</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* ===== How It Works ===== */
+  .how-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+  }
+  .how-card {
+    text-align: center;
+    padding: 2rem 1.5rem;
+    position: relative;
+  }
+  .how-step-num {
+    position: absolute;
+    top: 0;
+    right: 1rem;
+    font-size: 3rem;
+    font-family: var(--font-serif);
+    color: var(--color-border);
+    font-weight: 700;
+    line-height: 1;
+  }
+  .how-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--color-accent-light);
+    color: var(--color-accent-dark);
+  }
+  .how-card h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+  .how-card p { font-size: 0.9rem; color: var(--color-text-secondary); margin: 0; line-height: 1.5; }
+
+  /* ===== Expert ===== */
+  .expert-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 4rem;
+    align-items: center;
+  }
+  .expert-image {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    box-shadow: var(--shadow-md);
+  }
+  .expert-image img { width: 100%; height: 100%; object-fit: cover; }
+  .expert-info .expert-role {
+    display: inline-block;
+    font-size: 0.85rem;
+    color: var(--color-accent-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 1rem;
+  }
+  .expert-info h2 { margin-bottom: 1.25rem; }
+  .expert-info p { margin-bottom: 1.75rem; }
+  .expert-creds { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+  .expert-cred {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  /* ===== Service Cards ===== */
+  .service-card { position: relative; display: flex; flex-direction: column; }
+  .service-card-popular { border-color: var(--color-accent); box-shadow: var(--shadow-md); }
+  .service-card-vip { border-color: var(--color-text-primary); box-shadow: var(--shadow-md); }
+  .service-badge { position: absolute; top: 1rem; right: 1rem; }
+  .service-card h3 { font-size: 1.4rem; margin-bottom: 0.75rem; padding-right: 6rem; }
+  .service-card p { margin-bottom: 1.25rem; }
+  .service-price {
+    font-family: var(--font-serif);
+    font-size: 2.25rem;
+    color: var(--color-text-primary);
+    margin-bottom: 1.25rem;
+  }
+  .service-features { display: flex; flex-direction: column; gap: 0.65rem; margin-bottom: 1.75rem; }
+  .service-features li {
+    position: relative;
+    padding-left: 1.5rem;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+  }
+  .service-features li::before { content: '✓'; position: absolute; left: 0; color: var(--state-success); font-weight: 700; }
+  .service-book-btn { margin-top: auto; width: 100%; }
+
+  /* ===== Testimonials ===== */
+  .testimonial-card { display: flex; flex-direction: column; }
+  .testimonial-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+  .testimonial-avatar { width: 48px; height: 48px; border-radius: 50%; overflow: hidden; flex-shrink: 0; }
+  .testimonial-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .testimonial-name { font-weight: 600; font-size: 0.95rem; }
+  .testimonial-location { font-size: 0.8rem; color: var(--color-text-tertiary); }
+  .testimonial-stars { color: #F0C060; font-size: 1rem; margin-bottom: 0.75rem; letter-spacing: 0.1em; }
+  .testimonial-text { font-style: italic; color: var(--color-text-secondary); line-height: 1.6; margin: 0; flex: 1; }
+
+  /* ===== Case Grid ===== */
+  .case-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+  .case-column { display: flex; flex-direction: column; }
+  .case-label {
+    display: inline-block;
+    align-self: flex-start;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.35rem 1rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: 1rem;
+  }
+  .case-before .case-label { background: var(--color-border); color: var(--color-text-secondary); }
+  .case-after .case-label { background: var(--color-accent); color: var(--color-text-primary); }
+  .case-column img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius-lg); margin-bottom: 1rem; }
+  .case-column p { font-style: italic; color: var(--color-text-primary); margin: 0; }
+
+  /* ===== Booking Form ===== */
+  .booking-form-wrap { max-width: 640px; margin: 0 auto; }
+  .booking-form { background: var(--color-bg-tertiary); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 2.5rem; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem; }
+  .form-group { margin-bottom: 1.25rem; }
+  .form-group label { display: block; font-size: 0.88rem; font-weight: 500; color: var(--color-text-primary); margin-bottom: 0.5rem; }
+  .form-group input[type="text"],
+  .form-group input[type="email"],
+  .form-group input[type="tel"],
+  .form-group input[type="date"],
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    font-size: 0.95rem;
+    font-family: inherit;
+    transition: border-color 0.2s;
+  }
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(191, 175, 150, 0.15);
+  }
+  .form-group input::placeholder,
+  .form-group textarea::placeholder { color: var(--color-text-tertiary); }
+  .form-group select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%238A948C' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    padding-right: 2.5rem;
+    cursor: pointer;
+  }
+  .form-agreement { margin-top: -0.25rem; }
+  .checkbox-label { display: flex !important; align-items: flex-start; gap: 0.65rem; font-weight: 400 !important; cursor: pointer; }
+  .checkbox-label input[type="checkbox"] { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--color-accent); flex-shrink: 0; cursor: pointer; }
+  .checkbox-label span { font-size: 0.85rem; color: var(--color-text-secondary); line-height: 1.5; }
+  .btn-block { width: 100%; margin-top: 0.5rem; }
+
+  /* ===== Success Modal ===== */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(58, 64, 61, 0.4);
+    backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.35s ease, visibility 0.35s ease;
+  }
+  .modal-overlay.active { opacity: 1; visibility: visible; }
+  .modal-content {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: var(--radius-xl);
+    max-width: 480px;
+    width: 100%;
+    padding: 3rem 2.5rem;
+    text-align: center;
+    box-shadow: var(--shadow-xl);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    position: relative;
+    transform: translateY(20px) scale(0.97);
+    transition: transform 0.35s ease;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal-overlay.active .modal-content { transform: translateY(0) scale(1); }
+  .modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1.25rem;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--color-text-tertiary);
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    transition: all 0.2s;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .modal-close:hover { color: var(--color-text-primary); border-color: var(--color-accent); }
+  .modal-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--color-accent-light);
+    color: var(--color-accent-dark);
+  }
+  .modal-body h3 { font-size: 1.5rem; margin-bottom: 0.75rem; color: var(--color-text-primary); }
+  .modal-body > p { color: var(--color-text-secondary); margin-bottom: 1.25rem; line-height: 1.5; }
+  .modal-booking-id {
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    color: var(--color-text-tertiary);
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+  }
+  .modal-next-steps { text-align: left; margin-bottom: 1.5rem; }
+  .modal-next-steps h4 { font-size: 0.95rem; margin-bottom: 0.75rem; color: var(--color-text-primary); }
+  .modal-next-steps ul { list-style: none; padding: 0; }
+  .modal-next-steps li {
+    position: relative;
+    padding-left: 1.5rem;
+    font-size: 0.88rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+  }
+  .modal-next-steps li::before { content: '→'; position: absolute; left: 0; color: var(--color-accent-dark); }
+
+  /* ===== Guarantee ===== */
+  .guarantee-card { text-align: center; }
+  .guarantee-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    color: var(--color-accent-dark);
+  }
+  .guarantee-card h3 { font-size: 1.25rem; margin-bottom: 0.75rem; }
+  .guarantee-card p { margin: 0; }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 1024px) {
+    .how-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 768px) {
+    .expert-grid { grid-template-columns: 1fr; gap: 2rem; }
+    .case-grid { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+    .how-grid { grid-template-columns: 1fr; }
+    .booking-form { padding: 1.5rem; }
+  }
+</style>
+
+<script is:inline>
+  (function() {
+    var form = document.getElementById('bookingForm');
+    var submitBtn = document.getElementById('bookSubmit');
+    var modal = document.getElementById('successModal');
+    var modalClose = document.getElementById('modalClose');
+    var modalDone = document.getElementById('modalDone');
+    var modalId = document.getElementById('modalBookingId');
+
+    if (form && submitBtn) {
+      submitBtn.addEventListener('click', function() {
+        if (!form.checkValidity()) {
+          form.reportValidity();
+          return;
+        }
+
+        var serviceEl = document.getElementById('bookService');
+        var serviceName = serviceEl ? serviceEl.options[serviceEl.selectedIndex].text : 'Consultation';
+        var dateEl = document.getElementById('bookDate');
+        var dateVal = dateEl ? dateEl.value : '—';
+        var bookingId = 'OV-' + new Date().getFullYear() + '-' + Math.floor(10000 + Math.random() * 90000);
+
+        // Save to localStorage
+        try {
+          var bookings = JSON.parse(localStorage.getItem('ov-consultations') || '[]');
+          bookings.push({
+            id: bookingId,
+            service: serviceEl ? serviceEl.value : '',
+            serviceName: serviceName,
+            date: dateVal,
+            name: document.getElementById('bookName') ? document.getElementById('bookName').value : '',
+            email: document.getElementById('bookEmail') ? document.getElementById('bookEmail').value : '',
+            phone: document.getElementById('bookPhone') ? document.getElementById('bookPhone').value : '',
+            type: document.getElementById('bookType') ? document.getElementById('bookType').value : 'virtual',
+            notes: document.getElementById('bookNotes') ? document.getElementById('bookNotes').value : '',
+            createdAt: new Date().toISOString(),
+          });
+          localStorage.setItem('ov-consultations', JSON.stringify(bookings));
+        } catch(e) {}
+
+        // Show modal
+        if (modal && modalId) {
+          modalId.textContent = 'Booking ID: ' + bookingId;
+        }
+        if (modal) {
+          modal.classList.add('active');
+          document.body.style.overflow = 'hidden';
+        }
+      });
+    }
+
+    function closeModal() {
+      if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+      if (form) form.reset();
+    }
+
+    if (modalClose) modalClose.addEventListener('click', closeModal);
+    if (modalDone) modalDone.addEventListener('click', closeModal);
+    if (modal) {
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal) closeModal();
+      });
+    }
+  })();
+</script>

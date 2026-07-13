@@ -1,0 +1,122 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { courses } from '../data/courses.js';
+---
+<BaseLayout title="Online Courses | Oriental Vibe">
+  <!-- ===== Hero ===== -->
+  <section class="hero fade-in">
+    <div class="hero-content fade-in">
+      <p class="hero-subtitle" data-i18n="courses.hero_subtitle">Wisdom Education</p>
+      <h1 class="hero-title" data-i18n="courses.hero_title">Online Courses</h1>
+      <p class="hero-description" data-i18n="courses.hero_desc">
+        Deepen your understanding of ancient energy principles, adapted for modern living
+      </p>
+    </div>
+  </section>
+
+  <!-- ===== Courses Grid ===== -->
+  <section class="section fade-in">
+    <div class="container">
+      <div class="grid grid-3">
+        {courses.map((course) => (
+          <article class="card fade-in" data-course-id={course.id}>
+            <img
+              src={course.image}
+              alt={course.titleKey}
+              loading="lazy"
+              style="width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:var(--radius-md); margin-bottom:1.25rem;"
+            />
+            <span class="badge badge-popular" data-i18n={course.levelKey}>{course.levelText}</span>
+            <h3 style="margin:0.75rem 0 0.5rem;" data-i18n={course.titleKey}>{course.titleText}</h3>
+            <p data-i18n={course.descKey}>{course.descText}</p>
+            <p style="font-size:0.85rem; color:var(--color-text-tertiary); margin-bottom:1rem;" data-i18n={course.modulesKey}>
+              {course.modulesText}
+            </p>
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-top:auto;">
+              <span
+                class="price"
+                data-price-usd={course.priceUsd}
+                style="font-family:var(--font-serif); font-size:1.6rem; color:var(--color-text-primary);"
+              >
+                {course.price}
+              </span>
+              <button class="btn btn-primary" data-i18n="common.enroll_now">Enroll Now</button>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== All-Access Pass ===== -->
+  <section class="section bundle-section fade-in">
+    <div class="container">
+      <div class="bundle-card fade-in">
+        <div class="bundle-image">
+          <img
+            src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=minimalist%20nordic%20library%20with%20crystals%20and%20books%20soft%20natural%20light&image_size=square"
+            alt="All Access Pass"
+            loading="lazy"
+          />
+        </div>
+        <div class="bundle-content">
+          <span class="bundle-tag" data-i18n="common.most_popular">Most Popular</span>
+          <h2 data-i18n="courses.all_access_title">All-Access Pass</h2>
+          <p data-i18n="courses.all_access_desc">
+            Enroll in our complete course library and save 40%
+          </p>
+          <div class="bundle-price">
+            <span class="original" data-price-usd="349">$349</span>
+            <span class="sale" data-price-usd="199">$199</span>
+          </div>
+          <div>
+            <button class="btn btn-primary btn-lg" data-i18n="common.enroll_now">Enroll Now</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Course Advantages ===== -->
+  <section class="section fade-in">
+    <div class="container">
+      <div class="section-title fade-in">
+        <h2 data-i18n="courses.advantages_title">Course Advantages</h2>
+        <p data-i18n="courses.advantages_desc">Why learn with us?</p>
+      </div>
+      <div class="grid grid-3">
+        <article class="card why-us-card fade-in">
+          <div class="why-us-icon" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="9"></circle>
+              <path d="M12 7v5l3 3"></path>
+            </svg>
+          </div>
+          <h3 data-i18n="courses.adv_1_title">Lifetime Access</h3>
+          <p data-i18n="courses.adv_1_desc">Access all course materials permanently. Review at your own pace.</p>
+        </article>
+        <article class="card why-us-card fade-in">
+          <div class="why-us-icon" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M4 19h16M4 15l4-4 3 3 7-7"></path>
+              <path d="M14 7h4v4"></path>
+            </svg>
+          </div>
+          <h3 data-i18n="courses.adv_2_title">Practical Exercises</h3>
+          <p data-i18n="courses.adv_2_desc">Hands-on practice to apply what you learn immediately.</p>
+        </article>
+        <article class="card why-us-card fade-in">
+          <div class="why-us-icon" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+          </div>
+          <h3 data-i18n="courses.adv_3_title">Community Support</h3>
+          <p data-i18n="courses.adv_3_desc">Join our private community for discussions and Q&A.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

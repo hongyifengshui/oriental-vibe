@@ -1,0 +1,219 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const imgBase = 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=';
+const imgSuffix = '&image_size=portrait_4_3';
+
+const heroBg = `${imgBase}minimalist%20scandinavian%20living%20room%20bright%20natural%20light%20calm%20neutral%20tones${imgSuffix}`;
+
+const categories = [
+  {
+    href: '/shop',
+    img: `${imgBase}minimalist%20scandinavian%20living%20room%20with%20crystals%20natural%20light${imgSuffix}`,
+    titleKey: 'home.category_1',
+    descKey: 'home.category_1_desc',
+  },
+  {
+    href: '/services',
+    img: `${imgBase}minimalist%20office%20space%20nordic%20design%20clean%20desk${imgSuffix}`,
+    titleKey: 'home.category_2',
+    descKey: 'home.category_2_desc',
+  },
+  {
+    href: '/services',
+    img: `${imgBase}minimalist%20desk%20with%20journal%20and%20crystals%20nordic%20interior${imgSuffix}`,
+    titleKey: 'home.category_3',
+    descKey: 'home.category_3_desc',
+  },
+  {
+    href: '/courses',
+    img: `${imgBase}minimalist%20meditation%20space%20with%20books%20nordic%20interior${imgSuffix}`,
+    titleKey: 'home.category_4',
+    descKey: 'home.category_4_desc',
+  },
+];
+
+const bundleImages = [
+  `${imgBase}minimalist%20amethyst%20crystal%20on%20wooden%20tray%20nordic%20decor${imgSuffix}`,
+  `${imgBase}minimalist%20sage%20bundle%20and%20crystals%20nordic%20style${imgSuffix}`,
+  `${imgBase}minimalist%20brass%20incense%20holder%20with%20nordic%20interior${imgSuffix}`,
+];
+
+const whyCards = [
+  {
+    titleKey: 'home.why_1_title',
+    descKey: 'home.why_1_desc',
+    icon: 'globe',
+  },
+  {
+    titleKey: 'home.why_2_title',
+    descKey: 'home.why_2_desc',
+    icon: 'map',
+  },
+  {
+    titleKey: 'home.why_3_title',
+    descKey: 'home.why_3_desc',
+    icon: 'refresh',
+  },
+];
+
+const testimonials = [
+  { textKey: 'home.testimonial_1_text', nameKey: 'home.testimonial_1_name', locationKey: 'home.testimonial_1_location', initial: 'S' },
+  { textKey: 'home.testimonial_2_text', nameKey: 'home.testimonial_2_name', locationKey: 'home.testimonial_2_location', initial: 'J' },
+  { textKey: 'home.testimonial_3_text', nameKey: 'home.testimonial_3_name', locationKey: 'home.testimonial_3_location', initial: 'E' },
+];
+---
+
+<BaseLayout>
+  {/* ===== Module 1: Hero ===== */}
+  <section class="hero fade-in" style={`background-image: linear-gradient(180deg, rgba(245,241,235,0.85) 0%, rgba(248,246,242,0.95) 100%), url('${heroBg}'); background-size: cover; background-position: center;`}>
+    <div class="hero-content">
+      <p class="hero-subtitle" data-i18n="home.hero_subtitle">Ancient Eastern Energy for Modern Western Living</p>
+      <h1 class="hero-title" data-i18n="home.hero_title">Balance Your Home, Calm Your Mind, Upgrade Your Life Vibe</h1>
+      <p class="hero-description" data-i18n="home.hero_description">Discover how ancient Eastern space energy wisdom meets modern design.</p>
+      <a href="/element-test" class="btn btn-primary btn-lg" data-i18n="home.hero_cta">Take Five Elements Test</a>
+    </div>
+  </section>
+
+  {/* ===== Module 2: Trust Badges ===== */}
+  <section class="trust-badges fade-in">
+    <div class="container">
+      <div class="trust-badges-container">
+        <div class="trust-item">
+          <span class="trust-number">10,000+</span>
+          <span class="trust-label" data-i18n="home.trust_1">10,000+ Happy Clients</span>
+        </div>
+        <div class="trust-item">
+          <span class="trust-number">98%</span>
+          <span class="trust-label" data-i18n="home.trust_2">98% Positive Reviews</span>
+        </div>
+        <div class="trust-item">
+          <span class="trust-number">★</span>
+          <span class="trust-label" data-i18n="home.trust_3">Expert Energy Designers</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {/* ===== Module 3: Four Categories ===== */}
+  <section class="section fade-in">
+    <div class="container">
+      <div class="grid grid-4">
+        {categories.map((cat) => (
+          <a href={cat.href} class="category-card">
+            <img src={cat.img} alt="" loading="lazy" />
+            <div class="category-overlay">
+              <h3 data-i18n={cat.titleKey}>Category</h3>
+              <p data-i18n={cat.descKey}>Description</p>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {/* ===== Module 4: Best Seller Bundle ===== */}
+  <section class="section bundle-section fade-in">
+    <div class="container">
+      <div class="bundle-card">
+        <div class="bundle-image">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 2fr 1fr; gap: 4px; height: 100%;">
+            <img src={bundleImages[0]} alt="" style="grid-row: span 2; width: 100%; height: 100%; object-fit: cover;" loading="lazy" />
+            <img src={bundleImages[1]} alt="" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy" />
+            <img src={bundleImages[2]} alt="" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy" />
+          </div>
+        </div>
+        <div class="bundle-content">
+          <span class="bundle-tag" data-i18n="home.bundle_tag">BEST VALUE - SAVE 30%</span>
+          <h2 data-i18n="home.bundle_title">Space Harmony Starter Kit</h2>
+          <p data-i18n="home.bundle_description">Everything you need to harmonize your living space.</p>
+          <div class="bundle-price">
+            <span class="original" data-price-usd="129">$129</span>
+            <span class="sale" data-price-usd="89">$89</span>
+          </div>
+          <a href="/shop" class="btn btn-primary btn-lg" data-i18n="home.bundle_cta">Get the Bundle</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {/* ===== Module 5: Why Us ===== */}
+  <section class="section fade-in">
+    <div class="container">
+      <div class="section-title">
+        <h2 data-i18n="home.why_title">Why Choose Us?</h2>
+        <p data-i18n="home.why_subtitle">Modernized ancient wisdom for contemporary living</p>
+      </div>
+      <div class="grid grid-3">
+        {whyCards.map((card) => (
+          <div class="card why-us-card">
+            <div class="why-us-icon">
+              {card.icon === 'globe' && (
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-accent-dark);">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="2" y1="12" x2="22" y2="12"></line>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                </svg>
+              )}
+              {card.icon === 'map' && (
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-accent-dark);">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+              )}
+              {card.icon === 'refresh' && (
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-accent-dark);">
+                  <polyline points="1 4 1 10 7 10"></polyline>
+                  <polyline points="23 20 23 14 17 14"></polyline>
+                  <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+                </svg>
+              )}
+            </div>
+            <h3 data-i18n={card.titleKey}>Title</h3>
+            <p data-i18n={card.descKey}>Description</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {/* ===== Module 6: Testimonials ===== */}
+  <section class="section fade-in" style="background: var(--color-bg-secondary);">
+    <div class="container">
+      <div class="section-title">
+        <h2 data-i18n="home.testimonials_title">What Our Clients Say</h2>
+        <p data-i18n="home.testimonials_subtitle">Real stories from Western homes</p>
+      </div>
+      <div class="grid grid-3">
+        {testimonials.map((t) => (
+          <div class="card testimonial-card">
+            <div class="star-rating" style="margin-bottom: 1rem;">
+              <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+            </div>
+            <p class="testimonial-content" data-i18n={t.textKey}>Testimonial text.</p>
+            <div class="testimonial-author">
+              <div class="testimonial-avatar">{t.initial}</div>
+              <div>
+                <div class="testimonial-name" data-i18n={t.nameKey}>Name</div>
+                <div class="testimonial-location" data-i18n={t.locationKey}>Location</div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {/* ===== Module 7: Newsletter ===== */}
+  <section class="newsletter-section fade-in">
+    <div class="container">
+      <h2 data-i18n="home.newsletter_title">Join Our Community</h2>
+      <p data-i18n="home.newsletter_description">Get weekly tips delivered to your inbox.</p>
+      <form class="newsletter-form" onsubmit="return false;">
+        <input type="email" class="newsletter-input" data-i18n-placeholder="home.newsletter_placeholder" placeholder="Enter your email" required />
+        <button type="submit" class="btn btn-accent btn-lg" data-i18n="home.newsletter_button">Subscribe</button>
+      </form>
+      <p class="newsletter-gift" data-i18n="home.newsletter_gift">Free Gift: Space Harmony Guide + $10 Discount</p>
+    </div>
+  </section>
+</BaseLayout>

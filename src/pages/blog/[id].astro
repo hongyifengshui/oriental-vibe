@@ -1,0 +1,232 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { posts } from '../../data/blog.js';
+
+export function getStaticPaths() {
+  return posts.map((post) => ({
+    params: { id: String(post.id) },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const postIndex = post.id;
+
+// Fallback text content for English default rendering
+const fallbackText = {
+  p1: post.excerptEn,
+  p2: "",
+  p3: "",
+  h1: "Introduction",
+  h2: "Key Principles",
+  h3: "Practical Application",
+  h4: "Conclusion",
+  h_sub1: "Getting Started",
+  li1: "",
+  li2: "",
+  li3: "",
+  quote: "",
+  p4: "",
+  p5: "",
+  p6: "",
+  p7: "",
+  p8: "",
+};
+---
+<BaseLayout title={`${post.titleKey} | Oriental Vibe`} description={post.excerptKey}>
+  <style>
+    .article-hero {
+      padding: 6rem 2rem 3rem;
+      text-align: center;
+      background: linear-gradient(180deg, var(--color-surface-secondary) 0%, var(--color-background) 100%);
+    }
+    .article-hero .badge {
+      margin-bottom: 1.5rem;
+    }
+    .article-hero h1 {
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: var(--color-foreground);
+      font-family: var(--font-heading);
+    }
+    .article-meta {
+      color: var(--color-muted);
+      font-size: 0.9rem;
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .article-image {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+    .article-image img {
+      width: 100%;
+      border-radius: 12px;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+    }
+    .article-content {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 3rem 2rem 4rem;
+    }
+    .article-content p {
+      margin-bottom: 1.25rem;
+      line-height: 1.8;
+      color: var(--color-foreground);
+      font-size: 1.05rem;
+    }
+    .article-content h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 2.5rem 0 1rem;
+      color: var(--color-foreground);
+      font-family: var(--font-heading);
+    }
+    .article-content h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 2rem 0 0.75rem;
+      color: var(--color-foreground);
+      font-family: var(--font-heading);
+    }
+    .article-content ul {
+      margin-bottom: 1.25rem;
+      padding-left: 1.5rem;
+    }
+    .article-content li {
+      margin-bottom: 0.5rem;
+      line-height: 1.7;
+    }
+    .article-content blockquote {
+      border-left: 3px solid var(--color-primary);
+      padding-left: 1.5rem;
+      margin: 2rem 0;
+      font-style: italic;
+      color: var(--color-muted);
+    }
+    .article-nav {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 2rem;
+      display: flex;
+      justify-content: space-between;
+      border-top: 1px solid var(--color-border-light);
+    }
+    .article-nav a {
+      color: var(--color-primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .article-nav a:hover {
+      text-decoration: underline;
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--color-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      margin-bottom: 2rem;
+      transition: color 0.2s;
+    }
+    .back-btn:hover {
+      color: var(--color-primary);
+    }
+  </style>
+
+  <article class="fade-in">
+    <div class="article-hero">
+      <div class="container" style="max-width: 720px;">
+        <span class="badge" data-i18n={post.categoryKey}>{post.categoryEn}</span>
+        <h1 data-i18n={`blog.post_${postIndex}_title`}>{post.titleEn}</h1>
+        <div class="article-meta">
+          <span>{post.date}</span>
+          <span data-i18n={`blog.post_${postIndex}_read_time`}>8 min read</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="article-image">
+      <img src={post.image} alt="" data-i18n-alt={`blog.post_${postIndex}_title`} />
+    </div>
+
+    <div class="article-content">
+      <a href="/blog" class="back-btn" data-i18n="blog.back_to_list">← Back to Blog</a>
+
+      <p data-i18n={`blog.post_${postIndex}_p1`}>
+        {post.excerptEn}
+      </p>
+
+      <h2 data-i18n={`blog.post_${postIndex}_h1`}>Introduction</h2>
+      <p data-i18n={`blog.post_${postIndex}_p2`}></p>
+      <p data-i18n={`blog.post_${postIndex}_p3`}></p>
+
+      <h2 data-i18n={`blog.post_${postIndex}_h2`}>Key Principles</h2>
+      <p data-i18n={`blog.post_${postIndex}_p4`}></p>
+      <ul>
+        <li data-i18n={`blog.post_${postIndex}_li1`}></li>
+        <li data-i18n={`blog.post_${postIndex}_li2`}></li>
+        <li data-i18n={`blog.post_${postIndex}_li3`}></li>
+      </ul>
+
+      <blockquote data-i18n={`blog.post_${postIndex}_quote`}>
+      </blockquote>
+
+      <h2 data-i18n={`blog.post_${postIndex}_h3`}>Practical Application</h2>
+      <p data-i18n={`blog.post_${postIndex}_p5`}></p>
+      <p data-i18n={`blog.post_${postIndex}_p6`}></p>
+
+      <h3 data-i18n={`blog.post_${postIndex}_sub1`}>Getting Started</h3>
+      <p data-i18n={`blog.post_${postIndex}_p7`}></p>
+
+      <h2 data-i18n={`blog.post_${postIndex}_h4`}>Conclusion</h2>
+      <p data-i18n={`blog.post_${postIndex}_p8`}></p>
+    </div>
+  </article>
+
+<script is:inline>
+  // Ensure translations are applied to blog content after i18n is ready
+  function applyBlogTranslations() {
+    if (window.ovI18n && window.ovI18n.translations) {
+      const lang = window.ovI18n.getLang();
+      const translations = window.ovI18n.translations[lang] || {};
+      const enFallback = (lang !== 'en') ? (window.ovI18n.translations['en'] || {}) : {};
+      
+      function getNested(obj, path) {
+        return path.split('.').reduce(function(acc, key) { return acc && acc[key]; }, obj);
+      }
+      
+      document.querySelectorAll('[data-i18n]').forEach(function(el) {
+        const key = el.getAttribute('data-i18n');
+        let value = getNested(translations, key);
+        if (value === undefined && lang !== 'en') {
+          value = getNested(enFallback, key);
+        }
+        if (value !== undefined && value !== null) el.textContent = value;
+      });
+      
+      document.querySelectorAll('[data-i18n-alt]').forEach(function(el) {
+        const key = el.getAttribute('data-i18n-alt');
+        let value = getNested(translations, key);
+        if (value === undefined && lang !== 'en') {
+          value = getNested(enFallback, key);
+        }
+        if (value !== undefined && value !== null) el.setAttribute('alt', value);
+      });
+    }
+  }
+  
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    applyBlogTranslations();
+  }
+  
+  document.addEventListener('ov-i18n-ready', applyBlogTranslations);
+  window.addEventListener('lang-change', applyBlogTranslations);
+</script>
+</BaseLayout>

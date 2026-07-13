@@ -1,0 +1,568 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import CookieBanner from '../components/CookieBanner.astro';
+import WhatsAppButton from '../components/WhatsAppButton.astro';
+import CartDrawer from '../components/CartDrawer.astro';
+import Analytics from '../components/Analytics.astro';
+
+const { title = 'Oriental Vibe | Space Energy & Life Balance', description = 'Ancient Eastern Energy for Modern Western Living. Balance Your Home, Calm Your Mind, Upgrade Your Life Vibe.' } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content={description} />
+  <title>{title}</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:type" content="website" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+
+  <!-- Canonical -->
+  <link rel="canonical" href={Astro.url.href} />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Analytics (Google Analytics + Meta Pixel) -->
+  <Analytics />
+</head>
+<body>
+  <Header />
+  <main>
+    <slot />
+  </main>
+  <Footer />
+  <CookieBanner />
+  <WhatsAppButton />
+  <CartDrawer />
+
+  <!-- ===== Auth Modal ===== -->
+  <div class="ov-auth-overlay" id="authOverlay">
+    <div class="ov-auth-modal">
+      <button class="ov-auth-close" id="authClose">&times;</button>
+      <div class="ov-auth-tabs">
+        <button class="ov-auth-tab active" data-auth-tab="login" data-i18n="auth.tab_login">Sign In</button>
+        <button class="ov-auth-tab" data-auth-tab="register" data-i18n="auth.tab_register">Sign Up</button>
+      </div>
+      <div class="ov-auth-panel active" id="authLoginPanel">
+        <h3 data-i18n="auth.login_title">Welcome Back</h3>
+        <p data-i18n="auth.login_subtitle">Sign in to access your member benefits</p>
+        <form id="authLoginForm" onsubmit="return false;">
+          <div class="ov-auth-field">
+            <label for="authLoginEmail" data-i18n="auth.email">Email Address</label>
+            <input type="email" id="authLoginEmail" required data-i18n-placeholder="auth.email_placeholder" placeholder="Enter your email" autocomplete="email" />
+          </div>
+          <div class="ov-auth-field">
+            <label for="authLoginPassword" data-i18n="auth.password">Password</label>
+            <input type="password" id="authLoginPassword" required data-i18n-placeholder="auth.password_placeholder" placeholder="Enter your password" autocomplete="current-password" />
+          </div>
+          <div class="ov-auth-row">
+            <label class="ov-auth-remember">
+              <input type="checkbox" id="authRemember" />
+              <span data-i18n="auth.remember_me">Remember me</span>
+            </label>
+            <a href="#" class="ov-auth-forgot" data-i18n="auth.forgot_password">Forgot password?</a>
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg btn-block" id="authLoginBtn" data-i18n="auth.login_btn">Sign In</button>
+        </form>
+        <p class="ov-auth-switch">
+          <span data-i18n="auth.no_account">Don't have an account?</span>
+          <button class="ov-auth-switch-btn" data-auth-switch="register" data-i18n="auth.tab_register">Sign Up</button>
+        </p>
+      </div>
+      <div class="ov-auth-panel" id="authRegisterPanel">
+        <h3 data-i18n="auth.register_title">Create Account</h3>
+        <p data-i18n="auth.register_subtitle">Join and unlock free Five Elements Test</p>
+        <form id="authRegisterForm" onsubmit="return false;">
+          <div class="ov-auth-field">
+            <label for="authRegName" data-i18n="auth.name">Full Name</label>
+            <input type="text" id="authRegName" required data-i18n-placeholder="auth.name_placeholder" placeholder="Enter your name" autocomplete="name" />
+          </div>
+          <div class="ov-auth-field">
+            <label for="authRegEmail" data-i18n="auth.email">Email Address</label>
+            <input type="email" id="authRegEmail" required data-i18n-placeholder="auth.email_placeholder" placeholder="Enter your email" autocomplete="email" />
+          </div>
+          <div class="ov-auth-field">
+            <label for="authRegPassword" data-i18n="auth.password">Password</label>
+            <input type="password" id="authRegPassword" required data-i18n-placeholder="auth.password_placeholder" placeholder="Enter your password" autocomplete="new-password" />
+          </div>
+          <div class="ov-auth-field">
+            <label for="authRegConfirm" data-i18n="auth.confirm_password">Confirm Password</label>
+            <input type="password" id="authRegConfirm" required data-i18n-placeholder="auth.confirm_password_placeholder" placeholder="Re-enter your password" autocomplete="new-password" />
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg btn-block" id="authRegBtn" data-i18n="auth.register_btn">Create Account</button>
+        </form>
+        <p class="ov-auth-social-proof" data-i18n="auth.social_proof">Join 10,000+ members on their energy journey</p>
+        <p class="ov-auth-switch">
+          <span data-i18n="auth.has_account">Already have an account?</span>
+          <button class="ov-auth-switch-btn" data-auth-switch="login" data-i18n="auth.tab_login">Sign In</button>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- i18n Client Script -->
+  <script is:inline>
+    (async function() {
+      const translations = {};
+      const supportedLangs = ['en', 'zh', 'de', 'fr', 'es'];
+
+      async function loadTranslations(lang) {
+        if (translations[lang]) return translations[lang];
+        try {
+          const res = await fetch(`/i18n/${lang}.json`);
+          translations[lang] = await res.json();
+          return translations[lang];
+        } catch (e) {
+          console.warn('Failed to load translations for', lang, e);
+          return {};
+        }
+      }
+
+      function getNested(obj, path) {
+        return path.split('.').reduce((acc, key) => acc?.[key], obj);
+      }
+
+      function applyTranslations(lang) {
+        const t = translations[lang] || {};
+        // If translation is missing for this lang, try falling back to English
+        const enFallback = (lang !== 'en') ? (translations['en'] || {}) : {};
+
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+          const key = el.getAttribute('data-i18n');
+          let value = getNested(t, key);
+          // Fall back to English if translation is missing in current language
+          if (value === undefined && lang !== 'en') {
+            value = getNested(enFallback, key);
+          }
+          if (value !== undefined && value !== null) el.textContent = value;
+        });
+
+        document.querySelectorAll('[data-i18n-title]').forEach(el => {
+          const key = el.getAttribute('data-i18n-title');
+          let value = getNested(t, key);
+          if (value === undefined && lang !== 'en') {
+            value = getNested(enFallback, key);
+          }
+          if (value !== undefined && value !== null) el.setAttribute('title', value);
+        });
+
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+          const key = el.getAttribute('data-i18n-placeholder');
+          let value = getNested(t, key);
+          if (value === undefined && lang !== 'en') {
+            value = getNested(enFallback, key);
+          }
+          if (value !== undefined && value !== null) el.setAttribute('placeholder', value);
+        });
+
+        document.querySelectorAll('[data-i18n-alt]').forEach(el => {
+          const key = el.getAttribute('data-i18n-alt');
+          let value = getNested(t, key);
+          if (value === undefined && lang !== 'en') {
+            value = getNested(enFallback, key);
+          }
+          if (value !== undefined && value !== null) el.setAttribute('alt', value);
+        });
+
+        document.querySelectorAll('[data-i18n-value]').forEach(el => {
+          const key = el.getAttribute('data-i18n-value');
+          let value = getNested(t, key);
+          if (value === undefined && lang !== 'en') {
+            value = getNested(enFallback, key);
+          }
+          if (value !== undefined && value !== null) el.setAttribute('value', value);
+        });
+
+        document.documentElement.lang = lang;
+
+        const pathToTitleMap = {
+          '/': 'home.hero_title',
+          '/shop': 'shop.hero_title',
+          '/services': 'services.hero_title',
+          '/courses': 'courses.hero_title',
+          '/blog': 'blog.hero_title',
+          '/element-test': 'test.hero_title',
+          '/membership': 'membership.hero_title',
+          '/privacy': 'privacy.title',
+          '/terms': 'terms.title',
+          '/shipping': 'shipping.title',
+          '/contact': 'contact.hero_title',
+          '/faq': 'faq.hero_title',
+          '/about': 'about.hero_title',
+        };
+        const path = window.location.pathname.replace(/\/$/, '') || '/';
+        const titleKey = pathToTitleMap[path];
+        if (titleKey) {
+          const pageTitle = getNested(t, titleKey);
+          const brandName = getNested(t, 'brand.name') || 'Oriental Vibe';
+          if (pageTitle) {
+            document.title = `${pageTitle} | ${brandName}`;
+          }
+        }
+      }
+
+      const currencyRates = {
+        USD: { symbol: '$', rate: 1 },
+        EUR: { symbol: '€', rate: 0.92 },
+        GBP: { symbol: '£', rate: 0.79 },
+        CNY: { symbol: '¥', rate: 7.24 }
+      };
+
+      const langToCurrency = {
+        en: 'USD',
+        zh: 'CNY',
+        de: 'EUR',
+        fr: 'EUR',
+        es: 'EUR'
+      };
+
+      function applyCurrency(currency) {
+        const { symbol, rate } = currencyRates[currency] || currencyRates.USD;
+        document.querySelectorAll('[data-price-usd]').forEach(el => {
+          const usd = parseFloat(el.getAttribute('data-price-usd'));
+          const converted = (usd * rate).toFixed(0);
+          el.textContent = `${symbol}${converted}`;
+        });
+      }
+
+      async function init() {
+        const currentLang = localStorage.getItem('ov-lang') || 'en';
+        const hasManualCurrency = localStorage.getItem('ov-currency-manual') === 'true';
+        let currentCurrency = localStorage.getItem('ov-currency');
+        
+        if (!currentCurrency || !hasManualCurrency) {
+          currentCurrency = langToCurrency[currentLang] || 'USD';
+          localStorage.setItem('ov-currency', currentCurrency);
+        }
+
+        // Always preload English as fallback baseline
+        await loadTranslations('en');
+        if (currentLang !== 'en') {
+          await loadTranslations(currentLang);
+        }
+        applyTranslations(currentLang);
+        applyCurrency(currentCurrency);
+
+        window.ovI18n = {
+          t: function(key, fb) {
+            var parts = key.split('.');
+            var lang = localStorage.getItem('ov-lang') || 'en';
+            var v = translations[lang];
+            if (!v) return fb || key;
+            for (var i = 0; i < parts.length; i++) v = v && v[parts[i]];
+            return v || fb || key;
+          },
+          getLang: function() { return localStorage.getItem('ov-lang') || 'en'; },
+          translations: translations
+        };
+        document.dispatchEvent(new CustomEvent('ov-i18n-ready', { detail: { lang: currentLang, translations: translations } }));
+      }
+
+      window.addEventListener('lang-change', async (e) => {
+        const lang = e.detail;
+        // Ensure English is loaded as fallback
+        if (lang !== 'en') {
+          await loadTranslations('en');
+        }
+        await loadTranslations(lang);
+        applyTranslations(lang);
+        const targetCurrency = langToCurrency[lang];
+        if (targetCurrency) {
+          localStorage.setItem('ov-currency', targetCurrency);
+          localStorage.removeItem('ov-currency-manual');
+          applyCurrency(targetCurrency);
+          const currencySelect = document.getElementById('currencySelect');
+          if (currencySelect) currencySelect.value = targetCurrency;
+        }
+        document.dispatchEvent(new CustomEvent('ov-i18n-ready', { detail: { lang: lang, translations: translations } }));
+      });
+
+      window.addEventListener('currency-change', (e) => {
+        applyCurrency(e.detail);
+      });
+
+      /* ========== Auth System ========== */
+      const AUTH_KEY = 'ov-user';
+      const MEMBERSHIP_KEY = 'ov-membership';
+
+      const tierDiscounts = {
+        free: 0,
+        starter: 0.05,
+        harmony: 0.12,
+        premium: 0.25,
+      };
+
+      function getAuthState() {
+        try {
+          const raw = localStorage.getItem(AUTH_KEY);
+          return raw ? JSON.parse(raw) : null;
+        } catch(e) { return null; }
+      }
+
+      function setAuthState(user) {
+        localStorage.setItem(AUTH_KEY, JSON.stringify(user));
+        // Sync membership data
+        if (user.tier && user.tier !== 'free') {
+          const membership = {
+            name: user.name,
+            email: user.email,
+            tier: user.tier,
+            tierName: user.tier === 'starter' ? 'Starter Circle' : user.tier === 'harmony' ? 'Harmony Circle' : 'Premium Circle',
+            memberId: 'OV-' + new Date().getFullYear() + '-' + Math.floor(100000 + Math.random() * 900000),
+            registeredAt: user.registeredAt || new Date().toISOString(),
+          };
+          localStorage.setItem(MEMBERSHIP_KEY, JSON.stringify(membership));
+          localStorage.setItem('ov-is-member', 'true');
+        } else {
+          localStorage.setItem('ov-is-member', 'true');
+        }
+        updateAuthUI();
+        document.dispatchEvent(new CustomEvent('ov-auth-change', { detail: user }));
+      }
+
+      function clearAuthState() {
+        localStorage.removeItem(AUTH_KEY);
+        localStorage.removeItem(MEMBERSHIP_KEY);
+        localStorage.removeItem('ov-is-member');
+        localStorage.removeItem('ov-test-paid');
+        updateAuthUI();
+        document.dispatchEvent(new CustomEvent('ov-auth-change', { detail: null }));
+      }
+
+      function getUserTier() {
+        const user = getAuthState();
+        // Check membership first (takes priority)
+        try {
+          const mem = JSON.parse(localStorage.getItem(MEMBERSHIP_KEY) || 'null');
+          if (mem && mem.tier && mem.tier !== 'free') return mem.tier;
+        } catch(e) {}
+        return user ? (user.tier || 'free') : null;
+      }
+
+      function getUserDiscount() {
+        const tier = getUserTier();
+        if (!tier) return 0;
+        return tierDiscounts[tier] || 0;
+      }
+
+      window.ovAuth = {
+        getUser: getAuthState,
+        setUser: setAuthState,
+        logout: clearAuthState,
+        getTier: getUserTier,
+        getDiscount: getUserDiscount,
+        isLoggedIn: function() { return !!getAuthState(); },
+        isMember: function() {
+          const tier = getUserTier();
+          return tier && tier !== 'free';
+        },
+      };
+
+      /* ========== Auth Modal Logic ========== */
+      function initAuthModal() {
+        const overlay = document.getElementById('authOverlay');
+        const closeBtn = document.getElementById('authClose');
+        const tabs = document.querySelectorAll('.ov-auth-tab');
+        const panels = document.querySelectorAll('.ov-auth-panel');
+        const switchBtns = document.querySelectorAll('.ov-auth-switch-btn');
+        const loginForm = document.getElementById('authLoginForm');
+        const regForm = document.getElementById('authRegisterForm');
+
+        function openModal(tab) {
+          if (!overlay) return;
+          overlay.classList.add('active');
+          document.body.style.overflow = 'hidden';
+          switchTab(tab || 'login');
+        }
+
+        function closeModal() {
+          if (!overlay) return;
+          overlay.classList.remove('active');
+          document.body.style.overflow = '';
+        }
+
+        function switchTab(tab) {
+          tabs.forEach(t => t.classList.toggle('active', t.getAttribute('data-auth-tab') === tab));
+          panels.forEach(p => p.classList.toggle('active', p.id === (tab === 'login' ? 'authLoginPanel' : 'authRegisterPanel')));
+        }
+
+        if (closeBtn) closeBtn.addEventListener('click', closeModal);
+        if (overlay) overlay.addEventListener('click', function(e) { if (e.target === overlay) closeModal(); });
+
+        tabs.forEach(tab => tab.addEventListener('click', function() {
+          switchTab(this.getAttribute('data-auth-tab'));
+        }));
+
+        switchBtns.forEach(btn => btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          switchTab(this.getAttribute('data-auth-switch'));
+        }));
+
+        // Login submit
+        if (loginForm) {
+          loginForm.addEventListener('submit', function() {
+            const email = document.getElementById('authLoginEmail')?.value.trim();
+            const password = document.getElementById('authLoginPassword')?.value.trim();
+            if (!email || !password) return;
+            if (!email.includes('@')) { alert('Please enter a valid email.'); return; }
+
+            const user = {
+              name: email.split('@')[0],
+              email: email,
+              tier: 'free',
+              registeredAt: new Date().toISOString(),
+            };
+            setAuthState(user);
+            closeModal();
+          });
+        }
+
+        // Register submit
+        if (regForm) {
+          regForm.addEventListener('submit', function() {
+            const name = document.getElementById('authRegName')?.value.trim();
+            const email = document.getElementById('authRegEmail')?.value.trim();
+            const password = document.getElementById('authRegPassword')?.value.trim();
+            const confirm = document.getElementById('authRegConfirm')?.value.trim();
+            if (!name || !email || !password || !confirm) return;
+            if (!email.includes('@')) { alert('Please enter a valid email.'); return; }
+            if (password !== confirm) {
+              const t = window.ovI18n;
+              alert(t ? t.t('auth.passwords_not_match', 'Passwords do not match') : 'Passwords do not match');
+              return;
+            }
+            if (password.length < 6) { alert('Password must be at least 6 characters.'); return; }
+
+            const user = {
+              name: name,
+              email: email,
+              tier: 'free',
+              registeredAt: new Date().toISOString(),
+            };
+            setAuthState(user);
+            closeModal();
+          });
+        }
+
+        window.ovAuth.openModal = openModal;
+        window.ovAuth.closeModal = closeModal;
+      }
+
+      /* ========== Auth UI Update ========== */
+      function updateAuthUI() {
+        const user = getAuthState();
+        const tier = getUserTier();
+        const userAreaEl = document.getElementById('ovUserArea');
+        const loginCtaEl = document.getElementById('ovLoginCta');
+
+        if (userAreaEl) {
+          if (user) {
+            userAreaEl.style.display = 'flex';
+            const avatar = userAreaEl.querySelector('.ov-user-avatar');
+            const userName = userAreaEl.querySelector('.ov-user-name');
+            const tierBadge = userAreaEl.querySelector('.ov-user-tier-badge');
+            if (avatar) avatar.textContent = (user.name || user.email || 'U').charAt(0).toUpperCase();
+            if (userName) userName.textContent = user.name || user.email.split('@')[0];
+            if (tierBadge) {
+              tierBadge.className = 'ov-user-tier-badge ' + (tier || 'free');
+              const tierLabels = { free: 'Free', starter: 'Starter', harmony: 'Harmony', premium: 'Premium' };
+              tierBadge.textContent = tierLabels[tier] || 'Free';
+              tierBadge.style.display = (tier && tier !== 'free') ? 'inline-block' : 'none';
+            }
+          } else {
+            userAreaEl.style.display = 'none';
+          }
+        }
+        if (loginCtaEl) {
+          loginCtaEl.style.display = user ? 'none' : 'flex';
+        }
+      }
+
+      // Initialize auth modal and UI when DOM is ready
+      function initAuth() {
+        initAuthModal();
+        updateAuthUI();
+
+        // Login CTA button
+        const loginCta = document.getElementById('ovLoginCta');
+        if (loginCta) {
+          loginCta.addEventListener('click', function() {
+            if (window.ovAuth && window.ovAuth.openModal) {
+              window.ovAuth.openModal('login');
+            }
+          });
+        }
+
+        // User dropdown toggle
+        const userBtn = document.getElementById('ovUserBtn');
+        const userDropdown = document.getElementById('ovUserDropdown');
+        if (userBtn && userDropdown) {
+          userBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            userDropdown.classList.toggle('open');
+          });
+          document.addEventListener('click', function() {
+            userDropdown.classList.remove('open');
+          });
+        }
+
+        // Logout button
+        const logoutBtn = document.getElementById('ovLogoutBtn');
+        if (logoutBtn) {
+          logoutBtn.addEventListener('click', function() {
+            clearAuthState();
+            if (userDropdown) userDropdown.classList.remove('open');
+          });
+        }
+
+        // Listen for membership changes (from membership page)
+        document.addEventListener('ov-membership-updated', function(e) {
+          if (e.detail && e.detail.tier) {
+            const user = getAuthState();
+            if (user) {
+              user.tier = e.detail.tier;
+              setAuthState(user);
+            }
+          }
+        });
+      }
+
+      initAuth();
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+          }
+        });
+      }, { threshold: 0.1 });
+
+      function afterInit() {
+        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+          init().then(afterInit);
+        });
+      } else {
+        init().then(afterInit);
+      }
+    })();
+  </script>
+</body>
+</html>

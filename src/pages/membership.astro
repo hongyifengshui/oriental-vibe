@@ -1,0 +1,706 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const imgBase = 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=';
+const imgSuffix = '&image_size=portrait_4_3';
+
+const heroBg = `${imgBase}elegant%20zen%20meditation%20space%20with%20warm%20golden%20light%20crystals%20and%20minimalist%20decor${imgSuffix}`;
+
+const memberCards = [
+  {
+    id: 'starter',
+    nameKey: 'membership.starter_name',
+    nameDefault: 'Starter Circle',
+    priceUsd: 99,
+    periodKey: 'membership.period_year',
+    badgeColor: '#BFAF96',
+    popular: false,
+    features: [
+      { key: 'membership.starter_feat_1', text: '5% off all services, products & courses' },
+      { key: 'membership.starter_feat_2', text: '1 Energy Consultation per year' },
+    ],
+    disabledFeatures: [],
+    img: `${imgBase}warm%20beige%20crystal%20on%20marble%20surface%20minimalist%20luxury${imgSuffix}`,
+  },
+  {
+    id: 'harmony',
+    nameKey: 'membership.harmony_name',
+    nameDefault: 'Harmony Circle',
+    priceUsd: 299,
+    periodKey: 'membership.period_year',
+    badgeColor: '#8A948C',
+    popular: true,
+    features: [
+      { key: 'membership.harmony_feat_1', text: '12% off all services, products & courses' },
+      { key: 'membership.harmony_feat_2', text: '1 Personal Energy Consultation per year' },
+      { key: 'membership.harmony_feat_3', text: '1 Home Space Consultation per year' },
+    ],
+    disabledFeatures: [],
+    img: `${imgBase}sage%20green%20crystals%20and%20palo%20santo%20on%20wooden%20tray%20zen%20style${imgSuffix}`,
+  },
+  {
+    id: 'premium',
+    nameKey: 'membership.premium_name',
+    nameDefault: 'Premium Circle',
+    priceUsd: 699,
+    periodKey: 'membership.period_year',
+    badgeColor: '#3A403D',
+    popular: false,
+    features: [
+      { key: 'membership.premium_feat_1', text: '25% off all services, products & courses' },
+      { key: 'membership.premium_feat_2', text: '6 free consultations per year' },
+      { key: 'membership.premium_feat_3', text: 'Custom Crystal Bracelet gift' },
+    ],
+    disabledFeatures: [],
+    img: `${imgBase}dark%20green%20luxury%20crystal%20bracelet%20on%20silk%20fabric%20elegant%20minimalist${imgSuffix}`,
+  },
+];
+
+const comparisonRows = [
+  { labelKey: 'membership.compare_discount', labelDefault: 'Services / Products / Courses Discount', starter: '5%', harmony: '12%', premium: '25%' },
+  { labelKey: 'membership.compare_energy', labelDefault: 'Energy Consultation', starter: '1x / year', harmony: '1x / year', premium: '6x / year' },
+  { labelKey: 'membership.compare_home', labelDefault: 'Home Space Consultation', starter: '—', harmony: '1x / year', premium: 'Included' },
+  { labelKey: 'membership.compare_bracelet', labelDefault: 'Custom Crystal Bracelet', starter: '—', harmony: '—', premium: '✓' },
+  { labelKey: 'membership.compare_priority', labelDefault: 'Priority Booking', starter: '—', harmony: '✓', premium: '✓' },
+  { labelKey: 'membership.compare_support', labelDefault: 'Dedicated Support', starter: '—', harmony: '—', premium: '✓' },
+];
+---
+
+<BaseLayout title="Membership | Oriental Vibe">
+  {/* ===== Hero ===== */}
+  <section class="hero fade-in" style={`background-image: linear-gradient(180deg, rgba(245,241,235,0.88) 0%, rgba(248,246,242,0.95) 100%), url('${heroBg}'); background-size: cover; background-position: center;`}>
+    <div class="hero-content">
+      <p class="hero-subtitle" data-i18n="membership.hero_subtitle">Exclusive Member Benefits</p>
+      <h1 class="hero-title" data-i18n="membership.hero_title">Member Circle</h1>
+      <p class="hero-description" data-i18n="membership.hero_desc">Unlock exclusive benefits and deepen your energy journey</p>
+    </div>
+  </section>
+
+  {/* ===== Membership Tiers ===== */}
+  <section class="section fade-in">
+    <div class="container">
+      <div class="section-title">
+        <h2 data-i18n="membership.tiers_title">Choose Your Circle</h2>
+        <p data-i18n="membership.tiers_desc">Select the membership that aligns with your energy journey</p>
+      </div>
+      <div class="grid grid-3 membership-grid">
+        {memberCards.map((card) => (
+          <div class={`pricing-card membership-card${card.popular ? ' popular' : ''}`} data-tier={card.id}>
+            {card.popular && <span class="badge badge-popular pricing-badge" data-i18n="common.most_popular">Most Popular</span>}
+            <div class="membership-card-img">
+              <img src={card.img} alt={card.nameDefault} loading="lazy" />
+            </div>
+            <div class="pricing-header">
+              <span class="membership-tier-badge" style={`background-color: ${card.badgeColor};`} data-i18n={card.nameKey}>{card.nameDefault}</span>
+              <div class="pricing-price">
+                <span class="amount" data-price-usd={card.priceUsd}>${card.priceUsd}</span>
+                <span class="period" data-i18n={card.periodKey}>/ year</span>
+              </div>
+            </div>
+            <ul class="pricing-features">
+              {card.features.map((feat) => (
+                <li>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  <span data-i18n={feat.key}>{feat.text}</span>
+                </li>
+              ))}
+            </ul>
+            <button class="btn btn-primary membership-select-btn" data-tier-select={card.id} data-i18n="membership.select_tier">Select This Plan</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {/* ===== Comparison Table ===== */}
+  <section class="section bundle-section fade-in">
+    <div class="container">
+      <div class="section-title">
+        <h2 data-i18n="membership.compare_title">Benefits Comparison</h2>
+        <p data-i18n="membership.compare_desc">See what each membership tier includes</p>
+      </div>
+      <div class="compare-table-wrap">
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th data-i18n="membership.compare_benefit">Benefit</th>
+              <th>
+                <span class="compare-badge" style="background-color: #BFAF96;" data-i18n="membership.starter_name">Starter</span>
+              </th>
+              <th>
+                <span class="compare-badge" style="background-color: #8A948C;" data-i18n="membership.harmony_name">Harmony</span>
+              </th>
+              <th>
+                <span class="compare-badge" style="background-color: #3A403D;" data-i18n="membership.premium_name">Premium</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {comparisonRows.map((row) => (
+              <tr>
+                <td data-i18n={row.labelKey}>{row.labelDefault}</td>
+                <td class={row.starter === '—' ? 'compare-disabled' : ''}>{row.starter}</td>
+                <td class={row.harmony === '—' ? 'compare-disabled' : ''}>{row.harmony}</td>
+                <td class={row.premium === '—' ? 'compare-disabled' : ''}>{row.premium}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  {/* ===== Registration Form ===== */}
+  <section class="section fade-in" id="membership-form-section">
+    <div class="container">
+      <div class="section-title">
+        <h2 data-i18n="membership.form_title">Join the Circle</h2>
+        <p data-i18n="membership.form_desc">Start your exclusive membership journey today</p>
+      </div>
+      <div class="membership-form-wrap">
+        <form id="membershipForm" class="membership-form" onsubmit="return false;">
+          <div class="form-group">
+            <label for="memberName" data-i18n="membership.form_name">Full Name</label>
+            <input type="text" id="memberName" name="name" required data-i18n-placeholder="membership.form_name_placeholder" placeholder="Enter your full name" autocomplete="name" />
+          </div>
+          <div class="form-group">
+            <label for="memberEmail" data-i18n="membership.form_email">Email Address</label>
+            <input type="email" id="memberEmail" name="email" required data-i18n-placeholder="membership.form_email_placeholder" placeholder="Enter your email" autocomplete="email" />
+          </div>
+          <div class="form-group">
+            <label for="memberTier" data-i18n="membership.form_tier">Membership Tier</label>
+            <select id="memberTier" name="tier" required>
+              <option value="" disabled selected data-i18n="membership.form_tier_placeholder">Select a membership tier</option>
+              <option value="starter" data-i18n="membership.starter_name">Starter Circle — $99/year</option>
+              <option value="harmony" data-i18n="membership.harmony_name">Harmony Circle — $299/year</option>
+              <option value="premium" data-i18n="membership.premium_name">Premium Circle — $699/year</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="memberPayment" data-i18n="membership.form_payment">Payment Method</label>
+            <select id="memberPayment" name="payment" required>
+              <option value="" disabled selected data-i18n="membership.form_payment_placeholder">Select payment method</option>
+              <option value="credit_card" data-i18n="membership.payment_credit">Credit Card</option>
+              <option value="paypal" data-i18n="membership.payment_paypal">PayPal</option>
+              <option value="bank_transfer" data-i18n="membership.payment_bank">Bank Transfer</option>
+            </select>
+          </div>
+          <div class="form-group form-agreement">
+            <label class="checkbox-label">
+              <input type="checkbox" id="memberAgree" required />
+              <span data-i18n="membership.form_agreement">I agree to the membership terms and conditions</span>
+            </label>
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg btn-block" data-i18n="membership.form_submit">Complete Registration</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  {/* ===== Success Modal ===== */}
+  <div class="modal-overlay" id="successModal">
+    <div class="modal-content">
+      <button class="modal-close" id="modalClose" aria-label="Close">&times;</button>
+      <div class="modal-body">
+        <div class="modal-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        </div>
+        <h3 data-i18n="membership.modal_welcome">Welcome to the Circle!</h3>
+        <p class="modal-member-id" id="modalMemberId"></p>
+        <div class="modal-tier-badge" id="modalTierBadge"></div>
+        <div class="modal-benefits" id="modalBenefits"></div>
+        <div class="modal-validity" id="modalValidity"></div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  /* ===== Membership Card Image ===== */
+  .membership-card-img {
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    margin: -2rem -2rem 0;
+  }
+  .membership-card-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .membership-card .pricing-header {
+    padding-top: 1.5rem;
+  }
+
+  /* ===== Tier Badge ===== */
+  .membership-tier-badge {
+    display: inline-block;
+    padding: 0.35rem 1rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #FFFFFF;
+    margin-bottom: 1rem;
+  }
+
+  /* ===== Select Button ===== */
+  .membership-select-btn {
+    margin-top: auto;
+  }
+
+  /* ===== Comparison Table ===== */
+  .compare-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--color-bg-tertiary);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--color-border-light);
+  }
+  .compare-table thead {
+    background: var(--color-bg-secondary);
+  }
+  .compare-table th,
+  .compare-table td {
+    padding: 1.25rem 1.5rem;
+    text-align: center;
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  .compare-table th:first-child,
+  .compare-table td:first-child {
+    text-align: left;
+    font-weight: 500;
+    color: var(--color-text-primary);
+  }
+  .compare-table th {
+    font-family: var(--font-sans);
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: var(--color-text-primary);
+    vertical-align: middle;
+  }
+  .compare-table td {
+    color: var(--color-text-secondary);
+  }
+  .compare-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .compare-table tbody tr:hover {
+    background-color: var(--color-bg-secondary);
+  }
+  .compare-badge {
+    display: inline-block;
+    padding: 0.3rem 0.85rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #FFFFFF;
+  }
+  .compare-disabled {
+    color: var(--color-text-tertiary);
+    opacity: 0.5;
+  }
+
+  /* ===== Registration Form ===== */
+  .membership-form-wrap {
+    max-width: 560px;
+    margin: 0 auto;
+    background: var(--color-bg-tertiary);
+    border-radius: var(--radius-lg);
+    padding: 3rem;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--color-border-light);
+  }
+  .membership-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .form-group label {
+    display: block;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.01em;
+  }
+  .form-group input[type="text"],
+  .form-group input[type="email"],
+  .form-group select {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    font-size: 0.95rem;
+    transition: var(--transition-base);
+  }
+  .form-group input:focus,
+  .form-group select:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(191, 175, 150, 0.15);
+  }
+  .form-group input::placeholder {
+    color: var(--color-text-tertiary);
+  }
+  .form-group select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%238A948C' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 12px 8px;
+    padding-right: 2.5rem;
+    cursor: pointer;
+  }
+  .checkbox-label {
+    display: flex !important;
+    align-items: flex-start;
+    gap: 0.65rem;
+    font-weight: 400 !important;
+    cursor: pointer;
+  }
+  .checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    accent-color: var(--color-accent);
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .checkbox-label span {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+  }
+  .form-agreement {
+    margin-top: -0.5rem;
+  }
+
+  /* ===== Success Modal ===== */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-modal);
+    background: rgba(58, 64, 61, 0.4);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.35s ease, visibility 0.35s ease;
+  }
+  .modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+  .modal-content {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: var(--radius-xl);
+    max-width: 480px;
+    width: 100%;
+    padding: 3rem 2.5rem;
+    text-align: center;
+    box-shadow: var(--shadow-xl);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    position: relative;
+    transform: translateY(20px) scale(0.97);
+    transition: transform 0.35s ease;
+  }
+  .modal-overlay.active .modal-content {
+    transform: translateY(0) scale(1);
+  }
+  .modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1.25rem;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--color-text-tertiary);
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    transition: var(--transition-base);
+    line-height: 1;
+    cursor: pointer;
+  }
+  .modal-close:hover {
+    color: var(--color-text-primary);
+    border-color: var(--color-accent);
+  }
+  .modal-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--color-accent-light);
+    color: var(--color-accent-dark);
+  }
+  .modal-body h3 {
+    font-size: 1.6rem;
+    margin-bottom: 0.75rem;
+    color: var(--color-text-primary);
+  }
+  .modal-member-id {
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    color: var(--color-text-tertiary);
+    letter-spacing: 0.05em;
+    margin-bottom: 1.25rem;
+  }
+  .modal-tier-badge {
+    display: inline-block;
+    padding: 0.4rem 1.25rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #FFFFFF;
+    margin-bottom: 1.5rem;
+  }
+  .modal-benefits {
+    text-align: left;
+    margin-bottom: 1.5rem;
+  }
+  .modal-benefits ul {
+    list-style: none;
+    padding: 0;
+  }
+  .modal-benefits li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    padding: 0.5rem 0;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+  }
+  .modal-benefits li::before {
+    content: '✓';
+    color: var(--state-success);
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .modal-validity {
+    font-size: 0.85rem;
+    color: var(--color-text-tertiary);
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border-light);
+  }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 768px) {
+    .membership-form-wrap {
+      padding: 2rem 1.5rem;
+    }
+    .compare-table th,
+    .compare-table td {
+      padding: 1rem;
+      font-size: 0.82rem;
+    }
+    .modal-content {
+      padding: 2.5rem 1.75rem;
+    }
+  }
+</style>
+
+<script is:inline>
+  (function() {
+    const STORAGE_KEY = 'ov-membership';
+
+    const tierConfig = {
+      starter: {
+        name: 'Starter Circle',
+        badgeColor: '#BFAF96',
+        price: 99,
+        benefits: [
+          '5% off all services, products & courses',
+          '1 Energy Consultation per year',
+        ],
+      },
+      harmony: {
+        name: 'Harmony Circle',
+        badgeColor: '#8A948C',
+        price: 299,
+        benefits: [
+          '12% off all services, products & courses',
+          '1 Personal Energy Consultation per year',
+          '1 Home Space Consultation per year',
+        ],
+      },
+      premium: {
+        name: 'Premium Circle',
+        badgeColor: '#3A403D',
+        price: 699,
+        benefits: [
+          '25% off all services, products & courses',
+          '6 free consultations per year',
+          'Custom Crystal Bracelet gift',
+        ],
+      },
+    };
+
+    function generateMemberId() {
+      const year = new Date().getFullYear();
+      const rand = Math.floor(100000 + Math.random() * 900000);
+      return `OV-${year}-${rand}`;
+    }
+
+    function getValidityDate() {
+      const d = new Date();
+      d.setFullYear(d.getFullYear() + 1);
+      return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    // Select tier button scrolls to form
+    document.querySelectorAll('[data-tier-select]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var tier = btn.getAttribute('data-tier-select');
+        var formSection = document.getElementById('membership-form-section');
+        var selectEl = document.getElementById('memberTier');
+        if (selectEl && tier) {
+          selectEl.value = tier;
+          selectEl.dispatchEvent(new Event('change'));
+        }
+        if (formSection) {
+          formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+
+    // Form submission
+    var form = document.getElementById('membershipForm');
+    if (form) {
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        var name = document.getElementById('memberName').value.trim();
+        var email = document.getElementById('memberEmail').value.trim();
+        var tier = document.getElementById('memberTier').value;
+        var payment = document.getElementById('memberPayment').value;
+        var agree = document.getElementById('memberAgree').checked;
+
+        if (!name || !email || !tier || !payment || !agree) return;
+
+        var memberId = generateMemberId();
+        var config = tierConfig[tier];
+        var validUntil = getValidityDate();
+
+        var membershipData = {
+          name: name,
+          email: email,
+          tier: tier,
+          tierName: config.name,
+          payment: payment,
+          memberId: memberId,
+          price: config.price,
+          benefits: config.benefits,
+          validUntil: validUntil,
+          registeredAt: new Date().toISOString(),
+        };
+
+        // Save to localStorage
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(membershipData));
+        } catch(err) {
+          // storage unavailable
+        }
+
+        // Dispatch auth update event to sync with global auth system
+        document.dispatchEvent(new CustomEvent('ov-membership-updated', {
+          detail: { tier: tier, name: name, email: email }
+        }));
+
+        // Show modal
+        var modal = document.getElementById('successModal');
+        var modalMemberId = document.getElementById('modalMemberId');
+        var modalTierBadge = document.getElementById('modalTierBadge');
+        var modalBenefits = document.getElementById('modalBenefits');
+        var modalValidity = document.getElementById('modalValidity');
+
+        if (modalMemberId) {
+          modalMemberId.textContent = 'Member ID: ' + memberId;
+        }
+        if (modalTierBadge) {
+          modalTierBadge.textContent = config.name;
+          modalTierBadge.style.backgroundColor = config.badgeColor;
+        }
+        if (modalBenefits) {
+          var ul = document.createElement('ul');
+          config.benefits.forEach(function(b) {
+            var li = document.createElement('li');
+            li.textContent = b;
+            ul.appendChild(li);
+          });
+          modalBenefits.innerHTML = '';
+          modalBenefits.appendChild(ul);
+        }
+        if (modalValidity) {
+          modalValidity.textContent = 'Valid until ' + validUntil;
+        }
+
+        if (modal) {
+          modal.classList.add('active');
+          document.body.style.overflow = 'hidden';
+        }
+      });
+    }
+
+    // Close modal
+    var modalClose = document.getElementById('modalClose');
+    var modal = document.getElementById('successModal');
+    if (modalClose && modal) {
+      modalClose.addEventListener('click', function() {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+      });
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+          modal.classList.remove('active');
+          document.body.style.overflow = '';
+        }
+      });
+    }
+
+    // Restore membership data from localStorage on page load
+    try {
+      var saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        var data = JSON.parse(saved);
+        if (data.tier) {
+          var tierSelect = document.getElementById('memberTier');
+          if (tierSelect) {
+            tierSelect.value = data.tier;
+          }
+        }
+      }
+    } catch(err) {
+      // ignore
+    }
+  })();
+</script>

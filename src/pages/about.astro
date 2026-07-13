@@ -1,0 +1,705 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const imgBase = 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=';
+
+const heroBg = `${imgBase}minimalist%20zen%20meditation%20space%20bamboo%20natural%20light%20japanese%20aesthetic%20peaceful&image_size=landscape_16_9`;
+const brandImg = `${imgBase}minimalist%20scandinavian%20living%20room%20with%20chinese%20decor%20crystals%20natural%20wood%20neutral%20tones&image_size=portrait_4_3`;
+
+const teamMembers = [
+  {
+    nameKey: 'about.team1_name',
+    roleKey: 'about.team1_role',
+    initial: 'M',
+    img: `${imgBase}professional%20asian%20woman%20portrait%20minimalist%20neutral%20background%20warm%20light&image_size=square`,
+  },
+  {
+    nameKey: 'about.team2_name',
+    roleKey: 'about.team2_role',
+    initial: 'J',
+    img: `${imgBase}professional%20caucasian%20man%20portrait%20minimalist%20neutral%20background%20warm%20light&image_size=square`,
+  },
+  {
+    nameKey: 'about.team3_name',
+    roleKey: 'about.team3_role',
+    initial: 'S',
+    img: `${imgBase}professional%20asian%20man%20portrait%20minimalist%20neutral%20background%20warm%20light&image_size=square`,
+  },
+  {
+    nameKey: 'about.team4_name',
+    roleKey: 'about.team4_role',
+    initial: 'E',
+    img: `${imgBase}professional%20caucasian%20woman%20portrait%20minimalist%20neutral%20background%20warm%20light&image_size=square`,
+  },
+];
+
+const timelineEvents = [
+  { year: '2018', titleKey: 'about.timeline1_title', descKey: 'about.timeline1_desc' },
+  { year: '2019', titleKey: 'about.timeline2_title', descKey: 'about.timeline2_desc' },
+  { year: '2020', titleKey: 'about.timeline3_title', descKey: 'about.timeline3_desc' },
+  { year: '2022', titleKey: 'about.timeline4_title', descKey: 'about.timeline4_desc' },
+  { year: '2024', titleKey: 'about.timeline5_title', descKey: 'about.timeline5_desc' },
+];
+
+const stats = [
+  { number: '10,000+', labelKey: 'about.stat1_label' },
+  { number: '50+', labelKey: 'about.stat2_label' },
+  { number: '98%', labelKey: 'about.stat3_label' },
+  { number: '12', labelKey: 'about.stat4_label' },
+];
+
+const values = [
+  {
+    icon: 'sun',
+    titleKey: 'about.value1_title',
+    descKey: 'about.value1_desc',
+  },
+  {
+    icon: 'heart',
+    titleKey: 'about.value2_title',
+    descKey: 'about.value2_desc',
+  },
+  {
+    icon: 'leaf',
+    titleKey: 'about.value3_title',
+    descKey: 'about.value3_desc',
+  },
+];
+---
+
+<BaseLayout title="About Us | Oriental Vibe" description="Learn about Oriental Vibe's story, mission, and team. We bring ancient Eastern space energy wisdom to modern Western living.">
+  <style is:global>
+    .about-hero {
+      min-height: 70vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: calc(var(--navbar-height) + 4rem) 2rem 4rem;
+      background: linear-gradient(180deg, rgba(245,241,235,0.88) 0%, rgba(248,246,242,0.95) 100%), url('${heroBg}');
+      background-size: cover;
+      background-position: center;
+      position: relative;
+    }
+
+    .about-hero-content {
+      max-width: 750px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .about-hero-subtitle {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--color-accent-dark);
+      margin-bottom: 1.5rem;
+      font-weight: 400;
+    }
+
+    .about-hero-title {
+      margin-bottom: 1.5rem;
+    }
+
+    .about-hero-description {
+      font-size: 1.15rem;
+      color: var(--color-text-secondary);
+      line-height: 1.8;
+    }
+
+    /* Brand Story Section */
+    .brand-story-section {
+      background-color: var(--color-bg-primary);
+    }
+
+    .brand-story-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+
+    .brand-story-image {
+      position: relative;
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      aspect-ratio: 4 / 5;
+    }
+
+    .brand-story-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .brand-story-image::after {
+      content: '';
+      position: absolute;
+      top: 1.5rem;
+      left: 1.5rem;
+      right: -1.5rem;
+      bottom: -1.5rem;
+      border: 2px solid var(--color-accent);
+      border-radius: var(--radius-xl);
+      z-index: -1;
+    }
+
+    .brand-story-content .section-subtitle {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--color-accent);
+      margin-bottom: 1rem;
+      font-weight: 400;
+    }
+
+    .brand-story-content h2 {
+      margin-bottom: 1.5rem;
+    }
+
+    .brand-story-content p {
+      color: var(--color-text-secondary);
+      line-height: 1.8;
+      margin-bottom: 1.25rem;
+    }
+
+    .brand-story-content p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Mission Vision Values */
+    .values-section {
+      background-color: var(--color-bg-secondary);
+    }
+
+    .values-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+    }
+
+    .value-card {
+      background-color: var(--color-bg-tertiary);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem 2rem;
+      text-align: center;
+      border: 1px solid var(--color-border-light);
+      transition: var(--transition-base);
+    }
+
+    .value-card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--color-accent-light);
+    }
+
+    .value-icon {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background-color: var(--color-bg-primary);
+      transition: var(--transition-base);
+    }
+
+    .value-card:hover .value-icon {
+      background-color: var(--color-accent);
+    }
+
+    .value-icon svg {
+      width: 32px;
+      height: 32px;
+      color: var(--color-accent-dark);
+      transition: var(--transition-base);
+    }
+
+    .value-card:hover .value-icon svg {
+      color: var(--color-text-primary);
+    }
+
+    .value-card h3 {
+      margin-bottom: 0.75rem;
+      font-size: 1.25rem;
+    }
+
+    .value-card p {
+      color: var(--color-text-secondary);
+      font-size: 0.95rem;
+      line-height: 1.7;
+      margin-bottom: 0;
+    }
+
+    /* Stats Section */
+    .stats-section {
+      background-color: var(--color-text-primary);
+      color: #FFFFFF;
+      padding: 5rem 0;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2rem;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-family: var(--font-serif);
+      font-size: 3rem;
+      font-weight: 400;
+      color: var(--color-accent);
+      line-height: 1;
+      margin-bottom: 0.75rem;
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.7);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    /* Team Section */
+    .team-section {
+      background-color: var(--color-bg-primary);
+    }
+
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2rem;
+    }
+
+    .team-card {
+      background-color: var(--color-bg-tertiary);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1px solid var(--color-border-light);
+      transition: var(--transition-base);
+    }
+
+    .team-card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .team-image {
+      aspect-ratio: 1;
+      overflow: hidden;
+      background-color: var(--color-bg-secondary);
+    }
+
+    .team-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+
+    .team-card:hover .team-image img {
+      transform: scale(1.05);
+    }
+
+    .team-info {
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    .team-name {
+      font-family: var(--font-serif);
+      font-size: 1.15rem;
+      color: var(--color-text-primary);
+      margin-bottom: 0.25rem;
+      font-weight: 500;
+    }
+
+    .team-role {
+      font-size: 0.85rem;
+      color: var(--color-text-tertiary);
+      letter-spacing: 0.05em;
+    }
+
+    /* Timeline Section */
+    .timeline-section {
+      background-color: var(--color-bg-secondary);
+    }
+
+    .timeline {
+      position: relative;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background-color: var(--color-border);
+    }
+
+    .timeline-item {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      margin-bottom: 3rem;
+    }
+
+    .timeline-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .timeline-item:nth-child(odd) .timeline-content {
+      text-align: right;
+      grid-column: 1;
+    }
+
+    .timeline-item:nth-child(even) .timeline-content {
+      text-align: left;
+      grid-column: 2;
+    }
+
+    .timeline-dot {
+      position: absolute;
+      left: 50%;
+      top: 0.5rem;
+      transform: translateX(-50%);
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background-color: var(--color-accent);
+      border: 4px solid var(--color-bg-secondary);
+      z-index: 1;
+    }
+
+    .timeline-year {
+      font-family: var(--font-serif);
+      font-size: 1.5rem;
+      color: var(--color-accent-dark);
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    .timeline-title {
+      font-family: var(--font-serif);
+      font-size: 1.15rem;
+      color: var(--color-text-primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .timeline-desc {
+      font-size: 0.9rem;
+      color: var(--color-text-secondary);
+      line-height: 1.7;
+    }
+
+    /* CTA Section */
+    .about-cta-section {
+      background-color: var(--color-bg-primary);
+    }
+
+    .about-cta-card {
+      background: linear-gradient(135deg, var(--color-text-primary) 0%, #4A524E 100%);
+      border-radius: var(--radius-xl);
+      padding: 4rem;
+      text-align: center;
+      color: #FFFFFF;
+    }
+
+    .about-cta-card h2 {
+      color: #FFFFFF;
+      margin-bottom: 1rem;
+    }
+
+    .about-cta-card p {
+      color: rgba(255, 255, 255, 0.7);
+      max-width: 500px;
+      margin: 0 auto 2rem;
+    }
+
+    .about-cta-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .about-cta-buttons .btn-accent {
+      background-color: var(--color-accent);
+      color: var(--color-text-primary);
+      border-color: var(--color-accent);
+    }
+
+    .about-cta-buttons .btn-accent:hover {
+      background-color: var(--color-accent-light);
+      border-color: var(--color-accent-light);
+    }
+
+    .about-cta-buttons .btn-outline {
+      border-color: rgba(255, 255, 255, 0.3);
+      color: #FFFFFF;
+    }
+
+    .about-cta-buttons .btn-outline:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    @media (max-width: 1024px) {
+      .brand-story-grid {
+        gap: 3rem;
+      }
+
+      .values-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .team-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2.5rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .about-hero {
+        min-height: auto;
+        padding-top: calc(var(--navbar-height) + 3rem);
+        padding-bottom: 3rem;
+      }
+
+      .brand-story-grid {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+      }
+
+      .brand-story-image {
+        max-width: 400px;
+        margin: 0 auto;
+        aspect-ratio: 1;
+      }
+
+      .values-grid {
+        grid-template-columns: 1fr;
+        max-width: 400px;
+        margin: 0 auto;
+      }
+
+      .team-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+      }
+
+      .about-cta-card {
+        padding: 2.5rem 1.5rem;
+      }
+
+      .timeline::before {
+        left: 1.25rem;
+      }
+
+      .timeline-item {
+        grid-template-columns: 1fr;
+        gap: 0;
+        padding-left: 3rem;
+      }
+
+      .timeline-item:nth-child(odd) .timeline-content,
+      .timeline-item:nth-child(even) .timeline-content {
+        text-align: left;
+        grid-column: 1;
+      }
+
+      .timeline-dot {
+        left: 1.25rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .team-grid {
+        grid-template-columns: 1fr;
+        max-width: 300px;
+        margin: 0 auto;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+      }
+
+      .stat-number {
+        font-size: 2.25rem;
+      }
+
+      .about-cta-buttons {
+        flex-direction: column;
+      }
+
+      .about-cta-buttons .btn {
+        width: 100%;
+      }
+
+      .value-card {
+        padding: 2rem 1.5rem;
+      }
+    }
+  </style>
+
+  {/* ===== Hero Section ===== */}
+  <section class="about-hero fade-in">
+    <div class="about-hero-content">
+      <p class="about-hero-subtitle" data-i18n="about.hero_subtitle">Our Story</p>
+      <h1 class="about-hero-title" data-i18n="about.hero_title">Bringing Ancient Wisdom to Modern Living</h1>
+      <p class="about-hero-description" data-i18n="about.hero_description">We believe everyone deserves to live in a space that nourishes their soul. Oriental Vibe was born from a passion to make Eastern space energy wisdom accessible, practical, and beautiful for the modern world.</p>
+    </div>
+  </section>
+
+  {/* ===== Brand Story ===== */}
+  <section class="section brand-story-section fade-in">
+    <div class="container">
+      <div class="brand-story-grid">
+        <div class="brand-story-image">
+          <img src={brandImg} alt="" data-i18n-alt="about.brand_image_alt" loading="lazy" />
+        </div>
+        <div class="brand-story-content">
+          <p class="section-subtitle" data-i18n="about.brand_story_subtitle">Our Journey</p>
+          <h2 data-i18n="about.brand_story_title">The Story Behind Oriental Vibe</h2>
+          <p data-i18n="about.brand_story_p1">Founded in 2018, Oriental Vibe began with a simple vision: to bridge the gap between ancient Eastern energy wisdom and modern Western lifestyles. Our founder, trained in traditional Feng Shui and space energy principles, noticed that many people felt disconnected from their living spaces.</p>
+          <p data-i18n="about.brand_story_p2">We started as a small studio offering personalized consultations, and quickly grew into a community of like-minded individuals seeking balance, harmony, and positive energy in their homes and workplaces.</p>
+          <p data-i18n="about.brand_story_p3">Today, we serve thousands of clients worldwide, offering carefully curated products, expert consultations, and educational courses that make space energy practice approachable and effective for everyone.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {/* ===== Mission Vision Values ===== */}
+  <section class="section values-section fade-in">
+    <div class="container">
+      <div class="section-title">
+        <p class="section-subtitle" data-i18n="about.values_subtitle">What Drives Us</p>
+        <h2 data-i18n="about.values_title">Our Mission, Vision & Values</h2>
+      </div>
+
+      <div class="values-grid">
+        {values.map((value, index) => (
+          <div class="value-card">
+            <div class="value-icon">
+              {value.icon === 'sun' && (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="5"></circle>
+                  <line x1="12" y1="1" x2="12" y2="3"></line>
+                  <line x1="12" y1="21" x2="12" y2="23"></line>
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                  <line x1="1" y1="12" x2="3" y2="12"></line>
+                  <line x1="21" y1="12" x2="23" y2="12"></line>
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+              )}
+              {value.icon === 'heart' && (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                </svg>
+              )}
+              {value.icon === 'leaf' && (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"></path>
+                  <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path>
+                </svg>
+              )}
+            </div>
+            <h3 data-i18n={value.titleKey}>Value {index + 1}</h3>
+            <p data-i18n={value.descKey}>Description</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {/* ===== Stats Section ===== */}
+  <section class="stats-section fade-in">
+    <div class="container">
+      <div class="stats-grid">
+        {stats.map((stat, index) => (
+          <div class="stat-item">
+            <div class="stat-number">{stat.number}</div>
+            <div class="stat-label" data-i18n={stat.labelKey}>Label {index + 1}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {/* ===== Team Section ===== */}
+  <section class="section team-section fade-in">
+    <div class="container">
+      <div class="section-title">
+        <p class="section-subtitle" data-i18n="about.team_subtitle">Meet Our Team</p>
+        <h2 data-i18n="about.team_title">The People Behind Oriental Vibe</h2>
+        <p data-i18n="about.team_description">A passionate team of energy practitioners, designers, and wellness experts dedicated to helping you create harmonious spaces.</p>
+      </div>
+
+      <div class="team-grid">
+        {teamMembers.map((member, index) => (
+          <div class="team-card">
+            <div class="team-image">
+              <img src={member.img} alt="" data-i18n-alt={`about.team${index + 1}_alt`} loading="lazy" />
+            </div>
+            <div class="team-info">
+              <div class="team-name" data-i18n={member.nameKey}>Name</div>
+              <div class="team-role" data-i18n={member.roleKey}>Role</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {/* ===== Timeline Section ===== */}
+  <section class="section timeline-section fade-in">
+    <div class="container">
+      <div class="section-title">
+        <p class="section-subtitle" data-i18n="about.timeline_subtitle">Our Journey</p>
+        <h2 data-i18n="about.timeline_title">Brand Development Timeline</h2>
+      </div>
+
+      <div class="timeline">
+        {timelineEvents.map((event, index) => (
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <div class="timeline-year">{event.year}</div>
+              <div class="timeline-title" data-i18n={event.titleKey}>Milestone {index + 1}</div>
+              <p class="timeline-desc" data-i18n={event.descKey}>Description</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {/* ===== CTA Section ===== */}
+  <section class="section about-cta-section fade-in">
+    <div class="container">
+      <div class="about-cta-card">
+        <h2 data-i18n="about.cta_title">Ready to Transform Your Space?</h2>
+        <p data-i18n="about.cta_description">Join thousands of happy clients who have transformed their living spaces with Oriental Vibe. Start your journey today.</p>
+        <div class="about-cta-buttons">
+          <a href="/shop" class="btn btn-accent btn-lg" data-i18n="about.cta_primary">Explore Products</a>
+          <a href="/contact" class="btn btn-outline btn-lg" data-i18n="about.cta_secondary">Contact Us</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

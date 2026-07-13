@@ -1,0 +1,33 @@
+---
+import '../styles/global.css';
+---
+<div class="cookie-banner" id="cookieBanner" role="dialog" aria-label="Cookie consent">
+  <p class="cookie-text" data-i18n="cookie.text">
+    We use cookies to enhance your browsing experience, personalize content, and analyze our traffic. By clicking "Accept", you consent to our use of cookies in accordance with our Privacy Policy and GDPR guidelines.
+  </p>
+  <div class="cookie-buttons">
+    <button class="btn cookie-decline" id="cookieDecline" data-i18n="cookie.decline">Decline</button>
+    <button class="btn cookie-accept" id="cookieAccept" data-i18n="cookie.accept">Accept</button>
+  </div>
+</div>
+<script is:inline>
+  (function () {
+    const banner = document.getElementById('cookieBanner');
+    if (!banner) return;
+    const choice = localStorage.getItem('ov-cookie-consent');
+    if (choice) {
+      banner.style.display = 'none';
+      return;
+    }
+    banner.style.display = 'flex';
+    const accept = document.getElementById('cookieAccept');
+    const decline = document.getElementById('cookieDecline');
+    const close = (value) => {
+      localStorage.setItem('ov-cookie-consent', value);
+      banner.style.display = 'none';
+      window.dispatchEvent(new CustomEvent('cookie-consent', { detail: value }));
+    };
+    accept?.addEventListener('click', () => close('accepted'));
+    decline?.addEventListener('click', () => close('declined'));
+  })();
+</script>

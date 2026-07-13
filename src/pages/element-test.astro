@@ -1,0 +1,2697 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const allRecommendations = {
+  Wood: [
+    { image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=jade%20plant%20bonsai%20minimalist%20nordic%20ceramic%20pot&image_size=square', nameKey: 'test.rec_wood_name', priceUsd: 45 },
+    { image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=green%20aventurine%20crystal%20tower%20minimalist%20decor&image_size=square', nameKey: 'test.rec_wood_name', priceUsd: 59 },
+    { image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=moss%20agate%20stone%20healing%20crystal%20luxury&image_size=square', nameKey: 'test.rec_wood_name', priceUsd: 39 }
+  ],
+  Fire: [
+    { image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=carnelian%20crystal%20sphere%20warm%20glow%20nordic%20decor&image_size=square', nameKey: 'test.rec_fire_name', priceUsd: 49 },
+    { image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=red%20candle%20holder%20brass%20minimalist%20luxury&image_size=square', nameKey: 'test.rec_fire_name', priceUsd: 65 },
+    { image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=sunstone%20crystal%20point%20warm%20energy%20decor&image_size=square', nameKey: 'test.rec_fire_name', priceUsd: 55 }
+  ],
+  Earth: [
+    { image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=citrine%20geode%20golden%20warm%20nordic%20interior&image_size=square', nameKey: 'test.rec_earth_name', priceUsd: 79 },
+    { image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=terra%20cotta%20ceramic%20vase%20minimalist%20luxury&image_size=square', nameKey: 'test.rec_earth_name', priceUsd: 42 },
+    { image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=tiger%20eye%20stone%20bracelet%20grounding%20energy&image_size=square', nameKey: 'test.rec_earth_name', priceUsd: 35 }
+  ],
+  Metal: [
+    { image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=clear%20quartz%20crystal%20cluster%20minimalist%20decor&image_size=square', nameKey: 'test.rec_metal_name', priceUsd: 69 },
+    { image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=selenite%20tower%20lamp%20nordic%20glow%20luxury&image_size=square', nameKey: 'test.rec_metal_name', priceUsd: 89 },
+    { image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=silver%20singing%20bowl%20meditation%20minimalist&image_size=square', nameKey: 'test.rec_metal_name', priceUsd: 56 }
+  ],
+  Water: [
+    { image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=lapis%20lazuli%20sphere%20deep%20blue%20luxury%20decor&image_size=square', nameKey: 'test.rec_water_name', priceUsd: 72 },
+    { image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=black%20obsidian%20mirror%20feng%20shui%20nordic&image_size=square', nameKey: 'test.rec_water_name', priceUsd: 48 },
+    { image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=aquamarine%20crystal%20point%20calm%20energy&image_size=square', nameKey: 'test.rec_water_name', priceUsd: 65 }
+  ]
+};
+---
+<BaseLayout title="Five Elements Test | Oriental Vibe">
+  <style is:global>
+    /* ===== Element Test Page Styles ===== */
+    .et-hero { min-height:100vh; display:flex; align-items:center; justify-content:center; text-align:center; padding:calc(var(--navbar-height) + 4rem) 2rem 4rem; background:linear-gradient(180deg,var(--color-bg-primary) 0%,var(--color-bg-secondary) 100%); position:relative; overflow:hidden; }
+    .et-hero::before { content:''; position:absolute; top:20%; left:50%; transform:translateX(-50%); width:600px; height:600px; background:radial-gradient(circle,rgba(191,175,150,0.08) 0%,transparent 70%); border-radius:50%; pointer-events:none; }
+    .et-hero-inner { max-width:680px; position:relative; z-index:1; }
+    .et-hero-sub { font-size:0.85rem; text-transform:uppercase; letter-spacing:0.15em; color:var(--color-text-tertiary); margin-bottom:1.5rem; font-weight:400; }
+    .et-hero-title { margin-bottom:1.5rem; }
+    .et-hero-desc { font-size:1.1rem; color:var(--color-text-secondary); margin-bottom:2.5rem; max-width:580px; margin-left:auto; margin-right:auto; line-height:1.8; }
+
+    /* Step form */
+    .et-form { display:flex; flex-direction:column; gap:1.5rem; text-align:left; margin-top:2rem; }
+    .et-step { opacity:0; transform:translateY(16px); transition:opacity 0.5s ease,transform 0.5s ease; max-height:0; overflow:hidden; }
+    .et-step.active { opacity:1; transform:translateY(0); max-height:700px; }
+    .et-field-group { text-align:left; }
+    .et-field-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    .et-birthdate-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.75rem; }
+    .et-birthdate-col { position:relative; }
+    .et-label { display:block; font-size:0.9rem; margin-bottom:0.5rem; color:var(--color-text-primary); font-weight:400; }
+    .et-input, .et-select { width:100%; padding:0.875rem 1.25rem; border:1px solid var(--color-border); border-radius:var(--radius-sm); background:#FFF; font-family:inherit; font-size:0.95rem; color:var(--color-text-primary); transition:var(--transition-base); }
+    .et-input:focus, .et-select:focus { outline:none; border-color:var(--color-accent); box-shadow:0 0 0 3px rgba(191,175,150,0.15); }
+    .et-progress { display:flex; align-items:center; justify-content:center; margin-bottom:1rem; gap:0; }
+    .et-progress-dot { width:12px; height:12px; border-radius:50%; background:var(--color-border); transition:var(--transition-base); flex-shrink:0; position:relative; z-index:1; }
+    .et-progress-dot.filled { background:var(--color-accent-dark); box-shadow:0 0 0 4px rgba(191,175,150,0.2); }
+    .et-progress-line { flex:0 0 40px; height:2px; background:var(--color-border); margin:0 4px; }
+    .et-progress-label { font-size:0.8rem; color:var(--color-text-tertiary); text-align:center; margin-top:0.25rem; margin-bottom:2rem; font-weight:500; }
+
+    /* Hero highlights */
+    .et-hero-highlights { display:grid; grid-template-columns:repeat(2,1fr); gap:0.75rem; margin-bottom:2rem; max-width:500px; margin-left:auto; margin-right:auto; }
+    .et-hero-highlight-item { display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; color:var(--color-text-secondary); }
+    .et-hero-highlight-icon { color:var(--color-accent-dark); font-size:1rem; }
+
+    /* Step titles */
+    .et-step-title { font-family:var(--font-serif); font-size:1.35rem; font-weight:500; color:var(--color-text-primary); margin-bottom:0.25rem; }
+    .et-step-desc { font-size:0.9rem; color:var(--color-text-secondary); margin-bottom:1.25rem; }
+    .et-step-actions { display:flex; gap:0.75rem; justify-content:center; margin-top:1.5rem; flex-wrap:wrap; }
+    .et-step-actions .btn { min-width:140px; }
+
+    .et-optional { font-size:0.75rem; color:var(--color-text-tertiary); font-weight:400; margin-left:0.25rem; }
+    .et-field-hint { font-size:0.75rem; color:var(--color-text-tertiary); margin-top:0.5rem; line-height:1.5; }
+
+    /* Crystal showcase */
+    .et-crystal-showcase { margin:2.5rem 0 1.5rem; text-align:center; }
+    .et-crystal-showcase-title { font-family:var(--font-serif); font-size:1.5rem; color:var(--color-text-primary); margin-bottom:0.5rem; }
+    .et-crystal-showcase-sub { font-size:0.9rem; color:var(--color-text-secondary); margin-bottom:1.5rem; }
+    .et-crystal-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:0.75rem; }
+    .et-crystal-card { background:var(--color-bg-card); border:1px solid var(--color-border-light); border-radius:var(--radius-md); padding:1rem 0.75rem; cursor:pointer; transition:var(--transition-base); position:relative; overflow:hidden; }
+    .et-crystal-card:hover { transform:translateY(-4px); box-shadow:var(--shadow-sm); border-color:var(--color-accent); }
+    .et-crystal-card-img { width:80px; height:80px; margin:0 auto 0.75rem; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--font-serif); font-size:1.8rem; color:#fff; }
+    .et-crystal-card-name { font-family:var(--font-serif); font-size:1rem; color:var(--color-text-primary); margin-bottom:0.25rem; }
+    .et-crystal-card-el { font-size:0.75rem; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.5rem; }
+    .et-crystal-card-desc { font-size:0.78rem; color:var(--color-text-secondary); line-height:1.5; }
+    .et-crystal-card-btn { margin-top:0.75rem; font-size:0.75rem; padding:0.4rem 0.8rem; border-radius:999px; background:var(--color-accent); color:#fff; border:none; cursor:pointer; transition:var(--transition-base); }
+    .et-crystal-card-btn:hover { background:var(--color-accent-dark); }
+
+    /* Trust badges */
+    .et-trust-badges { display:flex; gap:2rem; justify-content:center; margin-top:2rem; flex-wrap:wrap; }
+    .et-trust-badge { display:flex; align-items:center; gap:0.5rem; font-size:0.8rem; color:var(--color-text-tertiary); }
+    .et-trust-badge span:first-child { font-size:1.1rem; }
+
+    /* Gender radio */
+    .et-gender-group { display:flex; gap:0.75rem; }
+    .et-gender-option { flex:1; position:relative; }
+    .et-gender-option input { position:absolute; opacity:0; }
+    .et-gender-option label { display:block; padding:0.875rem 1.25rem; border:1px solid var(--color-border); border-radius:var(--radius-sm); background:#FFF; text-align:center; cursor:pointer; transition:var(--transition-base); font-size:0.95rem; }
+    .et-gender-option input:checked + label { border-color:var(--color-accent); background:rgba(191,175,150,0.08); color:var(--color-accent-dark); font-weight:500; }
+
+    /* Loading overlay */
+    .et-loading { display:none; position:fixed; inset:0; z-index:var(--z-overlay); background:rgba(245,241,235,0.92); backdrop-filter:blur(8px); align-items:center; justify-content:center; flex-direction:column; gap:2rem; }
+    .et-loading.show { display:flex; }
+    .et-spinner { width:48px; height:48px; border:2px solid var(--color-border); border-top-color:var(--color-accent-dark); border-radius:50%; animation:et-spin 0.9s linear infinite; }
+    @keyframes et-spin { to { transform:rotate(360deg); } }
+    .et-loading-text { font-family:var(--font-serif); font-size:1.2rem; color:var(--color-text-secondary); }
+    .et-loading-steps { display:flex; flex-direction:column; gap:0.5rem; text-align:center; }
+    .et-loading-step { font-size:0.85rem; color:var(--color-text-tertiary); opacity:0.4; transition:opacity 0.3s ease; }
+    .et-loading-step.active { opacity:1; color:var(--color-accent-dark); }
+
+    /* Result section */
+    .et-result { display:none; padding:var(--section-padding) 0; }
+    .et-result.show { display:block; }
+    .et-result-inner { max-width:1080px; margin:0 auto; padding:0 1.5rem; }
+    .et-result-header { text-align:center; margin-bottom:3rem; }
+    .et-result-header h2 { margin-bottom:0.5rem; }
+    .et-result-header p { color:var(--color-text-secondary); }
+
+    .et-birth-info { display:flex; justify-content:center; gap:2rem; margin-top:1.5rem; flex-wrap:wrap; }
+    .et-birth-info-item { display:flex; flex-direction:column; gap:0.25rem; align-items:center; }
+    .et-birth-info-label { font-size:0.8rem; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.08em; }
+    .et-birth-info-value { font-size:1rem; font-weight:600; color:var(--color-text-primary); font-family:var(--font-serif); }
+
+    /* Section title */
+    .et-section-title { font-family:var(--font-serif); font-size:1.4rem; color:var(--color-text-primary); text-align:center; margin-bottom:1.5rem; }
+    .et-section-subtitle { text-align:center; color:var(--color-text-tertiary); font-size:0.85rem; margin-bottom:2rem; letter-spacing:0.05em; }
+
+    /* BaZi Chart */
+    .et-bazi { background:var(--color-bg-card); border-radius:var(--radius-lg); padding:2rem; margin-bottom:2rem; border:1px solid var(--color-border-light); box-shadow:var(--shadow-sm); }
+    .et-bazi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; }
+    .et-bazi-pillar { text-align:center; padding:1rem 0.5rem; background:var(--color-bg-secondary); border-radius:var(--radius-sm); border:1px solid var(--color-border-light); }
+    .et-bazi-pillar-label { font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--color-text-tertiary); margin-bottom:0.5rem; }
+    .et-bazi-pillar-stem { font-family:var(--font-serif); font-size:1.5rem; color:var(--color-text-primary); line-height:1.2; }
+    .et-bazi-pillar-branch { font-family:var(--font-serif); font-size:1.5rem; color:var(--color-accent-dark); line-height:1.2; margin-top:0.25rem; }
+    .et-bazi-pillar-el { font-size:0.65rem; color:var(--color-text-tertiary); margin-top:0.4rem; line-height:1.4; }
+    .et-bazi-info { display:flex; justify-content:center; gap:1.5rem; margin-top:1.5rem; flex-wrap:wrap; }
+    .et-bazi-info-item { text-align:center; padding:0.75rem 1.25rem; background:var(--color-bg-secondary); border-radius:var(--radius-sm); }
+    .et-bazi-info-label { font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--color-text-tertiary); margin-bottom:0.2rem; }
+    .et-bazi-info-value { font-family:var(--font-serif); font-size:1rem; color:var(--color-text-primary); }
+
+    /* Day Master Card */
+    .et-daymaster { background:linear-gradient(135deg,var(--color-bg-card) 0%,var(--color-bg-secondary) 100%); border-radius:var(--radius-lg); padding:2rem; margin-bottom:2rem; border:1px solid var(--color-border-light); box-shadow:var(--shadow-sm); text-align:center; }
+    .et-daymaster-badge { display:inline-block; padding:0.4rem 1rem; border-radius:999px; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--color-accent-dark); background:rgba(191,175,150,0.15); margin-bottom:1rem; }
+    .et-daymaster-stem { font-family:var(--font-serif); font-size:2.5rem; margin-bottom:0.5rem; line-height:1; }
+    .et-daymaster-meta { display:flex; justify-content:center; gap:1.5rem; margin-bottom:1rem; font-size:0.85rem; color:var(--color-text-tertiary); }
+    .et-daymaster-desc { font-size:0.95rem; color:var(--color-text-secondary); max-width:600px; margin:0 auto; line-height:1.75; }
+
+    /* Distribution */
+    .et-distribution { text-align:center; margin-bottom:2rem; }
+    .et-chart-row { display:flex; align-items:center; gap:3rem; justify-content:center; flex-wrap:wrap; }
+    .et-donut-wrap { position:relative; width:220px; height:220px; flex-shrink:0; }
+    .et-donut { width:220px; height:220px; border-radius:50%; position:relative; }
+    .et-donut::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:110px; height:110px; border-radius:50%; background:var(--color-bg-primary); }
+    .et-donut-label { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; z-index:1; }
+    .et-donut-label small { display:block; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--color-text-tertiary); }
+    .et-donut-label span { font-family:var(--font-serif); font-size:1.1rem; color:var(--color-text-primary); }
+
+    /* Legend */
+    .et-legend { display:flex; flex-direction:column; gap:0.75rem; }
+    .et-legend-item { display:flex; align-items:center; gap:0.75rem; }
+    .et-legend-dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; }
+    .et-legend-name { font-size:0.9rem; color:var(--color-text-primary); min-width:60px; }
+    .et-legend-pct { font-family:var(--font-serif); font-size:1.1rem; color:var(--color-text-primary); min-width:48px; }
+    .et-legend-bar-wrap { width:120px; height:6px; background:var(--color-border-light); border-radius:3px; overflow:hidden; }
+    .et-legend-bar { height:100%; border-radius:3px; transition:width 1s ease; }
+
+    /* Strength */
+    .et-strength { background:var(--color-bg-card); border-radius:var(--radius-lg); padding:1.75rem; margin-bottom:2rem; text-align:center; border:1px solid var(--color-border-light); box-shadow:var(--shadow-sm); }
+    .et-strength-badge { display:inline-block; padding:0.5rem 1.5rem; border-radius:999px; font-family:var(--font-serif); font-size:1.1rem; margin-bottom:0.75rem; }
+    .et-strength-badge.strong { background:rgba(196,90,90,0.12); color:#C45A5A; }
+    .et-strength-badge.weak { background:rgba(90,122,138,0.12); color:#5A7A8A; }
+    .et-strength-badge.balanced { background:rgba(107,155,107,0.12); color:#6B9B6B; }
+    .et-strength-desc { font-size:0.9rem; color:var(--color-text-secondary); max-width:600px; margin:0 auto; line-height:1.7; }
+
+    /* Useful Gods */
+    .et-useful-gods { background:var(--color-bg-card); border-radius:var(--radius-lg); padding:1.75rem; margin-bottom:2rem; border:1px solid var(--color-border-light); box-shadow:var(--shadow-sm); }
+    .et-gods-row { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
+    .et-god-card { text-align:center; padding:1.25rem 0.75rem; background:var(--color-bg-secondary); border-radius:var(--radius-sm); border:1px solid var(--color-border-light); }
+    .et-god-card-label { font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--color-text-tertiary); margin-bottom:0.5rem; }
+    .et-god-card-value { font-family:var(--font-serif); font-size:1.3rem; margin-bottom:0.4rem; }
+    .et-god-card-desc { font-size:0.8rem; color:var(--color-text-secondary); line-height:1.5; }
+
+    /* Ten Gods */
+    .et-ten-gods { background:var(--color-bg-card); border-radius:var(--radius-lg); padding:1.75rem; margin-bottom:2rem; border:1px solid var(--color-border-light); box-shadow:var(--shadow-sm); }
+    .et-ten-gods-cats { display:grid; grid-template-columns:repeat(5,1fr); gap:0.75rem; margin-bottom:1.5rem; }
+    .et-god-cat { text-align:center; padding:0.875rem 0.5rem; background:var(--color-bg-secondary); border-radius:var(--radius-sm); border:1px solid var(--color-border-light); transition:var(--transition-base); cursor:pointer; }
+    .et-god-cat:hover { transform:translateY(-2px); box-shadow:var(--shadow-xs); }
+    .et-god-cat.active { border-color:var(--color-accent); background:rgba(191,175,150,0.08); }
+    .et-god-cat-name { font-size:0.8rem; color:var(--color-text-primary); font-weight:500; margin-bottom:0.25rem; }
+    .et-god-cat-sub { font-size:0.65rem; color:var(--color-text-tertiary); line-height:1.3; }
+    .et-god-detail { padding:1rem; background:var(--color-bg-secondary); border-radius:var(--radius-sm); min-height:80px; }
+    .et-god-detail-title { font-size:0.95rem; margin-bottom:0.4rem; color:var(--color-accent-dark); }
+    .et-god-detail-desc { font-size:0.85rem; color:var(--color-text-secondary); line-height:1.6; }
+
+    /* Two-col highlight */
+    .et-highlight-row { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:2rem; }
+    .et-highlight-card { background:var(--color-bg-card); border-radius:var(--radius-lg); padding:2rem; text-align:center; border:1px solid var(--color-border-light); box-shadow:var(--shadow-sm); }
+    .et-highlight-card h4 { font-size:0.8rem; text-transform:uppercase; letter-spacing:0.12em; color:var(--color-text-tertiary); margin-bottom:0.75rem; }
+    .et-highlight-value { font-family:var(--font-serif); font-size:2.2rem; margin-bottom:0.5rem; line-height:1.2; }
+    .et-highlight-desc { font-size:0.88rem; color:var(--color-text-secondary); line-height:1.7; }
+
+    /* Grid sections */
+    .et-grid-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:2rem; }
+    .et-grid-card { background:var(--color-bg-card); border-radius:var(--radius-sm); padding:1.25rem; text-align:center; border:1px solid var(--color-border-light); }
+    .et-grid-card-label { font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--color-text-tertiary); margin-bottom:0.5rem; }
+    .et-grid-card-value { font-family:var(--font-serif); font-size:0.95rem; color:var(--color-text-primary); line-height:1.45; }
+
+    /* Luck */
+    .et-luck-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
+    .et-luck-card { background:var(--color-bg-card); border-radius:var(--radius-sm); padding:1.1rem; text-align:center; border:1px solid var(--color-border-light); }
+    .et-luck-card-label { font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--color-text-tertiary); margin-bottom:0.4rem; }
+    .et-luck-card-value { font-family:var(--font-serif); font-size:0.9rem; color:var(--color-text-primary); line-height:1.4; }
+    .et-luck-card-wide { grid-column:span 3; }
+
+    /* Analysis cards */
+    .et-analysis-section { background:var(--color-bg-card); border-radius:var(--radius-lg); padding:1.75rem; margin-bottom:2rem; border:1px solid var(--color-border-light); box-shadow:var(--shadow-sm); }
+    .et-analysis-title { font-family:var(--font-serif); font-size:1.2rem; margin-bottom:1rem; text-align:center; }
+    .et-analysis-list { display:flex; flex-direction:column; gap:0.75rem; }
+    .et-analysis-item { display:flex; gap:0.75rem; align-items:flex-start; font-size:0.88rem; color:var(--color-text-secondary); line-height:1.6; }
+    .et-analysis-bullet { width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#fff; font-size:0.65rem; margin-top:2px; font-weight:500; }
+
+    /* Da Yun */
+    .et-dayun-section { background:var(--color-bg-card); border-radius:var(--radius-lg); padding:1.75rem; margin-bottom:2rem; border:1px solid var(--color-border-light); box-shadow:var(--shadow-sm); }
+    .et-dayun-header { display:flex; justify-content:center; gap:2rem; margin-bottom:1.5rem; flex-wrap:wrap; }
+    .et-dayun-meta { text-align:center; }
+    .et-dayun-meta-label { font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--color-text-tertiary); margin-bottom:0.25rem; }
+    .et-dayun-meta-value { font-family:var(--font-serif); font-size:1rem; color:var(--color-text-primary); }
+    .et-dayun-timeline { display:flex; gap:0.5rem; overflow-x:auto; padding-bottom:0.5rem; }
+    .et-dayun-pillar { flex-shrink:0; width:80px; text-align:center; padding:0.75rem 0.25rem; background:var(--color-bg-secondary); border-radius:var(--radius-sm); border:1px solid var(--color-border-light); transition:var(--transition-base); }
+    .et-dayun-pillar.current { border-color:var(--color-accent); background:rgba(191,175,150,0.1); box-shadow:0 0 0 2px rgba(191,175,150,0.2); }
+    .et-dayun-pillar-age { font-size:0.7rem; color:var(--color-text-tertiary); margin-bottom:0.3rem; }
+    .et-dayun-pillar-stem { font-family:var(--font-serif); font-size:1.1rem; color:var(--color-text-primary); line-height:1.1; }
+    .et-dayun-pillar-branch { font-family:var(--font-serif); font-size:1.1rem; color:var(--color-accent-dark); line-height:1.1; }
+    .et-dayun-pillar-label { font-size:0.6rem; color:var(--color-text-tertiary); margin-top:0.3rem; }
+
+    /* Relations */
+    .et-relations { background:var(--color-bg-secondary); border-radius:var(--radius-lg); padding:1.75rem; margin-bottom:2rem; border:1px solid var(--color-border-light); }
+    .et-relations-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; }
+    .et-relation-card { background:var(--color-bg-card); padding:1.1rem; border-radius:var(--radius-sm); border:1px solid var(--color-border-light); }
+    .et-relation-card h5 { font-size:0.85rem; margin-bottom:0.5rem; color:var(--color-accent-dark); }
+    .et-relation-card p { font-size:0.82rem; color:var(--color-text-secondary); line-height:1.6; }
+
+    /* Element details */
+    .et-details { display:grid; grid-template-columns:1fr; gap:1rem; margin-bottom:2rem; }
+    .et-detail-card { display:flex; align-items:flex-start; gap:1.25rem; padding:1.25rem; background:var(--color-bg-card); border-radius:var(--radius-lg); border:1px solid var(--color-border-light); box-shadow:var(--shadow-xs); transition:var(--transition-base); }
+    .et-detail-card:hover { box-shadow:var(--shadow-sm); transform:translateY(-2px); }
+    .et-detail-icon { width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-family:var(--font-serif); font-size:1.1rem; color:#fff; }
+    .et-detail-body { flex:1; }
+    .et-detail-name { font-family:var(--font-serif); font-size:1.05rem; color:var(--color-text-primary); margin-bottom:0.2rem; }
+    .et-detail-pct { font-size:0.8rem; color:var(--color-text-tertiary); margin-bottom:0.4rem; }
+    .et-detail-desc { font-size:0.85rem; color:var(--color-text-secondary); line-height:1.65; }
+
+    /* Missing */
+    .et-missing-section { margin-bottom:2rem; padding:1.75rem; background:var(--color-bg-secondary); border-radius:var(--radius-lg); border:1px solid var(--color-border-light); }
+    .et-missing-section h3 { font-family:var(--font-serif); margin-bottom:1rem; text-align:center; }
+    .et-missing-list { display:flex; flex-direction:column; gap:0.65rem; }
+    .et-missing-item { display:flex; align-items:flex-start; gap:0.75rem; }
+    .et-missing-bullet { width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.7rem; color:#fff; margin-top:2px; }
+
+    /* Recommendations */
+    .et-rec-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; }
+    .et-rec-card { background:var(--color-bg-card); border-radius:var(--radius-lg); overflow:hidden; border:1px solid var(--color-border-light); box-shadow:var(--shadow-sm); transition:var(--transition-base); text-align:center; }
+    .et-rec-card:hover { box-shadow:var(--shadow-md); transform:translateY(-4px); }
+    .et-rec-card img { width:100%; aspect-ratio:1; object-fit:cover; }
+    .et-rec-card-body { padding:1.1rem; }
+    .et-rec-card h4 { font-family:var(--font-serif); font-size:1rem; font-weight:400; margin-bottom:0.4rem; }
+    .et-rec-price { font-family:var(--font-serif); font-size:1.3rem; color:var(--color-text-primary); margin-bottom:0.65rem; }
+
+    /* Actions */
+    .et-actions { display:flex; gap:0.75rem; justify-content:center; margin-top:1.5rem; flex-wrap:wrap; }
+    .et-actions .btn { display:inline-flex; align-items:center; gap:0.5rem; }
+    .et-report-actions { text-align:center; margin-top:3rem; padding-top:2rem; border-top:1px solid var(--color-border-light); }
+    .et-report-actions-title { font-family:var(--font-serif); font-size:1.1rem; font-weight:500; margin-bottom:0.75rem; color:var(--color-text-primary); }
+
+    /* Lucky year */
+    .et-lucky-year { background:var(--color-bg-card); border-radius:var(--radius-lg); padding:1.75rem; margin-bottom:2rem; border:1px solid var(--color-border-light); box-shadow:var(--shadow-sm); }
+    .et-lucky-scores { display:grid; grid-template-columns:repeat(5,1fr); gap:0.75rem; margin-top:1rem; }
+    .et-lucky-score { text-align:center; padding:0.875rem 0.25rem; background:var(--color-bg-secondary); border-radius:var(--radius-sm); }
+    .et-lucky-score-label { font-size:0.7rem; color:var(--color-text-tertiary); margin-bottom:0.4rem; }
+    .et-lucky-score-val { font-family:var(--font-serif); font-size:1.4rem; color:var(--color-accent-dark); }
+    .et-lucky-score-bar { width:100%; height:4px; background:var(--color-border-light); border-radius:2px; margin-top:0.4rem; overflow:hidden; }
+    .et-lucky-score-fill { height:100%; background:var(--color-accent); border-radius:2px; }
+
+    /* Responsive */
+    @media (max-width:768px) {
+      .et-crystal-grid { grid-template-columns:repeat(2,1fr); }
+      .et-crystal-card-img { width:70px; height:70px; font-size:1.5rem; }
+      .et-chart-row { flex-direction:column; gap:2rem; }
+      .et-highlight-row { grid-template-columns:1fr; }
+      .et-rec-grid { grid-template-columns:1fr; }
+      .et-legend-bar-wrap { width:80px; }
+      .et-donut-wrap,.et-donut { width:180px; height:180px; }
+      .et-donut::after { width:90px; height:90px; }
+      .et-bazi-grid { grid-template-columns:repeat(2,1fr); }
+      .et-field-row { grid-template-columns:1fr; }
+      .et-birthdate-row { gap:0.5rem; }
+      .et-gods-row { grid-template-columns:1fr; }
+      .et-ten-gods-cats { grid-template-columns:repeat(3,1fr); }
+      .et-grid-cards { grid-template-columns:1fr; }
+      .et-luck-grid { grid-template-columns:1fr; }
+      .et-luck-card-wide { grid-column:span 1; }
+      .et-relations-grid { grid-template-columns:1fr; }
+      .et-lucky-scores { grid-template-columns:repeat(3,1fr); }
+    }
+
+    /* ===== Paywall ===== */
+    .et-paywall-overlay {
+      position: relative;
+      margin-top: 2rem;
+    }
+    .et-paywall-lock {
+      background: linear-gradient(180deg, rgba(245,241,235,0) 0%, rgba(245,241,235,0.92) 35%, rgba(245,241,235,0.98) 60%, rgba(245,241,235,1) 100%);
+      padding: 4rem 2rem 2rem;
+      text-align: center;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border);
+      margin-top: -4rem;
+      position: relative;
+      z-index: 2;
+    }
+    .et-paywall-lock-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: var(--color-accent-light);
+      color: var(--color-accent-dark);
+    }
+    .et-paywall-lock h3 {
+      font-family: var(--font-serif);
+      font-size: 1.3rem;
+      margin-bottom: 0.5rem;
+      color: var(--color-text-primary);
+    }
+    .et-paywall-lock p {
+      color: var(--color-text-secondary);
+      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+    .et-paywall-price {
+      font-family: var(--font-serif);
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin-bottom: 0.5rem;
+    }
+    .et-paywall-price small {
+      font-size: 1rem;
+      font-weight: 400;
+      color: var(--color-text-tertiary);
+    }
+    .et-paywall-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+      max-width: 320px;
+      margin: 0 auto;
+    }
+    .et-paywall-actions .btn { width: 100%; }
+    .et-paywall-member-link {
+      font-size: 0.85rem;
+      color: var(--color-accent-dark);
+      cursor: pointer;
+      text-decoration: underline;
+      background: none;
+      border: none;
+      padding: 0.5rem;
+    }
+    .et-paywall-member-link:hover { color: var(--color-text-primary); }
+
+    /* Blurred content behind paywall */
+    .et-paywall-blur {
+      filter: blur(6px);
+      pointer-events: none;
+      user-select: none;
+      opacity: 0.4;
+      transition: filter 0.3s ease, opacity 0.3s ease;
+    }
+    .et-paywall-blur.unlocked {
+      filter: none;
+      pointer-events: auto;
+      user-select: auto;
+      opacity: 1;
+    }
+
+    /* ===== Payment Modal ===== */
+    .et-pay-modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1100;
+      background: rgba(58,64,61,0.5);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    .et-pay-modal-overlay.active { opacity: 1; visibility: visible; }
+    .et-pay-modal {
+      background: var(--color-bg-primary);
+      border-radius: var(--radius-xl);
+      max-width: 420px;
+      width: 100%;
+      padding: 2.5rem 2rem;
+      box-shadow: var(--shadow-xl);
+      position: relative;
+      transform: translateY(20px);
+      transition: transform 0.3s ease;
+    }
+    .et-pay-modal-overlay.active .et-pay-modal { transform: translateY(0); }
+    .et-pay-modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--color-border);
+      background: var(--color-bg-primary);
+      font-size: 1.2rem;
+      color: var(--color-text-tertiary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .et-pay-modal-close:hover { color: var(--color-text-primary); border-color: var(--color-accent); }
+    .et-pay-modal h3 {
+      font-family: var(--font-serif);
+      font-size: 1.3rem;
+      margin-bottom: 0.5rem;
+      text-align: center;
+    }
+    .et-pay-modal .et-pay-modal-price {
+      text-align: center;
+      font-family: var(--font-serif);
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+    }
+    .et-pay-modal .et-pay-modal-price small {
+      font-size: 0.9rem;
+      font-weight: 400;
+      color: var(--color-text-tertiary);
+    }
+    .et-pay-modal .form-group { margin-bottom: 1rem; }
+    .et-pay-modal .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-bottom: 0.4rem;
+      color: var(--color-text-primary);
+    }
+    .et-pay-modal .form-group input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      font-size: 0.95rem;
+      font-family: inherit;
+      background: var(--color-bg-tertiary);
+      color: var(--color-text-primary);
+    }
+    .et-pay-modal .form-group input:focus {
+      outline: none;
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 3px rgba(191,175,150,0.15);
+    }
+    .et-pay-card-row {
+      display: grid;
+      grid-template-columns: 1fr 80px;
+      gap: 0.75rem;
+    }
+    .et-pay-secure {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      font-size: 0.78rem;
+      color: var(--color-text-tertiary);
+      margin-top: 1rem;
+    }
+
+    /* ===== Consultation Upgrade CTA ===== */
+    .et-consult-upgrade {
+      background: linear-gradient(135deg, var(--color-accent-light) 0%, var(--color-bg-card) 100%);
+      border: 2px solid var(--color-accent);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem;
+      text-align: center;
+      margin-top: 2rem;
+      margin-bottom: 2rem;
+    }
+    .et-consult-upgrade h3 {
+      font-family: var(--font-serif);
+      font-size: 1.4rem;
+      margin-bottom: 0.75rem;
+      color: var(--color-text-primary);
+    }
+    .et-consult-upgrade p {
+      color: var(--color-text-secondary);
+      margin-bottom: 1.5rem;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.6;
+    }
+    .et-consult-upgrade .et-paywall-price {
+      font-size: 2rem;
+      margin-bottom: 1.25rem;
+    }
+    .et-consult-upgrade .btn { min-width: 240px; }
+    .et-consult-features {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-top: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .et-consult-feature {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--color-text-secondary);
+    }
+    .et-consult-feature svg { color: var(--state-success); flex-shrink: 0; }
+
+    /* Paywall improvements */
+    .et-paywall-preview-label {
+      display: inline-block;
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-accent-dark);
+      background: rgba(191,175,150,0.12);
+      margin-bottom: 1rem;
+    }
+    .et-paywall-unlock-list {
+      list-style: none;
+      padding: 0;
+      margin: 1.25rem 0;
+      text-align: left;
+      max-width: 360px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .et-paywall-unlock-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.65rem;
+      padding: 0.45rem 0;
+      font-size: 0.88rem;
+      color: var(--color-text-secondary);
+      line-height: 1.45;
+    }
+    .et-paywall-unlock-list li svg {
+      flex-shrink: 0;
+      margin-top: 2px;
+      color: var(--state-success);
+    }
+    .et-paywall-social {
+      font-size: 0.8rem;
+      color: var(--color-text-tertiary);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .et-paywall-one-time {
+      font-size: 0.8rem;
+      color: var(--color-text-tertiary);
+      margin-top: 0.25rem;
+    }
+    .et-paywall-member-form {
+      display: none;
+      margin-top: 1rem;
+      padding: 1rem;
+      background: var(--color-bg-secondary);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--color-border-light);
+      max-width: 320px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .et-paywall-member-form.show { display: block; }
+    .et-paywall-member-form input {
+      width: 100%;
+      padding: 0.6rem 0.85rem;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-family: inherit;
+      background: var(--color-bg-tertiary);
+      color: var(--color-text-primary);
+      margin-bottom: 0.5rem;
+    }
+    .et-paywall-member-form input:focus {
+      outline: none;
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 2px rgba(191,175,150,0.15);
+    }
+    .et-paywall-member-form .btn { width: 100%; font-size: 0.85rem; }
+
+    /* Payment modal improvements */
+    .et-pay-modal-summary {
+      background: var(--color-bg-secondary);
+      border-radius: var(--radius-sm);
+      padding: 1rem;
+      margin-bottom: 1.25rem;
+    }
+    .et-pay-modal-summary h4 {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-text-tertiary);
+      margin-bottom: 0.65rem;
+    }
+    .et-pay-modal-summary ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .et-pay-modal-summary ul li {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.82rem;
+      color: var(--color-text-secondary);
+      padding: 0.25rem 0;
+    }
+    .et-pay-modal-summary ul li svg { color: var(--state-success); flex-shrink: 0; }
+    .et-pay-modal-guarantee {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      font-size: 0.78rem;
+      color: var(--color-text-tertiary);
+      margin-top: 0.75rem;
+    }
+    .et-pay-modal-testimonial {
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--color-text-tertiary);
+      font-style: italic;
+      margin-top: 1rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--color-border-light);
+      line-height: 1.5;
+    }
+
+    /* Consultation upgrade improvements */
+    .et-consult-testimonial {
+      font-style: italic;
+      font-size: 0.88rem;
+      color: var(--color-text-secondary);
+      line-height: 1.6;
+      max-width: 480px;
+      margin: 0 auto 1.25rem;
+      padding: 0 1rem;
+    }
+    .et-consult-limited {
+      display: inline-block;
+      padding: 0.3rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #C45A5A;
+      background: rgba(196,90,90,0.1);
+      margin-bottom: 1rem;
+    }
+
+    /* Email toast */
+    .et-email-toast {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 600;
+      background: #fff;
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+      border-left: 4px solid var(--state-success);
+      display: flex;
+      align-items: flex-start;
+      gap: 0.85rem;
+      max-width: 380px;
+      transform: translateX(120%);
+      transition: transform 0.35s ease;
+    }
+    .et-email-toast.show { transform: translateX(0); }
+    .et-email-toast-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #E8F5E8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: #5a7a5a;
+      font-size: 1.1rem;
+    }
+    .et-email-toast-body h4 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      margin-bottom: 0.25rem;
+    }
+    .et-email-toast-body p {
+      font-size: 0.8rem;
+      color: var(--color-text-secondary);
+      line-height: 1.45;
+      margin: 0;
+    }
+    .et-email-toast-close {
+      position: absolute;
+      top: 8px;
+      right: 10px;
+      background: none;
+      border: none;
+      font-size: 1.1rem;
+      color: var(--color-text-tertiary);
+      cursor: pointer;
+      padding: 2px 6px;
+      line-height: 1;
+    }
+  </style>
+
+  <!-- ===== Hero / Form ===== -->
+  <section class="et-hero fade-in">
+    <div class="et-hero-inner fade-in">
+      <p class="et-hero-sub" data-i18n="test.hero_subtitle">BaZi Five Elements Report</p>
+      <h1 class="et-hero-title" data-i18n="test.hero_title">Discover Your Destiny Through Birth Date</h1>
+      <p class="et-hero-desc" data-i18n="test.hero_desc">
+        Enter your birth date and time to generate your personalized Five Elements (Wu Xing) report. Uncover your Day Master, element distribution, wealth, career, and relationship insights based on ancient Chinese BaZi astrology.
+      </p>
+
+      <div class="et-hero-highlights">
+        <div class="et-hero-highlight-item">
+          <span class="et-hero-highlight-icon">&#9733;</span>
+          <span data-i18n="test.highlight_1">Day Master & Element Profile</span>
+        </div>
+        <div class="et-hero-highlight-item">
+          <span class="et-hero-highlight-icon">&#9733;</span>
+          <span data-i18n="test.highlight_2">Wealth & Career Analysis</span>
+        </div>
+        <div class="et-hero-highlight-item">
+          <span class="et-hero-highlight-icon">&#9733;</span>
+          <span data-i18n="test.highlight_3">Relationship & Health Insights</span>
+        </div>
+        <div class="et-hero-highlight-item">
+          <span class="et-hero-highlight-icon">&#9733;</span>
+          <span data-i18n="test.highlight_4">10-Year Luck Cycles</span>
+        </div>
+      </div>
+
+      <div class="et-crystal-showcase">
+        <h3 class="et-crystal-showcase-title" data-i18n="test.shop_crystals_title">Five Elements Crystals</h3>
+        <p class="et-crystal-showcase-sub" data-i18n="test.shop_crystals_subtitle">Each element has its own crystal to help balance your energy</p>
+        <div class="et-crystal-grid" id="etCrystalGrid">
+          <div class="et-crystal-card" data-element="Wood">
+            <div class="et-crystal-card-img" style="background:linear-gradient(135deg,#6B9B6B,#4A7A4A);">木</div>
+            <div class="et-crystal-card-name" data-i18n="test.crystal_wood_name">Green Aventurine</div>
+            <div class="et-crystal-card-el" data-i18n="test.element_wood">Wood</div>
+            <div class="et-crystal-card-desc" data-i18n="test.crystal_wood_desc">Nurtures growth and creativity</div>
+            <button class="et-crystal-card-btn et-crystal-shop-btn" data-i18n="test.shop_now">Shop Now</button>
+          </div>
+          <div class="et-crystal-card" data-element="Fire">
+            <div class="et-crystal-card-img" style="background:linear-gradient(135deg,#C45A5A,#A03030);">火</div>
+            <div class="et-crystal-card-name" data-i18n="test.crystal_fire_name">Carnelian</div>
+            <div class="et-crystal-card-el" data-i18n="test.element_fire">Fire</div>
+            <div class="et-crystal-card-desc" data-i18n="test.crystal_fire_desc">Boosts passion and leadership</div>
+            <button class="et-crystal-card-btn et-crystal-shop-btn" data-i18n="test.shop_now">Shop Now</button>
+          </div>
+          <div class="et-crystal-card" data-element="Earth">
+            <div class="et-crystal-card-img" style="background:linear-gradient(135deg,#C4A75A,#A08030);">土</div>
+            <div class="et-crystal-card-name" data-i18n="test.crystal_earth_name">Tiger's Eye</div>
+            <div class="et-crystal-card-el" data-i18n="test.element_earth">Earth</div>
+            <div class="et-crystal-card-desc" data-i18n="test.crystal_earth_desc">Enhances stability and wealth</div>
+            <button class="et-crystal-card-btn et-crystal-shop-btn" data-i18n="test.shop_now">Shop Now</button>
+          </div>
+          <div class="et-crystal-card" data-element="Metal">
+            <div class="et-crystal-card-img" style="background:linear-gradient(135deg,#C0C0C0,#8A948C);">金</div>
+            <div class="et-crystal-card-name" data-i18n="test.crystal_metal_name">Clear Quartz</div>
+            <div class="et-crystal-card-el" data-i18n="test.element_metal">Metal</div>
+            <div class="et-crystal-card-desc" data-i18n="test.crystal_metal_desc">Purifies and brings clarity</div>
+            <button class="et-crystal-card-btn et-crystal-shop-btn" data-i18n="test.shop_now">Shop Now</button>
+          </div>
+          <div class="et-crystal-card" data-element="Water">
+            <div class="et-crystal-card-img" style="background:linear-gradient(135deg,#5A7A8A,#3A5A6A);">水</div>
+            <div class="et-crystal-card-name" data-i18n="test.crystal_water_name">Lapis Lazuli</div>
+            <div class="et-crystal-card-el" data-i18n="test.element_water">Water</div>
+            <div class="et-crystal-card-desc" data-i18n="test.crystal_water_desc">Enhances wisdom and intuition</div>
+            <button class="et-crystal-card-btn et-crystal-shop-btn" data-i18n="test.shop_now">Shop Now</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="et-progress" id="etProgress">
+        <div class="et-progress-dot filled" data-step="1"></div>
+        <div class="et-progress-line"></div>
+        <div class="et-progress-dot" data-step="2"></div>
+        <div class="et-progress-line"></div>
+        <div class="et-progress-dot" data-step="3"></div>
+      </div>
+      <p class="et-progress-label" id="etProgressLabel"><span data-i18n="test.step">Step</span> <span id="etStepNum">1</span> <span data-i18n="test.step_of">of</span> 3 - <span id="etStepName" data-i18n="test.step_personal">Personal Info</span></p>
+
+      <form id="elementForm" class="et-form">
+        <div class="et-step active" id="etStep1">
+          <div class="et-step-title" data-i18n="test.step_1_title">Tell us about yourself</div>
+          <p class="et-step-desc" data-i18n="test.step_1_desc">We need your name and gender to personalize your report</p>
+          <div class="et-field-group">
+            <label for="formName" class="et-label" data-i18n="test.form_name">Your Name</label>
+            <input type="text" id="formName" name="name" required data-i18n-placeholder="test.form_name_placeholder" class="et-input" placeholder="Enter your name" />
+          </div>
+          <div class="et-field-group" style="margin-top:1rem;">
+            <label class="et-label" data-i18n="test.form_gender">Gender</label>
+            <div class="et-gender-group">
+              <div class="et-gender-option">
+                <input type="radio" id="genderMale" name="gender" value="male" checked />
+                <label for="genderMale" data-i18n="test.form_gender_male">Male</label>
+              </div>
+              <div class="et-gender-option">
+                <input type="radio" id="genderFemale" name="gender" value="female" />
+                <label for="genderFemale" data-i18n="test.form_gender_female">Female</label>
+              </div>
+            </div>
+          </div>
+          <div class="et-step-actions">
+            <button type="button" class="btn btn-primary btn-lg" id="btnNext1" data-i18n="test.next_step">Next Step &rarr;</button>
+          </div>
+        </div>
+
+        <div class="et-step" id="etStep2">
+          <div class="et-step-title" data-i18n="test.step_2_title">Your Birth Information</div>
+          <p class="et-step-desc" data-i18n="test.step_2_desc">Enter your exact birth date for accurate Five Elements calculation</p>
+          <div class="et-field-row">
+            <div class="et-field-group">
+              <label class="et-label" data-i18n="test.form_birthdate">Birth Date</label>
+              <div class="et-birthdate-row">
+                <div class="et-birthdate-col">
+                  <select id="formBirthYear" class="et-select" required>
+                    <option value="" data-i18n="test.form_year">Year</option>
+                  </select>
+                </div>
+                <div class="et-birthdate-col">
+                  <select id="formBirthMonth" class="et-select" required>
+                    <option value="" data-i18n="test.form_month">Month</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                  </select>
+                </div>
+                <div class="et-birthdate-col">
+                  <select id="formBirthDay" class="et-select" required>
+                    <option value="" data-i18n="test.form_day">Day</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="et-field-group">
+              <label for="formBirthtime" class="et-label">
+                <span data-i18n="test.form_birthtime">Birth Time</span>
+                <span class="et-optional" data-i18n="test.optional">(optional)</span>
+              </label>
+              <select id="formBirthtime" name="birthtime" class="et-select">
+                <option value="" data-i18n="test.form_birthtime_select">Select time</option>
+                <option value="zi" data-i18n="test.hour_zi">Zi (23:00-01:00)</option>
+                <option value="chou" data-i18n="test.hour_chou">Chou (01:00-03:00)</option>
+                <option value="yin" data-i18n="test.hour_yin">Yin (03:00-05:00)</option>
+                <option value="mao" data-i18n="test.hour_mao">Mao (05:00-07:00)</option>
+                <option value="chen" data-i18n="test.hour_chen">Chen (07:00-09:00)</option>
+                <option value="si" data-i18n="test.hour_si">Si (09:00-11:00)</option>
+                <option value="wu" data-i18n="test.hour_wu">Wu (11:00-13:00)</option>
+                <option value="wei" data-i18n="test.hour_wei">Wei (13:00-15:00)</option>
+                <option value="shen" data-i18n="test.hour_shen">Shen (15:00-17:00)</option>
+                <option value="you" data-i18n="test.hour_you">You (17:00-19:00)</option>
+                <option value="xu" data-i18n="test.hour_xu">Xu (19:00-21:00)</option>
+                <option value="hai" data-i18n="test.hour_hai">Hai (21:00-23:00)</option>
+              </select>
+              <p class="et-field-hint" data-i18n="test.birthtime_hint">For most accurate results, enter your exact birth hour. If unknown, results are still ~80% accurate.</p>
+            </div>
+          </div>
+          <div class="et-step-actions">
+            <button type="button" class="btn btn-outline" id="btnPrev2" data-i18n="test.prev_step">&larr; Back</button>
+            <button type="button" class="btn btn-primary btn-lg" id="btnNext2" data-i18n="test.next_step">Next Step &rarr;</button>
+          </div>
+        </div>
+
+        <div class="et-step" id="etStep3">
+          <div class="et-step-title" data-i18n="test.step_3_title">Get Your Report</div>
+          <p class="et-step-desc" data-i18n="test.step_3_desc">Enter your email to receive your personalized Five Elements report</p>
+          <div class="et-field-group">
+            <label for="formEmail" class="et-label" data-i18n="test.form_email">Email Address</label>
+            <input type="email" id="formEmail" name="email" required data-i18n-placeholder="test.form_email_placeholder" class="et-input" placeholder="your@email.com" />
+            <p class="et-field-hint" data-i18n="test.email_hint">We'll send your report to this email. We respect your privacy.</p>
+          </div>
+          <div class="et-step-actions">
+            <button type="button" class="btn btn-outline" id="btnPrev3" data-i18n="test.prev_step">&larr; Back</button>
+            <button type="submit" class="btn btn-primary btn-lg" id="btnSubmit" data-i18n="test.form_submit">
+              &#9889; Generate My Report
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <div class="et-trust-badges">
+        <div class="et-trust-badge">
+          <span>&#128274;</span>
+          <span data-i18n="test.trust_1">Secure & Private</span>
+        </div>
+        <div class="et-trust-badge">
+          <span>&#10003;</span>
+          <span data-i18n="test.trust_2">Instant Results</span>
+        </div>
+        <div class="et-trust-badge">
+          <span>&#11088;</span>
+          <span data-i18n="test.trust_3">Based on BaZi</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Loading Overlay ===== -->
+  <div id="etLoading" class="et-loading">
+    <div class="et-spinner"></div>
+    <p class="et-loading-text" data-i18n="test.loading_text">Analyzing your cosmic energy...</p>
+    <div class="et-loading-steps" id="etLoadingSteps">
+      <div class="et-loading-step" data-step="0" data-i18n="test.bazi_title">Building BaZi Chart</div>
+      <div class="et-loading-step" data-step="1" data-i18n="test.ten_gods_title">Calculating Ten Gods</div>
+      <div class="et-loading-step" data-step="2" data-i18n="test.useful_god_title">Finding Useful Gods</div>
+      <div class="et-loading-step" data-step="3" data-i18n="test.luck_title">Reading Fortune</div>
+    </div>
+  </div>
+
+  <!-- ===== Result Section ===== -->
+  <section id="resultSection" class="et-result">
+    <div class="et-result-inner">
+      <div class="et-result-header fade-in">
+        <h2 data-i18n="test.result_title">Your Five Elements Result</h2>
+        <p data-i18n="test.result_desc">Based on your birth data, here is your personalized energy profile</p>
+        <div class="et-birth-info" id="etBirthInfo">
+          <div class="et-birth-info-item">
+            <span class="et-birth-info-label" data-i18n="test.form_birthdate">Birth Date</span>
+            <span class="et-birth-info-value" id="etBirthDateValue">—</span>
+          </div>
+          <div class="et-birth-info-item">
+            <span class="et-birth-info-label" data-i18n="test.form_birthtime">Birth Time</span>
+            <span class="et-birth-info-value" id="etBirthTimeValue">—</span>
+          </div>
+          <div class="et-birth-info-item">
+            <span class="et-birth-info-label" data-i18n="test.form_gender">Gender</span>
+            <span class="et-birth-info-value" id="etGenderValue">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1. Day Master -->
+      <div class="et-daymaster fade-in" id="etDayMaster">
+        <div class="et-daymaster-badge" data-i18n="test.day_master">Day Master</div>
+        <div class="et-daymaster-stem" id="etDayMasterStem">—</div>
+        <div class="et-daymaster-meta">
+          <span id="etDayMasterEl">—</span>
+          <span>·</span>
+          <span id="etDayMasterYy">—</span>
+        </div>
+        <p class="et-daymaster-desc" id="etDayMasterDesc">—</p>
+      </div>
+
+      <!-- 2. BaZi Chart -->
+      <div class="et-bazi fade-in">
+        <div class="et-section-title" data-i18n="test.bazi_title">Your BaZi Chart</div>
+        <div class="et-bazi-grid" id="etBaziGrid"></div>
+        <div class="et-bazi-info" id="etBaziInfo"></div>
+      </div>
+
+      <!-- 3. Distribution -->
+      <div class="et-distribution fade-in">
+        <div class="et-section-title" data-i18n="test.distribution_title">Five Elements Distribution</div>
+        <div class="et-chart-row">
+          <div class="et-donut-wrap">
+            <div class="et-donut" id="etDonut"></div>
+            <div class="et-donut-label">
+              <small data-i18n="test.result_dominant">Dominant</small>
+              <span id="etDonutCenter">—</span>
+            </div>
+          </div>
+          <div class="et-legend" id="etLegend"></div>
+        </div>
+      </div>
+
+      <!-- 4. Strength + Useful Gods -->
+      <div class="et-highlight-row fade-in">
+        <div class="et-analysis-section" style="margin:0;">
+          <div class="et-analysis-title" data-i18n="test.strength_title">Chart Strength</div>
+          <div style="text-align:center;">
+            <span class="et-strength-badge" id="etStrengthBadge" style="margin-bottom:0.5rem;">—</span>
+            <p class="et-strength-desc" id="etStrengthDesc" style="margin:0 auto;"></p>
+          </div>
+        </div>
+        <div class="et-analysis-section" style="margin:0;">
+          <div class="et-analysis-title" data-i18n="test.useful_god_title">Useful & Favorable</div>
+          <div class="et-gods-row" id="etUsefulGods"></div>
+        </div>
+      </div>
+
+      <!-- 5. Ten Gods -->
+      <div class="et-ten-gods fade-in">
+        <div class="et-section-title" data-i18n="test.ten_gods_title">Ten Gods</div>
+        <p class="et-section-subtitle" data-i18n="test.ten_gods_desc">How your Day Master relates to other elements</p>
+        <div class="et-ten-gods-cats" id="etTenGodsCats"></div>
+        <div class="et-god-detail" id="etGodDetail">
+          <div class="et-god-detail-title" id="etGodDetailTitle">—</div>
+          <p class="et-god-detail-desc" id="etGodDetailDesc">—</p>
+        </div>
+      </div>
+
+      <!-- 6. Wealth -->
+      <div class="et-analysis-section fade-in">
+        <div class="et-analysis-title" data-i18n="test.wealth_title">Wealth Analysis</div>
+        <div class="et-grid-cards" id="etWealthGrid"></div>
+        <div class="et-analysis-list" id="etWealthTips"></div>
+      </div>
+
+      <!-- 7. Career -->
+      <div class="et-analysis-section fade-in">
+        <div class="et-analysis-title" data-i18n="test.career_title">Career Analysis</div>
+        <div class="et-grid-cards" id="etCareerGrid"></div>
+      </div>
+
+      <!-- 8. Relationship -->
+      <div class="et-analysis-section fade-in">
+        <div class="et-analysis-title" data-i18n="test.relationship_title">Relationship Analysis</div>
+        <div class="et-grid-cards" id="etRelGrid"></div>
+        <div class="et-analysis-list" id="etRelTips"></div>
+      </div>
+
+      <!-- 9. Health -->
+      <div class="et-analysis-section fade-in">
+        <div class="et-analysis-title" data-i18n="test.health_title">Health Tips</div>
+        <div class="et-analysis-list" id="etHealthTips"></div>
+      </div>
+
+      <!-- 10. Luck Guidance -->
+      <div class="et-analysis-section fade-in">
+        <div class="et-analysis-title" data-i18n="test.luck_title">Fortune Guidance</div>
+        <div class="et-luck-grid" id="etLuckGrid"></div>
+      </div>
+
+      <!-- 11. Da Yun -->
+      <div class="et-dayun-section fade-in">
+        <div class="et-section-title" data-i18n="test.dayun_title">10-Year Luck Cycles</div>
+        <p class="et-section-subtitle" data-i18n="test.dayun_desc">Each cycle shapes a different decade of your life</p>
+        <div class="et-dayun-header" id="etDayunHeader"></div>
+        <div class="et-dayun-timeline" id="etDayunTimeline"></div>
+      </div>
+
+      <!-- 12. Element Details -->
+      <div class="et-details fade-in" id="etDetails"></div>
+
+      <!-- 13. Relations -->
+      <div class="et-relations fade-in">
+        <div class="et-section-title" data-i18n="test.balance_title">Five Elements Balance</div>
+        <div class="et-relations-grid">
+          <div class="et-relation-card">
+            <h5 data-i18n="test.relation_generating">Generating Cycle</h5>
+            <p data-i18n="test.relation_generating_desc">Wood feeds Fire, Fire creates Earth, Earth bears Metal, Metal collects Water, Water nourishes Wood</p>
+          </div>
+          <div class="et-relation-card">
+            <h5 data-i18n="test.relation_overcoming">Overcoming Cycle</h5>
+            <p data-i18n="test.relation_overcoming_desc">Wood parts Earth, Earth dams Water, Water extinguishes Fire, Fire melts Metal, Metal chops Wood</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 14. Missing -->
+      <div class="et-missing-section fade-in" id="etMissingSection" style="display:none;">
+        <h3 data-i18n="test.missing_element">Missing Element Supplement</h3>
+        <div class="et-missing-list" id="etMissingList"></div>
+      </div>
+
+      <!-- 15. Recommendations -->
+      <div class="section-title fade-in" style="margin-top:1rem;">
+        <h3 data-i18n="test.recommendations_title">Recommended Products</h3>
+        <p data-i18n="test.recommendations_desc">Products that can help balance your energy</p>
+      </div>
+
+      <div class="et-rec-grid fade-in" id="etRecGrid"></div>
+
+      <div class="et-report-actions fade-in">
+        <h4 class="et-report-actions-title" data-i18n="test.report_actions">Your Report Actions</h4>
+        <div class="et-actions">
+          <button class="btn btn-outline" id="etDownloadBtn">&#128190; <span data-i18n="test.download_report">Download Report</span></button>
+          <button class="btn btn-outline" id="etShareBtn">&#128279; <span data-i18n="test.share_report">Share Report</span></button>
+          <button class="btn btn-outline" id="etSaveBtn" data-i18n="test.save_result">&#128190; Save Result</button>
+          <button class="btn btn-primary" id="etRetakeBtn" data-i18n="test.retake_test">&#10227; Retake Test</button>
+        </div>
+      </div>
+
+      <!-- Paywall Lock -->
+      <div class="et-paywall-lock" id="etPaywall" style="display:none;">
+        <div class="et-paywall-preview-label" data-i18n="test.paywall_preview_label">Your Free Preview</div>
+        <div class="et-paywall-lock-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <h3 data-i18n="test.paywall_title">Unlock Your Full Report</h3>
+        <p data-i18n="test.paywall_desc">Get your complete BaZi analysis with wealth, career, relationship, health insights and 10-year luck cycles.</p>
+
+        <div class="et-paywall-social" data-i18n="test.paywall_social_proof">
+          <span>&#11088;&#11088;&#11088;&#11088;&#11088;</span> Join 10,000+ users who unlocked their full reading
+        </div>
+
+        <h4 class="et-paywall-unlock-list-title" data-i18n="test.paywall_unlock_list_title">What You'll Unlock</h4>
+        <ul class="et-paywall-unlock-list">
+          <li data-i18n="test.paywall_unlock_item_1">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Complete wealth & career analysis
+          </li>
+          <li data-i18n="test.paywall_unlock_item_2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Relationship & health insights
+          </li>
+          <li data-i18n="test.paywall_unlock_item_3">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            10-year luck cycle forecast
+          </li>
+          <li data-i18n="test.paywall_unlock_item_4">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Personalized element balance guide
+          </li>
+          <li data-i18n="test.paywall_unlock_item_5">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Crystal & product recommendations
+          </li>
+        </ul>
+
+        <div class="et-paywall-price" data-price-usd="9.99">$9.99</div>
+        <p class="et-paywall-one-time" data-i18n="test.paywall_one_time">One-time payment, lifetime access</p>
+        <div class="et-paywall-actions">
+          <button class="btn btn-primary btn-lg" id="etPayBtn" data-i18n="test.paywall_unlock">Unlock Full Report - $9.99</button>
+          <button class="et-paywall-member-link" id="etMemberToggle" data-i18n="test.paywall_member">Already a member? Unlock for free</button>
+        </div>
+
+        <div class="et-paywall-member-form" id="etMemberForm">
+          <p class="et-field-hint" style="text-align:center;margin-bottom:0.75rem;" data-i18n="test.paywall_member_hint">Enter your membership email and code to unlock</p>
+          <input type="email" id="etMemberEmail" data-i18n-placeholder="test.paywall_member_email" placeholder="Member email" />
+          <input type="text" id="etMemberCode" data-i18n-placeholder="test.paywall_member_code" placeholder="Member code" />
+          <button class="btn btn-primary" id="etMemberUnlockBtn" data-i18n="test.paywall_member_unlock_btn">Unlock Free</button>
+        </div>
+      </div>
+
+      <!-- Consultation Upgrade CTA -->
+      <div class="et-consult-upgrade" id="etConsultUpgrade" style="display:none;">
+        <span class="et-consult-limited" data-i18n="test.consult_limited">Limited spots available this week</span>
+        <h3 data-i18n="test.consult_upgrade_title">Want a Personalized 1-on-1 Reading?</h3>
+        <p data-i18n="test.consult_upgrade_desc">Get a detailed, private consultation with Dr. Ming Li. Your full BaZi chart analyzed by a certified expert with personalized life guidance.</p>
+        <p class="et-consult-testimonial" data-i18n="test.consult_testimonial">"After the 1-on-1 session, Dr. Li helped me navigate a major career change. Best investment I've made." - Michael T., New York</p>
+        <div class="et-paywall-price" data-price-usd="99">$99</div>
+        <div class="et-consult-features">
+          <div class="et-consult-feature">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span data-i18n="test.consult_feat_1">60-min private session</span>
+          </div>
+          <div class="et-consult-feature">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span data-i18n="test.consult_feat_2">Full written report</span>
+          </div>
+          <div class="et-consult-feature">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span data-i18n="test.consult_feat_3">Follow-up support</span>
+          </div>
+        </div>
+        <a href="/services#booking" class="btn btn-primary btn-lg" style="margin-top:1.5rem;" data-i18n="test.consult_upgrade_btn">Book 1-on-1 Consultation - $99</a>
+      </div>
+
+      <!-- Email Sent Toast -->
+      <div class="et-email-toast" id="etEmailToast">
+        <div class="et-email-toast-icon">&#10003;</div>
+        <div class="et-email-toast-body">
+          <h4 data-i18n="test.email_sent_title">Report Sent!</h4>
+          <p data-i18n="test.email_sent_msg">Your Five Elements report has been sent to your email. Please check your inbox (and spam folder).</p>
+        </div>
+        <button class="et-email-toast-close" id="etEmailToastClose" data-i18n="test.email_sent_close">&times;</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Discount Modal ===== -->
+  <div
+    id="discountModal"
+    role="dialog"
+    aria-modal="true"
+    aria-hidden="true"
+    style="display:none; position:fixed; inset:0; z-index:var(--z-modal); align-items:center; justify-content:center; padding:1.5rem; background:rgba(58,64,61,0.55); backdrop-filter:blur(4px);"
+  >
+    <div class="card" style="max-width:440px; width:100%; text-align:center; position:relative;">
+      <button
+        type="button"
+        id="discountClose"
+        aria-label="Close"
+        style="position:absolute; top:0.75rem; right:0.75rem; background:none; border:none; font-size:1.5rem; line-height:1; cursor:pointer; color:var(--color-text-tertiary);"
+      >&times;</button>
+      <span class="badge badge-popular" style="margin-bottom:1rem;" data-i18n="common.most_popular">Most Popular</span>
+      <h3 data-i18n="test.discount_title" style="margin-bottom:0.75rem;">Special Offer Just For You!</h3>
+      <p data-i18n="test.discount_desc">Get $15 off your first purchase of recommended products</p>
+      <button class="btn btn-primary btn-lg" data-i18n="test.claim_offer" style="margin-top:1rem;">Claim My Discount</button>
+    </div>
+  </div>
+
+  <!-- ===== Payment Modal ===== -->
+  <div class="et-pay-modal-overlay" id="etPayModal">
+    <div class="et-pay-modal">
+      <button class="et-pay-modal-close" id="etPayModalClose">&times;</button>
+      <h3 data-i18n="test.pay_modal_title">Complete Your Purchase</h3>
+      <div class="et-pay-modal-price" data-price-usd="9.99">$9.99</div>
+
+      <div class="et-pay-modal-summary">
+        <h4 data-i18n="test.pay_modal_summary">Your purchase includes</h4>
+        <ul>
+          <li>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span data-i18n="test.pay_modal_summary_1">Complete BaZi report with all sections</span>
+          </li>
+          <li>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span data-i18n="test.pay_modal_summary_2">Downloadable PDF report</span>
+          </li>
+          <li>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span data-i18n="test.pay_modal_summary_3">Lifetime access to your results</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="form-group">
+        <label for="payCardNumber" data-i18n="test.pay_card_number">Card Number</label>
+        <input type="text" id="payCardNumber" placeholder="1234 5678 9012 3456" maxlength="19" autocomplete="cc-number" />
+      </div>
+      <div class="et-pay-card-row">
+        <div class="form-group">
+          <label for="payExpiry" data-i18n="test.pay_expiry">Expiry</label>
+          <input type="text" id="payExpiry" placeholder="MM/YY" maxlength="5" autocomplete="cc-exp" />
+        </div>
+        <div class="form-group">
+          <label for="payCvc" data-i18n="test.pay_cvc">CVC</label>
+          <input type="text" id="payCvc" placeholder="123" maxlength="4" autocomplete="cc-csc" />
+        </div>
+      </div>
+      <button class="btn btn-primary btn-lg" id="etPayConfirm" style="width:100%;" data-i18n="test.pay_confirm">Pay $9.99</button>
+      <div class="et-pay-modal-guarantee">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span data-i18n="test.pay_modal_guarantee">30-day money-back guarantee</span>
+      </div>
+      <div class="et-pay-secure">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span data-i18n="test.pay_secure">Secured by 256-bit SSL encryption</span>
+      </div>
+      <div class="et-pay-modal-testimonial" data-i18n="test.pay_modal_testimonial">
+        "The full report was eye-opening. I finally understood my life patterns." - Jessica R.
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Recommendation Data ===== -->
+  <script is:inline id="etRecData" type="application/json">
+    {JSON.stringify(allRecommendations)}
+  </script>
+
+  <script is:inline>
+    (function () {
+      /* ---------- Constants ---------- */
+      var ELEMENTS = ['Wood','Fire','Earth','Metal','Water'];
+      var EL_COLORS = { Wood:'#6B9B6B', Fire:'#C45A5A', Earth:'#C4A75A', Metal:'#8A948C', Water:'#5A7A8A' };
+      var EL_ICONS  = { Wood:'\u6728', Fire:'\u706B', Earth:'\u571F', Metal:'\u91D1', Water:'\u6C34' };
+
+      /* Tiangan (Heavenly Stems) */
+      var TIANGAN = ['Jia','Yi','Bing','Ding','Wu','Ji','Geng','Xin','Ren','Gui'];
+      var TIANGAN_CN = { Jia:'\u7532',Yi:'\u4E59',Bing:'\u4E19',Ding:'\u4E01',Wu:'\u620A',Ji:'\u5DF1',Geng:'\u5E9A',Xin:'\u8F9B',Ren:'\u58EC',Gui:'\u7678' };
+      var TIANGAN_ELEMENT = { Jia:'Wood',Yi:'Wood',Bing:'Fire',Ding:'Fire',Wu:'Earth',Ji:'Earth',Geng:'Metal',Xin:'Metal',Ren:'Water',Gui:'Water' };
+      var TIANGAN_YINYANG = { Jia:'yang',Yi:'yin',Bing:'yang',Ding:'yin',Wu:'yang',Ji:'yin',Geng:'yang',Xin:'yin',Ren:'yang',Gui:'yin' };
+
+      /* Dizhi (Earthly Branches) */
+      var DIZHI = ['Zi','Chou','Yin','Mao','Chen','Si','Wu','Wei','Shen','You','Xu','Hai'];
+      var DIZHI_CN = { Zi:'\u5B50',Chou:'\u4E11',Yin:'\u5BC5',Mao:'\u536F',Chen:'\u8FB0',Si:'\u5DF3',Wu:'\u5348',Wei:'\u672A',Shen:'\u7533',You:'\u9149',Xu:'\u620C',Hai:'\u4EA5' };
+      var DIZHI_ELEMENT = { Zi:'Water',Chou:'Earth',Yin:'Wood',Mao:'Wood',Chen:'Earth',Si:'Fire',Wu:'Fire',Wei:'Earth',Shen:'Metal',You:'Metal',Xu:'Earth',Hai:'Water' };
+      var DIZHI_HIDDEN = {
+        Zi: ['Gui'],
+        Chou: ['Ji','Gui','Xin'],
+        Yin: ['Jia','Bing','Wu'],
+        Mao: ['Yi'],
+        Chen: ['Wu','Yi','Gui'],
+        Si: ['Bing','Wu','Geng'],
+        Wu: ['Ding','Ji'],
+        Wei: ['Ji','Ding','Yi'],
+        Shen: ['Geng','Ren','Wu'],
+        You: ['Xin'],
+        Xu: ['Wu','Xin','Ding'],
+        Hai: ['Ren','Jia']
+      };
+
+      /* Zodiac */
+      var ZODIAC = ['Rat','Ox','Tiger','Rabbit','Dragon','Snake','Horse','Goat','Monkey','Rooster','Dog','Pig'];
+      var ZODIAC_KEYS = ['rat','ox','tiger','rabbit','dragon','snake','horse','goat','monkey','rooster','dog','pig'];
+
+      /* Hour branch */
+      var HOUR_BRANCH = { zi:'Zi',chou:'Chou',yin:'Yin',mao:'Mao',chen:'Chen',si:'Si',wu:'Wu',wei:'Wei',shen:'Shen',you:'You',xu:'Xu',hai:'Hai' };
+
+      /* Ten Gods: mapping from element relation + yinyang to god name
+         Key: relation = 'self'|'same'|'output'|'wealth'|'power'|'resource' + yinyang match (same/diff) */
+      var TEN_GODS = {
+        same_same: 'god_bi_jian',     /* 比肩 Bi Jian: same element, same yin/yang */
+        same_diff: 'god_jie_cai',     /* 劫财 Jie Cai: same element, diff yin/yang */
+        output_same: 'god_shi_shen',  /* 食神 Shi Shen: element produces you, same yy = Eating God */
+        output_diff: 'god_shang_guan', /* 伤官 Shang Guan: element produces you, diff yy = Hurting Officer */
+        wealth_same: 'god_pian_cai',  /* 偏财 Pian Cai: you produce element, same yy = Indirect Wealth */
+        wealth_diff: 'god_zheng_cai', /* 正财 Zheng Cai: you produce element, diff yy = Direct Wealth */
+        power_same: 'god_qi_sha',     /* 七杀 Qi Sha: element controls you, same yy = Seven Killings */
+        power_diff: 'god_zheng_guan', /* 正官 Zheng Guan: element controls you, diff yy = Direct Officer */
+        resource_same: 'god_pian_yin', /* 偏印 Pian Yin: element produces you, same yy = Indirect Resource */
+        resource_diff: 'god_zheng_yin' /* 正印 Zheng Yin: element produces you, diff yy = Direct Resource */
+      };
+
+      var GOD_CATEGORIES = [
+        { key: 'god_friend', gods: ['god_bi_jian','god_jie_cai'], rel: 'same' },
+        { key: 'god_output', gods: ['god_shi_shen','god_shang_guan'], rel: 'output' },
+        { key: 'god_wealth', gods: ['god_pian_cai','god_zheng_cai'], rel: 'wealth' },
+        { key: 'god_power', gods: ['god_qi_sha','god_zheng_guan'], rel: 'power' },
+        { key: 'god_resource', gods: ['god_pian_yin','god_zheng_yin'], rel: 'resource' }
+      ];
+
+      /* Element relationship: what is el relative to dayMasterEl?
+         Returns: 'self', 'same' (sibling), 'output' (you produce it = wealth/your output),
+         'wealth' (you produce it), 'power' (it controls you), 'resource' (it produces you) */
+      function getElementRelation(dayMasterEl, el) {
+        if (dayMasterEl === el) return 'same';
+        var genOrder = ['Wood','Fire','Earth','Metal','Water'];
+        var dmIdx = genOrder.indexOf(dayMasterEl);
+        var elIdx = genOrder.indexOf(el);
+        var diff = (elIdx - dmIdx + 5) % 5;
+        if (diff === 1) return 'output';
+        if (diff === 2) return 'wealth';
+        if (diff === 3) return 'power';
+        if (diff === 4) return 'resource';
+        return 'same';
+      }
+
+      /* ---------- i18n helpers ---------- */
+      var _cache = {};
+      function getLang() { return localStorage.getItem('ov-lang') || 'en'; }
+      function loadT(cb) {
+        if (window.ovI18n) {
+          _cache[getLang()] = window.ovI18n.translations[getLang()] || {};
+          if (cb) cb(_cache[getLang()]);
+          return;
+        }
+        var lang = getLang();
+        if (_cache[lang]) { cb(_cache[lang]); return; }
+        fetch('/i18n/' + lang + '.json').then(function(r){return r.json();}).then(function(tr){ _cache[lang]=tr; cb(tr); }).catch(function(){ cb({}); });
+      }
+      function t(key, fb) {
+        if (window.ovI18n) return window.ovI18n.t(key, fb);
+        var parts = key.split('.');
+        var v = _cache[getLang()];
+        if (!v) return fb || key;
+        for (var i=0;i<parts.length;i++) v = v?.[parts[i]];
+        return v || fb || key;
+      }
+
+      /* ---------- Pillar Calculation ---------- */
+      function getYearPillar(year) {
+        var stemIdx  = ((year - 4) % 10 + 10) % 10;
+        var branchIdx = ((year - 4) % 12 + 12) % 12;
+        return { stem: TIANGAN[stemIdx], branch: DIZHI[branchIdx], stemIdx: stemIdx, branchIdx: branchIdx };
+      }
+      function getMonthPillar(year, month) {
+        var yearPillar = getYearPillar(year);
+        var branchIdx = (month + 1) % 12;
+        var yearStemIdx = yearPillar.stemIdx;
+        var monthStemStartIdx = (yearStemIdx % 5) * 2;
+        var stemIdx = (monthStemStartIdx + month - 1) % 10;
+        return { stem: TIANGAN[stemIdx], branch: DIZHI[branchIdx] };
+      }
+      function getDayPillar(year, month, day) {
+        var date = new Date(year, month - 1, day);
+        var jd = Math.floor(date.getTime() / 86400000);
+        var stemIdx = ((jd - 1) % 10 + 10) % 10;
+        var branchIdx = ((jd - 1) % 12 + 12) % 12;
+        return { stem: TIANGAN[stemIdx], branch: DIZHI[branchIdx], stemIdx: stemIdx, branchIdx: branchIdx };
+      }
+      function getHourPillar(hourKey, dayStemIdx) {
+        if (!hourKey || !HOUR_BRANCH[hourKey]) return null;
+        var branchName = HOUR_BRANCH[hourKey];
+        var branchIdx = DIZHI.indexOf(branchName);
+        var hourStemStartIdx = (dayStemIdx % 5) * 2;
+        var stemIdx = (hourStemStartIdx + branchIdx) % 10;
+        return { stem: TIANGAN[stemIdx], branch: branchName };
+      }
+
+      /* Ten God for a stem relative to day master */
+      function getTenGod(dayMasterStem, targetStem) {
+        var dmEl = TIANGAN_ELEMENT[dayMasterStem];
+        var dmYy = TIANGAN_YINYANG[dayMasterStem];
+        var tgEl = TIANGAN_ELEMENT[targetStem];
+        var tgYy = TIANGAN_YINYANG[targetStem];
+        if (dmEl === tgEl) {
+          return dmYy === tgYy ? TEN_GODS['same_same'] : TEN_GODS['same_diff'];
+        }
+        var rel = getElementRelation(dmEl, tgEl);
+        var yyKey = dmYy === tgYy ? 'same' : 'diff';
+        return TEN_GODS[rel + '_' + yyKey] || 'god_bi_jian';
+      }
+
+      /* ---------- Distribution + Ten Gods ---------- */
+      function computeDistributionAndGods(year, month, day, hourKey) {
+        var yearP = getYearPillar(year);
+        var monthP = getMonthPillar(year, month);
+        var dayP = getDayPillar(year, month, day);
+        var hourP = hourKey ? getHourPillar(hourKey, dayP.stemIdx) : null;
+
+        var dmStem = dayP.stem;
+        var dmEl = TIANGAN_ELEMENT[dmStem];
+        var dmYy = TIANGAN_YINYANG[dmStem];
+
+        var dist = { Wood:0, Fire:0, Earth:0, Metal:0, Water:0 };
+        var godsCount = {};
+        GOD_CATEGORIES.forEach(function(c) { c.gods.forEach(function(g){ godsCount[g]=0; }); });
+
+        function addStem(stem, weight) {
+          var el = TIANGAN_ELEMENT[stem];
+          dist[el] += weight;
+          if (stem !== dmStem) {
+            var god = getTenGod(dmStem, stem);
+            godsCount[god] = (godsCount[god] || 0) + weight;
+          }
+        }
+        function addBranch(branch, weight) {
+          var el = DIZHI_ELEMENT[branch];
+          dist[el] += weight;
+          /* hidden stems contribute partially */
+          var hidden = DIZHI_HIDDEN[branch] || [];
+          hidden.forEach(function(hs, i) {
+            var hw = weight * (i === 0 ? 0.5 : 0.15);
+            var hel = TIANGAN_ELEMENT[hs];
+            dist[hel] += hw;
+            if (hs !== dmStem) {
+              var god = getTenGod(dmStem, hs);
+              godsCount[god] = (godsCount[god] || 0) + hw;
+            }
+          });
+        }
+
+        addStem(yearP.stem, 20);
+        addBranch(yearP.branch, 8);
+        addStem(monthP.stem, 15);
+        addBranch(monthP.branch, 18);
+        addStem(dayP.stem, 25);
+        addBranch(dayP.branch, 8);
+        if (hourP) {
+          addStem(hourP.stem, 8);
+          addBranch(hourP.branch, 6);
+        }
+
+        var total = 0;
+        ELEMENTS.forEach(function(e){ total += dist[e]; });
+        if (total > 0) {
+          ELEMENTS.forEach(function(e){ dist[e] = Math.round(dist[e] / total * 100); });
+        }
+        var sum = 0;
+        ELEMENTS.forEach(function(e){ sum += dist[e]; });
+        if (sum !== 100) {
+          var maxEl = ELEMENTS[0];
+          ELEMENTS.forEach(function(e){ if (dist[e] > dist[maxEl]) maxEl = e; });
+          dist[maxEl] += (100 - sum);
+        }
+
+        return { dist: dist, godsCount: godsCount, dmStem: dmStem, dmEl: dmEl, dmYy: dmYy };
+      }
+
+      /* ---------- Useful Gods ---------- */
+      function findUsefulGods(dist, dmEl) {
+        var dmPct = dist[dmEl];
+        var sorted = ELEMENTS.slice().sort(function(a,b){ return dist[b] - dist[a]; });
+        var genOrder = ['Wood','Fire','Earth','Metal','Water'];
+        var dmIdx = genOrder.indexOf(dmEl);
+        var resourceEl = genOrder[(dmIdx + 4) % 5];
+        var outputEl = genOrder[(dmIdx + 1) % 5];
+
+        var useful, happy, avoid;
+        if (dmPct >= 35) {
+          /* Strong Day Master: favor output (self-expression) and wealth */
+          useful = outputEl;
+          happy = genOrder[(dmIdx + 2) % 5];
+          avoid = resourceEl;
+        } else if (dmPct <= 20) {
+          /* Weak Day Master: favor resource and same element */
+          useful = resourceEl;
+          happy = dmEl;
+          avoid = genOrder[(dmIdx + 3) % 5]; /* power/control is worst */
+        } else {
+          /* Balanced: favor output for wealth and growth */
+          useful = outputEl;
+          happy = resourceEl;
+          avoid = sorted[4];
+        }
+        return { useful: useful, happy: happy, avoid: avoid };
+      }
+
+      /* ---------- Da Yun ---------- */
+      function getDaYun(year, month, day, gender, yearPillar, monthPillar) {
+        var yearStemIdx = yearPillar.stemIdx;
+        var isYangYear = yearStemIdx % 2 === 0;
+        var isMale = gender === 'male';
+        var forward = (isYangYear && isMale) || (!isYangYear && !isMale);
+
+        /* Simple start age: based on day to nearest qi node (approximate) */
+        var date = new Date(year, month - 1, day);
+        var doy = Math.floor((date - new Date(year, 0, 0)) / 86400000);
+        var startAge = (doy % 9) + 1;
+
+        var monthStemIdx = TIANGAN.indexOf(monthPillar.stem);
+        var monthBranchIdx = DIZHI.indexOf(monthPillar.branch);
+        var pillars = [];
+        for (var i = 1; i <= 8; i++) {
+          var si, bi;
+          if (forward) {
+            si = (monthStemIdx + i) % 10;
+            bi = (monthBranchIdx + i) % 12;
+          } else {
+            si = (monthStemIdx - i + 100) % 10;
+            bi = (monthBranchIdx - i + 120) % 12;
+          }
+          pillars.push({
+            index: i,
+            stem: TIANGAN[si],
+            branch: DIZHI[bi],
+            startAge: startAge + (i - 1) * 10
+          });
+        }
+        return { forward: forward, startAge: startAge, pillars: pillars };
+      }
+
+      /* ---------- DOM refs ---------- */
+      var form        = document.getElementById('elementForm');
+      var resultSec   = document.getElementById('resultSection');
+      var loadingEl   = document.getElementById('etLoading');
+      var modal       = document.getElementById('discountModal');
+      var modalClose  = document.getElementById('discountClose');
+      var donutEl     = document.getElementById('etDonut');
+      var donutCenter = document.getElementById('etDonutCenter');
+      var legendEl    = document.getElementById('etLegend');
+      var detailsEl   = document.getElementById('etDetails');
+      var missingSec  = document.getElementById('etMissingSection');
+      var missingList = document.getElementById('etMissingList');
+      var recGrid     = document.getElementById('etRecGrid');
+      var baziGrid    = document.getElementById('etBaziGrid');
+      var baziInfo    = document.getElementById('etBaziInfo');
+      var saveBtn     = document.getElementById('etSaveBtn');
+      var retakeBtn   = document.getElementById('etRetakeBtn');
+      var loadingSteps = document.querySelectorAll('.et-loading-step');
+
+      var nameInput     = document.getElementById('formName');
+      var birthYearSelect  = document.getElementById('formBirthYear');
+      var birthMonthSelect = document.getElementById('formBirthMonth');
+      var birthDaySelect   = document.getElementById('formBirthDay');
+      var birthtimeSelect = document.getElementById('formBirthtime');
+      var emailInput    = document.getElementById('formEmail');
+      var step1 = document.getElementById('etStep1');
+      var step2 = document.getElementById('etStep2');
+      var step3 = document.getElementById('etStep3');
+      var progressDots  = document.querySelectorAll('.et-progress-dot');
+      var stepNumEl = document.getElementById('etStepNum');
+      var stepNameEl = document.getElementById('etStepName');
+
+      var currentStep = 1;
+      var stepNameKeys = ['test.step_personal', 'test.step_birth', 'test.step_email'];
+
+      function goToStep(stepNum) {
+        if (stepNum < 1 || stepNum > 3) return;
+        currentStep = stepNum;
+
+        step1.classList.toggle('active', stepNum === 1);
+        step2.classList.toggle('active', stepNum === 2);
+        step3.classList.toggle('active', stepNum === 3);
+
+        progressDots.forEach(function(d, i) {
+          d.classList.toggle('filled', i < stepNum);
+        });
+
+        if (stepNumEl) stepNumEl.textContent = stepNum;
+        if (stepNameEl) {
+          var labelKey = stepNameKeys[stepNum - 1] || '';
+          stepNameEl.setAttribute('data-i18n', labelKey);
+          stepNameEl.textContent = t(labelKey, labelKey);
+        }
+
+        var firstInput = stepNum === 1 ? nameInput : (stepNum === 2 ? birthYearSelect : emailInput);
+        if (firstInput) {
+          setTimeout(function() { firstInput.focus(); }, 300);
+        }
+      }
+
+      function isLeapYear(year) {
+        return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+      }
+
+      function getDaysInMonth(year, month) {
+        var days = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+        if (month === 2 && isLeapYear(year)) return 29;
+        return days[month - 1];
+      }
+
+      function populateYearOptions() {
+        var currentYear = new Date().getFullYear();
+        var startYear = 1920;
+        var endYear = currentYear + 1;
+        for (var y = endYear; y >= startYear; y--) {
+          var opt = document.createElement('option');
+          opt.value = y;
+          opt.textContent = y;
+          birthYearSelect.appendChild(opt);
+        }
+      }
+
+      function updateDayOptions() {
+        var year = parseInt(birthYearSelect.value, 10);
+        var month = parseInt(birthMonthSelect.value, 10);
+        var currentDay = birthDaySelect.value;
+
+        birthDaySelect.innerHTML = '';
+        var defaultOpt = document.createElement('option');
+        defaultOpt.value = '';
+        defaultOpt.setAttribute('data-i18n', 'test.form_day');
+        defaultOpt.textContent = t('test.form_day', 'Day');
+        birthDaySelect.appendChild(defaultOpt);
+
+        if (year && month) {
+          var daysInMonth = getDaysInMonth(year, month);
+          for (var d = 1; d <= daysInMonth; d++) {
+            var opt = document.createElement('option');
+            opt.value = d;
+            opt.textContent = d;
+            birthDaySelect.appendChild(opt);
+          }
+          if (currentDay && parseInt(currentDay, 10) <= daysInMonth) {
+            birthDaySelect.value = currentDay;
+          }
+        }
+      }
+
+      function isBirthdateComplete() {
+        return birthYearSelect.value && birthMonthSelect.value && birthDaySelect.value;
+      }
+
+      populateYearOptions();
+
+      birthYearSelect.addEventListener('change', updateDayOptions);
+      birthMonthSelect.addEventListener('change', updateDayOptions);
+
+      var btnNext1 = document.getElementById('btnNext1');
+      var btnPrev2 = document.getElementById('btnPrev2');
+      var btnNext2 = document.getElementById('btnNext2');
+      var btnPrev3 = document.getElementById('btnPrev3');
+
+      if (btnNext1) {
+        btnNext1.addEventListener('click', function() {
+          if (!nameInput.value.trim()) {
+            nameInput.focus();
+            nameInput.style.borderColor = 'var(--color-error)';
+            setTimeout(function() { nameInput.style.borderColor = ''; }, 1500);
+            return;
+          }
+          goToStep(2);
+        });
+      }
+      if (btnPrev2) {
+        btnPrev2.addEventListener('click', function() {
+          goToStep(1);
+        });
+      }
+      if (btnNext2) {
+        btnNext2.addEventListener('click', function() {
+          if (!isBirthdateComplete()) {
+            if (!birthYearSelect.value) birthYearSelect.focus();
+            else if (!birthMonthSelect.value) birthMonthSelect.focus();
+            else if (!birthDaySelect.value) birthDaySelect.focus();
+            return;
+          }
+          goToStep(3);
+        });
+      }
+      if (btnPrev3) {
+        btnPrev3.addEventListener('click', function() {
+          goToStep(2);
+        });
+      }
+
+      var crystalShopBtns = document.querySelectorAll('.et-crystal-shop-btn');
+      crystalShopBtns.forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          window.location.href = '/shop';
+        });
+      });
+
+      /* ---------- Builders ---------- */
+      function buildDonut(dist) {
+        var parts = [];
+        var angle = 0;
+        ELEMENTS.forEach(function(el) {
+          var pct = dist[el];
+          if (pct <= 0) return;
+          var deg = (pct / 100) * 360;
+          parts.push(EL_COLORS[el] + ' ' + angle + 'deg ' + (angle + deg) + 'deg');
+          angle += deg;
+        });
+        donutEl.style.background = 'conic-gradient(' + parts.join(', ') + ')';
+      }
+      function buildLegend(dist) {
+        legendEl.innerHTML = '';
+        ELEMENTS.forEach(function(el) {
+          var pct = dist[el];
+          var item = document.createElement('div');
+          item.className = 'et-legend-item';
+          item.innerHTML =
+            '<div class="et-legend-dot" style="background:' + EL_COLORS[el] + '"></div>' +
+            '<span class="et-legend-name" data-i18n="test.element_' + el.toLowerCase() + '">' + t('test.element_' + el.toLowerCase(), el) + '</span>' +
+            '<span class="et-legend-pct">' + pct + '%</span>' +
+            '<div class="et-legend-bar-wrap"><div class="et-legend-bar" style="width:' + pct + '%;background:' + EL_COLORS[el] + '"></div></div>';
+          legendEl.appendChild(item);
+        });
+      }
+
+      function buildBirthInfo(year, month, day, hourKey, gender) {
+        var dateStr = year + '-' + String(month).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+        document.getElementById('etBirthDateValue').textContent = dateStr;
+
+        var hourText = hourKey ? t('test.hour_' + hourKey, hourKey) : t('test.form_birthtime_unknown', 'Unknown');
+        document.getElementById('etBirthTimeValue').textContent = hourText;
+
+        var genderText = gender === 'female'
+          ? t('test.form_gender_female', 'Female')
+          : t('test.form_gender_male', 'Male');
+        document.getElementById('etGenderValue').textContent = genderText;
+      }
+
+      function buildDayMaster(dmStem, dmEl, dmYy) {
+        document.getElementById('etDayMasterStem').textContent = TIANGAN_CN[dmStem] || dmStem;
+        document.getElementById('etDayMasterStem').style.color = EL_COLORS[dmEl];
+        document.getElementById('etDayMasterEl').textContent = t('test.element_' + dmEl.toLowerCase(), dmEl);
+        document.getElementById('etDayMasterYy').textContent = dmYy === 'yang' ? t('test.day_master_yang','Yang') : t('test.day_master_yin','Yin');
+        var descKey = 'test.day_master_' + dmStem.toLowerCase();
+        document.getElementById('etDayMasterDesc').setAttribute('data-i18n', descKey);
+        document.getElementById('etDayMasterDesc').textContent = t(descKey, '');
+      }
+
+      function buildBaZi(year, month, day, hourKey, dmStem) {
+        var yearP = getYearPillar(year);
+        var monthP = getMonthPillar(year, month);
+        var dayP = getDayPillar(year, month, day);
+        var hourP = hourKey ? getHourPillar(hourKey, dayP.stemIdx) : null;
+
+        var pillars = [
+          { labelKey: 'test.bazi_year_pillar', labelFb: 'Year', stem: yearP.stem, branch: yearP.branch },
+          { labelKey: 'test.bazi_month_pillar', labelFb: 'Month', stem: monthP.stem, branch: monthP.branch },
+          { labelKey: 'test.bazi_day_pillar', labelFb: 'Day', stem: dayP.stem, branch: dayP.branch },
+          { labelKey: 'test.bazi_hour_pillar', labelFb: 'Hour', stem: hourP ? hourP.stem : null, branch: hourP ? hourP.branch : null }
+        ];
+
+        baziGrid.innerHTML = '';
+        pillars.forEach(function(p) {
+          var stemCn = p.stem ? TIANGAN_CN[p.stem] : '\u2014';
+          var branchCn = p.branch ? DIZHI_CN[p.branch] : '\u2014';
+          var stemEl = p.stem ? TIANGAN_ELEMENT[p.stem] : '';
+          var branchEl = p.branch ? DIZHI_ELEMENT[p.branch] : '';
+          var hidden = p.branch ? (DIZHI_HIDDEN[p.branch] || []).map(function(s){ return TIANGAN_CN[s]; }).join(' ') : '';
+          var pillar = document.createElement('div');
+          pillar.className = 'et-bazi-pillar';
+          pillar.innerHTML =
+            '<div class="et-bazi-pillar-label">' + t(p.labelKey, p.labelFb) + '</div>' +
+            '<div class="et-bazi-pillar-stem">' + stemCn + '</div>' +
+            '<div class="et-bazi-pillar-branch">' + branchCn + '</div>' +
+            '<div class="et-bazi-pillar-el">' +
+              (stemEl ? t('test.element_' + stemEl.toLowerCase(), stemEl) : '') + ' / ' +
+              (branchEl ? t('test.element_' + branchEl.toLowerCase(), branchEl) : '') +
+            '</div>' +
+            (hidden ? '<div class="et-bazi-pillar-el" style="margin-top:0.4rem;font-size:0.6rem;">' + t('test.hidden_stems','Hidden') + ': ' + hidden + '</div>' : '');
+          baziGrid.appendChild(pillar);
+        });
+
+        var zodiacIdx = ((year - 4) % 12 + 12) % 12;
+        var zodiacKey = ZODIAC_KEYS[zodiacIdx];
+
+        baziInfo.innerHTML =
+          '<div class="et-bazi-info-item"><div class="et-bazi-info-label" data-i18n="test.zodiac">Zodiac</div><div class="et-bazi-info-value" data-i18n="test.zodiac_' + zodiacKey + '">' + t('test.zodiac_' + zodiacKey, ZODIAC[zodiacIdx]) + '</div></div>' +
+          '<div class="et-bazi-info-item"><div class="et-bazi-info-label" data-i18n="test.day_master">Day Master</div><div class="et-bazi-info-value" data-i18n="test.element_' + TIANGAN_ELEMENT[dmStem].toLowerCase() + '">' + TIANGAN_CN[dmStem] + ' ' + t('test.element_' + TIANGAN_ELEMENT[dmStem].toLowerCase(), TIANGAN_ELEMENT[dmStem]) + '</div></div>' +
+          '<div class="et-bazi-info-item"><div class="et-bazi-info-label" data-i18n="test.hidden_stems">Hidden</div><div class="et-bazi-info-value" style="font-size:0.85rem;">12 地支藏干</div></div>';
+      }
+
+      function buildStrength(dist, dmEl) {
+        var maxPct = dist[dmEl];
+        var strength, descKey, className;
+        if (maxPct >= 32) {
+          strength = t('test.strength_strong', 'Strong');
+          descKey = 'test.strength_desc_strong';
+          className = 'strong';
+        } else if (maxPct < 22) {
+          strength = t('test.strength_weak', 'Weak');
+          descKey = 'test.strength_desc_weak';
+          className = 'weak';
+        } else {
+          strength = t('test.strength_balanced', 'Balanced');
+          descKey = 'test.strength_desc_balanced';
+          className = 'balanced';
+        }
+        var badge = document.getElementById('etStrengthBadge');
+        badge.textContent = strength;
+        badge.className = 'et-strength-badge ' + className;
+        badge.setAttribute('data-i18n', 'test.strength_' + className);
+        var descEl = document.getElementById('etStrengthDesc');
+        descEl.textContent = t(descKey, '');
+        descEl.setAttribute('data-i18n', descKey);
+      }
+
+      function buildUsefulGods(gods) {
+        var wrap = document.getElementById('etUsefulGods');
+        var items = [
+          { key: 'useful', labelKey: 'test.useful_god', el: gods.useful, descKey: 'test.useful_god_desc' },
+          { key: 'happy', labelKey: 'test.happy_god', el: gods.happy, descKey: 'test.happy_god_desc' },
+          { key: 'avoid', labelKey: 'test.avoid_god', el: gods.avoid, descKey: 'test.avoid_god_desc' }
+        ];
+        wrap.innerHTML = '';
+        items.forEach(function(it) {
+          var card = document.createElement('div');
+          card.className = 'et-god-card';
+          card.innerHTML =
+            '<div class="et-god-card-label" data-i18n="' + it.labelKey + '">' + t(it.labelKey, '') + '</div>' +
+            '<div class="et-god-card-value" style="color:' + EL_COLORS[it.el] + '">' +
+              EL_ICONS[it.el] + ' ' + t('test.element_' + it.el.toLowerCase(), it.el) +
+            '</div>' +
+            '<div class="et-god-card-desc" data-i18n="' + it.descKey + '">' + t(it.descKey, '') + '</div>';
+          wrap.appendChild(card);
+        });
+      }
+
+      function buildTenGods(godsCount) {
+        var catsWrap = document.getElementById('etTenGodsCats');
+        var detailTitle = document.getElementById('etGodDetailTitle');
+        var detailDesc = document.getElementById('etGodDetailDesc');
+
+        catsWrap.innerHTML = '';
+        var firstCat = null;
+        GOD_CATEGORIES.forEach(function(cat) {
+          var total = 0;
+          cat.gods.forEach(function(g){ total += godsCount[g] || 0; });
+          if (!firstCat && total > 0) firstCat = cat;
+          var catEl = document.createElement('div');
+          catEl.className = 'et-god-cat';
+          catEl.innerHTML =
+            '<div class="et-god-cat-name" data-i18n="' + cat.key + '">' + t(cat.key, cat.key) + '</div>' +
+            '<div class="et-god-cat-sub">' + total.toFixed(0) + ' pts</div>';
+          catEl.addEventListener('click', function() {
+            document.querySelectorAll('.et-god-cat').forEach(function(c){ c.classList.remove('active'); });
+            catEl.classList.add('active');
+            var mainGod = cat.gods[0];
+            detailTitle.textContent = t(cat.key, cat.key);
+            detailDesc.textContent = t(mainGod + '_desc', '');
+          });
+          catsWrap.appendChild(catEl);
+        });
+
+        if (firstCat) {
+          var firstCard = catsWrap.querySelector('.et-god-cat');
+          if (firstCard) firstCard.classList.add('active');
+          detailTitle.textContent = t(firstCat.key, firstCat.key);
+          detailDesc.textContent = t(firstCat.gods[0] + '_desc', '');
+        }
+      }
+
+      function buildWealth(dmEl, dist, godsCount) {
+        var zhengCai = godsCount['god_zheng_cai'] || 0;
+        var pianCai = godsCount['god_pian_cai'] || 0;
+        var totalWealth = zhengCai + pianCai;
+        var shiShen = godsCount['god_shi_shen'] || 0;
+        var shangGuan = godsCount['god_shang_guan'] || 0;
+
+        var type, typeKey;
+        if (zhengCai > pianCai * 1.5) { type = 'stable'; typeKey = 'test.wealth_stable'; }
+        else if (pianCai > zhengCai * 1.5) { type = 'side'; typeKey = 'test.wealth_side'; }
+        else if (totalWealth > 10) { type = 'mixed'; typeKey = 'test.wealth_mixed'; }
+        else { type = 'weak'; typeKey = 'test.wealth_weak'; }
+
+        var dmPct = dist[dmEl];
+        var score = Math.min(100, Math.round(totalWealth * 2 + 30));
+
+        var grid = document.getElementById('etWealthGrid');
+        grid.innerHTML =
+          '<div class="et-grid-card"><div class="et-grid-card-label" data-i18n="test.wealth_strength">Wealth Index</div><div class="et-grid-card-value">' + score + '/100</div></div>' +
+          '<div class="et-grid-card"><div class="et-grid-card-label" data-i18n="test.wealth_type">Wealth Pattern</div><div class="et-grid-card-value" data-i18n="' + typeKey + '">' + t(typeKey, '') + '</div></div>' +
+          '<div class="et-grid-card"><div class="et-grid-card-label"><span data-i18n="test.god_zheng_cai">Zheng Cai</span> / <span data-i18n="test.god_pian_cai">Pian Cai</span></div><div class="et-grid-card-value">' + zhengCai.toFixed(0) + ' / ' + pianCai.toFixed(0) + '</div></div>';
+
+        var tips = document.getElementById('etWealthTips');
+        tips.innerHTML = '';
+        var tipItems = [];
+        if (zhengCai > pianCai) tipItems.push('wealth_tip_1');
+        if (pianCai > zhengCai) tipItems.push('wealth_tip_2');
+        if (shiShen + shangGuan > totalWealth && totalWealth < 15) tipItems.push('wealth_tip_3');
+        if (dmPct < 22 && totalWealth > 15) tipItems.push('wealth_tip_4');
+        if (tipItems.length === 0) tipItems.push('wealth_tip_1');
+
+        tipItems.forEach(function(tk) {
+          var item = document.createElement('div');
+          item.className = 'et-analysis-item';
+          item.innerHTML =
+            '<div class="et-analysis-bullet" style="background:' + EL_COLORS['Earth'] + '">$</div>' +
+            '<span data-i18n="test.' + tk + '">' + t('test.' + tk, '') + '</span>';
+          tips.appendChild(item);
+        });
+      }
+
+      function buildCareer(dmEl, dist, godsCount) {
+        var official = (godsCount['god_zheng_guan'] || 0) + (godsCount['god_qi_sha'] || 0);
+        var output = (godsCount['god_shi_shen'] || 0) + (godsCount['god_shang_guan'] || 0);
+        var wealth = (godsCount['god_zheng_cai'] || 0) + (godsCount['god_pian_cai'] || 0);
+        var resource = (godsCount['god_zheng_yin'] || 0) + (godsCount['god_pian_yin'] || 0);
+        var friend = (godsCount['god_bi_jian'] || 0) + (godsCount['god_jie_cai'] || 0);
+
+        var maxVal = Math.max(official, output, wealth, resource, friend);
+        var styleKey;
+        if (official === maxVal) styleKey = 'test.career_style_official';
+        else if (output === maxVal) styleKey = 'test.career_style_output';
+        else if (wealth === maxVal) styleKey = 'test.career_style_wealth';
+        else if (resource === maxVal) styleKey = 'test.career_style_resource';
+        else styleKey = 'test.career_style_friend';
+
+        var careerDirKey = 'test.element_' + dmEl.toLowerCase() + '_career';
+        var grid = document.getElementById('etCareerGrid');
+        grid.innerHTML =
+          '<div class="et-grid-card"><div class="et-grid-card-label" data-i18n="test.career_style">Work Style</div><div class="et-grid-card-value" data-i18n="' + styleKey + '">' + t(styleKey, '') + '</div></div>' +
+          '<div class="et-grid-card"><div class="et-grid-card-label" data-i18n="test.career_direction">Career Direction</div><div class="et-grid-card-value" data-i18n="' + careerDirKey + '">' + t(careerDirKey, '') + '</div></div>' +
+          '<div class="et-grid-card"><div class="et-grid-card-label" data-i18n="test.ten_gods_title">Ten Gods</div><div class="et-grid-card-value" data-i18n="test.' + (official===maxVal?'god_zheng_guan':output===maxVal?'god_shi_shen':wealth===maxVal?'god_zheng_cai':resource===maxVal?'god_zheng_yin':'god_bi_jian') + '">' + t(official===maxVal?'god_zheng_guan':output===maxVal?'god_shi_shen':wealth===maxVal?'god_zheng_cai':resource===maxVal?'god_zheng_yin':'god_bi_jian','') + '</div></div>';
+      }
+
+      function buildRelationship(gender, dmEl, dist, godsCount) {
+        var isMale = gender === 'male';
+        var spouseStarEl, spouseKey;
+        if (isMale) {
+          /* Male: wealth star = spouse */
+          var zc = godsCount['god_zheng_cai'] || 0;
+          var pc = godsCount['god_pian_cai'] || 0;
+          spouseStarEl = zc > pc ? 'god_zheng_cai' : 'god_pian_cai';
+          spouseKey = 'test.spouse_star_wealth';
+        } else {
+          /* Female: officer star = spouse */
+          var zg = godsCount['god_zheng_guan'] || 0;
+          var qs = godsCount['god_qi_sha'] || 0;
+          spouseStarEl = zg > qs ? 'god_zheng_guan' : 'god_qi_sha';
+          spouseKey = 'test.spouse_star_official';
+        }
+
+        var relStyleKey = 'test.element_' + dmEl.toLowerCase() + '_rel';
+        var grid = document.getElementById('etRelGrid');
+        grid.innerHTML =
+          '<div class="et-grid-card"><div class="et-grid-card-label" data-i18n="test.relationship_style">Pattern</div><div class="et-grid-card-value" data-i18n="' + relStyleKey + '">' + t(relStyleKey, '') + '</div></div>' +
+          '<div class="et-grid-card"><div class="et-grid-card-label" data-i18n="test.relationship_style">Spouse Star</div><div class="et-grid-card-value" data-i18n="test.' + spouseStarEl + '">' + t(spouseStarEl, '') + '</div></div>' +
+          '<div class="et-grid-card"><div class="et-grid-card-label" data-i18n="test.relationship_need">Emotional Need</div><div class="et-grid-card-value" data-i18n="' + spouseKey + '">' + t(spouseKey, '') + '</div></div>';
+
+        var tips = document.getElementById('etRelTips');
+        tips.innerHTML = '';
+        var official = (godsCount['god_zheng_guan'] || 0) + (godsCount['god_qi_sha'] || 0);
+        var output = (godsCount['god_shi_shen'] || 0) + (godsCount['god_shang_guan'] || 0);
+        var wealth = (godsCount['god_zheng_cai'] || 0) + (godsCount['god_pian_cai'] || 0);
+        var resource = (godsCount['god_zheng_yin'] || 0) + (godsCount['god_pian_yin'] || 0);
+
+        var tipKeys = [];
+        if (official > 12) tipKeys.push('rel_tip_1');
+        if (output > 12) tipKeys.push('rel_tip_2');
+        if (wealth > 12) tipKeys.push('rel_tip_3');
+        if (resource > 12) tipKeys.push('rel_tip_4');
+        if (tipKeys.length === 0) tipKeys.push('rel_tip_1');
+
+        tipKeys.forEach(function(tk) {
+          var item = document.createElement('div');
+          item.className = 'et-analysis-item';
+          item.innerHTML =
+            '<div class="et-analysis-bullet" style="background:' + EL_COLORS['Water'] + '">\u2665</div>' +
+            '<span data-i18n="test.' + tk + '">' + t('test.' + tk, '') + '</span>';
+          tips.appendChild(item);
+        });
+      }
+
+      function buildHealth(dist) {
+        var tips = document.getElementById('etHealthTips');
+        tips.innerHTML = '';
+
+        var sorted = ELEMENTS.slice().sort(function(a,b){ return dist[a] - dist[b]; });
+        var weakest = sorted[0];
+        var strongest = sorted[4];
+
+        if (dist[weakest] < 12) {
+          var item1 = document.createElement('div');
+          item1.className = 'et-analysis-item';
+          item1.innerHTML =
+            '<div class="et-analysis-bullet" style="background:' + EL_COLORS[weakest] + '">!</div>' +
+            '<span><strong data-i18n="test.element_' + weakest.toLowerCase() + '">' + t('test.element_' + weakest.toLowerCase(), weakest) + '</strong> <span data-i18n="test.health_' + weakest.toLowerCase() + '">' + t('test.health_' + weakest.toLowerCase(), '') + '</span> <span data-i18n="test.health_tip_weak">' + t('test.health_tip_weak', '') + '</span></span>';
+          tips.appendChild(item1);
+        }
+
+        if (dist[strongest] > 30) {
+          var item2 = document.createElement('div');
+          item2.className = 'et-analysis-item';
+          item2.innerHTML =
+            '<div class="et-analysis-bullet" style="background:' + EL_COLORS[strongest] + '">~</div>' +
+            '<span><strong data-i18n="test.element_' + strongest.toLowerCase() + '">' + t('test.element_' + strongest.toLowerCase(), strongest) + '</strong> <span data-i18n="test.health_' + strongest.toLowerCase() + '">' + t('test.health_' + strongest.toLowerCase(), '') + '</span> <span data-i18n="test.health_tip_strong">' + t('test.health_tip_strong', '') + '</span></span>';
+          tips.appendChild(item2);
+        }
+
+        /* Add general tip for each outlier */
+        ELEMENTS.forEach(function(el) {
+          if (el !== weakest && el !== strongest && dist[el] < 15) {
+            var item = document.createElement('div');
+            item.className = 'et-analysis-item';
+            item.innerHTML =
+              '<div class="et-analysis-bullet" style="background:' + EL_COLORS[el] + '">+</div>' +
+              '<span><span data-i18n="test.element_' + el.toLowerCase() + '">' + t('test.element_' + el.toLowerCase(), el) + '</span>: <span data-i18n="test.health_' + el.toLowerCase() + '">' + t('test.health_' + el.toLowerCase(), '') + '</span></span>';
+            tips.appendChild(item);
+          }
+        });
+      }
+
+      function buildLuck(dominant, dmEl) {
+        var el = dmEl;
+        var elLower = el.toLowerCase();
+        var items = [
+          { labelKey: 'test.luck_direction', valueKey: 'test.element_' + elLower + '_dir' },
+          { labelKey: 'test.luck_color', valueKey: 'test.element_' + elLower + '_color' },
+          { labelKey: 'test.luck_number', valueKey: 'test.element_' + elLower + '_num' },
+          { labelKey: 'test.luck_season', valueKey: 'test.element_' + elLower + '_season' },
+          { labelKey: 'test.luck_career', valueKey: 'test.element_' + elLower + '_career', wide: true },
+          { labelKey: 'test.luck_relationship', valueKey: 'test.element_' + elLower + '_rel', wide: true }
+        ];
+        var grid = document.getElementById('etLuckGrid');
+        grid.innerHTML = '';
+        items.forEach(function(item) {
+          var card = document.createElement('div');
+          card.className = 'et-luck-card' + (item.wide ? ' et-luck-card-wide' : '');
+          card.innerHTML =
+            '<div class="et-luck-card-label" data-i18n="' + item.labelKey + '">' + t(item.labelKey, '') + '</div>' +
+            '<div class="et-luck-card-value" data-i18n="' + item.valueKey + '">' + t(item.valueKey, '') + '</div>';
+          grid.appendChild(card);
+        });
+      }
+
+      function buildDaYun(year, month, day, gender, yearP, monthP) {
+        var dayun = getDaYun(year, month, day, gender, yearP, monthP);
+        var header = document.getElementById('etDayunHeader');
+        header.innerHTML =
+          '<div class="et-dayun-meta"><div class="et-dayun-meta-label" data-i18n="test.dayun_direction">Direction</div><div class="et-dayun-meta-value" data-i18n="' + (dayun.forward ? 'test.dayun_forward' : 'test.dayun_backward') + '">' + (dayun.forward ? t('test.dayun_forward','Forward') : t('test.dayun_backward','Backward')) + '</div></div>' +
+          '<div class="et-dayun-meta"><div class="et-dayun-meta-label" data-i18n="test.dayun_start_age">Start Age</div><div class="et-dayun-meta-value">' + dayun.startAge + ' <span data-i18n="test.dayun_age">' + t('test.dayun_age','yrs') + '</span></div></div>';
+
+        var timeline = document.getElementById('etDayunTimeline');
+        timeline.innerHTML = '';
+        var currentYear = new Date().getFullYear();
+        var currentAge = currentYear - year;
+        dayun.pillars.forEach(function(p) {
+          var isCurrent = currentAge >= p.startAge && currentAge < p.startAge + 10;
+          var pill = document.createElement('div');
+          pill.className = 'et-dayun-pillar' + (isCurrent ? ' current' : '');
+          pill.innerHTML =
+            '<div class="et-dayun-pillar-age">' + p.startAge + '<span data-i18n="test.dayun_age">' + t('test.dayun_age','') + '</span></div>' +
+            '<div class="et-dayun-pillar-stem">' + TIANGAN_CN[p.stem] + '</div>' +
+            '<div class="et-dayun-pillar-branch">' + DIZHI_CN[p.branch] + '</div>' +
+            '<div class="et-dayun-pillar-label" data-i18n="test.dayun_current">' + (isCurrent ? t('test.dayun_current','Now') : '') + '</div>';
+          timeline.appendChild(pill);
+        });
+      }
+
+      function buildDetails(dist) {
+        detailsEl.innerHTML = '';
+        var descKeys = {
+          Wood: 'test.element_wood_desc', Fire: 'test.element_fire_desc',
+          Earth: 'test.element_earth_desc', Metal: 'test.element_metal_desc',
+          Water: 'test.element_water_desc'
+        };
+        ELEMENTS.forEach(function(el) {
+          var pct = dist[el];
+          var card = document.createElement('div');
+          card.className = 'et-detail-card';
+          card.innerHTML =
+            '<div class="et-detail-icon" style="background:' + EL_COLORS[el] + '">' + EL_ICONS[el] + '</div>' +
+            '<div class="et-detail-body">' +
+              '<div class="et-detail-name" data-i18n="test.element_' + el.toLowerCase() + '">' + t('test.element_' + el.toLowerCase(), el) + '</div>' +
+              '<div class="et-detail-pct">' + pct + '%</div>' +
+              '<div class="et-detail-desc" data-i18n="' + descKeys[el] + '">' + t(descKeys[el], '') + '</div>' +
+            '</div>';
+          detailsEl.appendChild(card);
+        });
+      }
+
+      function buildMissing(missingElements) {
+        if (missingElements.length === 0) { missingSec.style.display = 'none'; return; }
+        missingSec.style.display = 'block';
+        missingList.innerHTML = '';
+        var suggestions = {
+          Wood: 'Spend time in nature, add green plants, wear green tones, practice creative hobbies.',
+          Fire: 'Light candles, engage in passionate activities, add warm lighting, wear red accents.',
+          Earth: 'Use ceramic decor, eat grounding foods, create cozy spaces, wear earthy tones.',
+          Metal: 'Declutter your space, use white and metallic accents, practice breathing exercises.',
+          Water: 'Add a small fountain, take baths, wear dark blue or black, practice meditation.'
+        };
+        missingElements.forEach(function(el) {
+          var item = document.createElement('div');
+          item.className = 'et-missing-item';
+          item.innerHTML =
+            '<div class="et-missing-bullet" style="background:' + EL_COLORS[el] + '">' + EL_ICONS[el] + '</div>' +
+            '<div style="font-size:0.9rem;color:var(--color-text-secondary);line-height:1.65;">' +
+              '<strong style="color:var(--color-text-primary)" data-i18n="test.element_' + el.toLowerCase() + '">' + t('test.element_' + el.toLowerCase(), el) + '</strong>: ' + suggestions[el] +
+            '</div>';
+          missingList.appendChild(item);
+        });
+      }
+
+      function buildRecommendations(missingElements, usefulGodEl) {
+        var recData = {};
+        try { recData = JSON.parse(document.getElementById('etRecData').textContent); } catch(e) {}
+        recGrid.innerHTML = '';
+
+        var recKey = missingElements.length > 0 ? missingElements[0] : (usefulGodEl || 'Wood');
+        var items = recData[recKey] ? recData[recKey] : recData.Wood;
+
+        items.forEach(function(item, idx) {
+          var card = document.createElement('article');
+          card.className = 'et-rec-card';
+          card.innerHTML =
+            '<img src="' + item.image + '" alt="' + item.nameKey + '" loading="lazy" />' +
+            '<div class="et-rec-card-body">' +
+              '<h4 data-i18n="' + item.nameKey + '">' + t(item.nameKey, item.nameKey) + '</h4>' +
+              '<span class="et-rec-price" data-price-usd="' + item.priceUsd + '">$' + item.priceUsd + '</span>' +
+              '<button class="btn btn-secondary et-add-cart-btn" style="margin-top:0.5rem;" data-i18n="common.add_cart">Add to Cart</button>' +
+            '</div>';
+          recGrid.appendChild(card);
+
+          var btn = card.querySelector('.et-add-cart-btn');
+          if (btn) {
+            btn.addEventListener('click', function() {
+              if (window.__cart) {
+                var productName = t(item.nameKey, item.nameKey);
+                window.__cart.addToCart({
+                  id: 'rec-' + recKey + '-' + idx,
+                  name: productName,
+                  price: item.priceUsd,
+                  image: item.image
+                });
+              }
+            });
+          }
+        });
+
+        window.dispatchEvent(new CustomEvent('currency-change', { detail: localStorage.getItem('ov-currency') || 'USD' }));
+      }
+
+      /* ---------- Loading animation ---------- */
+      function animateLoadingSteps(callback) {
+        var step = 0;
+        loadingSteps.forEach(function(s){ s.classList.remove('active'); });
+        var interval = setInterval(function() {
+          if (step > 0) loadingSteps[step-1].classList.remove('active');
+          if (step < loadingSteps.length) {
+            loadingSteps[step].classList.add('active');
+            step++;
+          } else {
+            clearInterval(interval);
+            callback();
+          }
+        }, 500);
+      }
+
+      function applyI18nToResult() {
+        var lang = getLang();
+        var tl = {};
+        var enFallback = {};
+        if (window.ovI18n && window.ovI18n.translations) {
+          tl = window.ovI18n.translations[lang] || {};
+          if (lang !== 'en') {
+            enFallback = window.ovI18n.translations['en'] || {};
+          }
+        }
+
+        document.querySelectorAll('[data-i18n]').forEach(function(el) {
+          var key = el.getAttribute('data-i18n');
+          var val = tl;
+          var parts = key.split('.');
+          for (var i = 0; i < parts.length; i++) val = val?.[parts[i]];
+          // If not found in current lang, try English fallback
+          if ((val === undefined || val === null || val === '') && lang !== 'en') {
+            val = enFallback;
+            for (var i = 0; i < parts.length; i++) val = val?.[parts[i]];
+          }
+          if (val !== undefined && val !== null && val !== '') el.textContent = val;
+        });
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el) {
+          var key = el.getAttribute('data-i18n-placeholder');
+          var val = tl;
+          var parts = key.split('.');
+          for (var i = 0; i < parts.length; i++) val = val?.[parts[i]];
+          if ((val === undefined || val === null || val === '') && lang !== 'en') {
+            val = enFallback;
+            for (var i = 0; i < parts.length; i++) val = val?.[parts[i]];
+          }
+          if (val !== undefined && val !== null && val !== '') el.setAttribute('placeholder', val);
+        });
+      }
+
+      /* ---------- Form Submit ---------- */
+      function isValidEmail(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      }
+
+      if (form) {
+        form.addEventListener('submit', function (e) {
+          e.preventDefault();
+
+          if (!emailInput.value.trim() || !isValidEmail(emailInput.value.trim())) {
+            emailInput.focus();
+            emailInput.style.borderColor = 'var(--color-error)';
+            setTimeout(function() { emailInput.style.borderColor = ''; }, 1500);
+            return;
+          }
+
+          var year  = parseInt(birthYearSelect.value, 10);
+          var month = parseInt(birthMonthSelect.value, 10);
+          var day   = parseInt(birthDaySelect.value, 10);
+          if (!year || !month || !day) return;
+
+          var hourKey = birthtimeSelect.value;
+          var gender = document.querySelector('input[name="gender"]:checked')?.value || 'male';
+
+          loadingEl.classList.add('show');
+
+          setTimeout(function () {
+            animateLoadingSteps(function() {
+              loadingEl.classList.remove('show');
+
+              var yearP = getYearPillar(year);
+              var monthP = getMonthPillar(year, month);
+              var dayP = getDayPillar(year, month, day);
+              var result = computeDistributionAndGods(year, month, day, hourKey);
+              var dist = result.dist;
+              var godsCount = result.godsCount;
+              var dmStem = result.dmStem;
+              var dmEl = result.dmEl;
+              var dmYy = result.dmYy;
+
+              var maxPct = -1, dominant = 'Wood';
+              var missingElements = [];
+              ELEMENTS.forEach(function(el) {
+                if (dist[el] > maxPct) { maxPct = dist[el]; dominant = el; }
+                if (dist[el] === 0) missingElements.push(el);
+              });
+              ELEMENTS.forEach(function(el) {
+                if (dist[el] > 0 && dist[el] <= 5 && missingElements.indexOf(el) === -1) {
+                  missingElements.push(el);
+                }
+              });
+
+              var usefulGods = findUsefulGods(dist, dmEl);
+
+              /* Build all sections */
+              buildBirthInfo(year, month, day, hourKey, gender);
+              buildDayMaster(dmStem, dmEl, dmYy);
+              buildBaZi(year, month, day, hourKey, dmStem);
+              buildDonut(dist);
+              buildLegend(dist);
+              buildStrength(dist, dmEl);
+              buildUsefulGods(usefulGods);
+              buildTenGods(godsCount);
+              buildWealth(dmEl, dist, godsCount);
+              buildCareer(dmEl, dist, godsCount);
+              buildRelationship(gender, dmEl, dist, godsCount);
+              buildHealth(dist);
+              buildLuck(dominant, dmEl);
+              buildDaYun(year, month, day, gender, yearP, monthP);
+              buildDetails(dist);
+              buildMissing(missingElements);
+              buildRecommendations(missingElements, usefulGods.useful);
+
+              /* Donut center label */
+              donutCenter.innerHTML = '<span data-i18n="test.element_' + dominant.toLowerCase() + '">' + t('test.element_' + dominant.toLowerCase(), dominant) + '</span>';
+
+              resultSec.classList.add('show');
+              resultSec.style.display = 'block';
+
+              setTimeout(function() {
+                resultSec.querySelectorAll('.fade-in').forEach(function(el) {
+                  el.classList.add('visible');
+                });
+                applyI18nToResult();
+              }, 50);
+
+              /* Check if user is logged in - registered users get free report */
+              var isLoggedIn = !!(window.ovAuth && window.ovAuth.isLoggedIn());
+              var isMember = window.ovAuth && window.ovAuth.isMember();
+              var hasPaid = localStorage.getItem('ov-test-paid') === 'true';
+
+              if (isLoggedIn || hasPaid) {
+                /* Full report - logged in users get free, members get premium */
+                showFullReport();
+                var consultUpgrade = document.getElementById('etConsultUpgrade');
+                if (consultUpgrade) consultUpgrade.style.display = 'block';
+                setTimeout(showModal, 1000);
+              } else {
+                /* Guest - show preview + paywall */
+                showPaywall();
+              }
+
+              resultSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+          }, 2000);
+        });
+      }
+
+      /* ---------- Download / Share / Save / Retake ---------- */
+      var downloadBtn = document.getElementById('etDownloadBtn');
+      var shareBtn = document.getElementById('etShareBtn');
+
+      function generateReportText() {
+        var name = document.getElementById('formName').value || 'User';
+        var year = document.getElementById('formBirthYear').value;
+        var month = document.getElementById('formBirthMonth').value;
+        var day = document.getElementById('formBirthDay').value;
+        var hourKey = document.getElementById('formBirthtime').value;
+        var gender = document.querySelector('input[name="gender"]:checked')?.value || 'male';
+        var dmStem = document.getElementById('etDayMasterStem').textContent;
+        var dmEl = document.getElementById('etDayMasterEl').textContent;
+        var dmYy = document.getElementById('etDayMasterYy').textContent;
+        var dominant = document.getElementById('etDonutCenter')?.textContent || '';
+
+        var lines = [];
+        lines.push('========================================');
+        lines.push('  FIVE ELEMENTS PERSONAL REPORT');
+        lines.push('  Based on BaZi Astrology');
+        lines.push('========================================');
+        lines.push('');
+        lines.push('Personal Information');
+        lines.push('  Name: ' + name);
+        lines.push('  Gender: ' + (gender === 'female' ? 'Female' : 'Male'));
+        lines.push('  Birth Date: ' + year + '-' + String(month).padStart(2,'0') + '-' + String(day).padStart(2,'0'));
+        if (hourKey) {
+          var hourText = t('test.hour_' + hourKey, hourKey);
+          lines.push('  Birth Time: ' + hourText);
+        }
+        lines.push('  Generated: ' + new Date().toLocaleString());
+        lines.push('');
+        lines.push('----------------------------------------');
+        lines.push('Day Master');
+        lines.push('----------------------------------------');
+        lines.push('  ' + dmStem + '  (' + dmEl + ' / ' + dmYy + ')');
+        var desc = document.getElementById('etDayMasterDesc')?.textContent || '';
+        if (desc) lines.push('  ' + desc);
+        lines.push('');
+        lines.push('----------------------------------------');
+        lines.push('Dominant Element: ' + dominant);
+        lines.push('----------------------------------------');
+        lines.push('');
+        lines.push('Five Elements Distribution:');
+        var legendItems = document.querySelectorAll('.et-legend-item');
+        legendItems.forEach(function(item) {
+          var name = item.querySelector('.et-legend-name')?.textContent || '';
+          var pct = item.querySelector('.et-legend-pct')?.textContent || '';
+          if (name && pct) lines.push('  ' + name + ': ' + pct);
+        });
+        lines.push('');
+        lines.push('----------------------------------------');
+        lines.push('Report from Oriental Vibe');
+        lines.push('========================================');
+        return lines.join('\n');
+      }
+
+      if (downloadBtn) {
+        downloadBtn.addEventListener('click', function() {
+          try {
+            var reportText = generateReportText();
+            var name = document.getElementById('formName').value || 'report';
+            var blob = new Blob([reportText], { type: 'text/plain;charset=utf-8' });
+            var url = URL.createObjectURL(blob);
+            var link = document.createElement('a');
+            link.href = url;
+            link.download = 'five-elements-report-' + name.toLowerCase().replace(/\s+/g, '-') + '.txt';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+            showToast(t('test.report_downloaded', 'Report downloaded successfully'));
+          } catch(e) {
+            showToast(t('test.download_failed', 'Download failed, please try again'));
+          }
+        });
+      }
+
+      if (shareBtn) {
+        shareBtn.addEventListener('click', function() {
+          var name = document.getElementById('formName').value || 'My';
+          var dmEl = document.getElementById('etDayMasterEl')?.textContent || '';
+          var dominant = document.getElementById('etDonutCenter')?.textContent || '';
+          var shareText = name + '\'s Five Elements Report: Day Master is ' + dmEl + ', Dominant element is ' + dominant + '. Check yours at ' + window.location.href;
+
+          if (navigator.share) {
+            navigator.share({
+              title: 'My Five Elements Report',
+              text: shareText,
+              url: window.location.href
+            }).catch(function() {});
+          } else {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(shareText).then(function() {
+                showToast(t('test.link_copied', 'Link copied to clipboard!'));
+              }).catch(function() {
+                prompt(t('test.share_prompt', 'Copy this link to share:'));
+              });
+            } else {
+              prompt(t('test.share_prompt', 'Copy this link to share:'), window.location.href);
+            }
+          }
+        });
+      }
+
+      if (saveBtn) {
+        saveBtn.addEventListener('click', function() {
+          try {
+            localStorage.setItem('ov-elements-result', resultSec.innerHTML);
+            localStorage.setItem('ov-elements-result-date', new Date().toISOString());
+            showToast(t('test.result_saved', 'Result saved locally'));
+          } catch(e) {}
+        });
+      }
+      if (retakeBtn) {
+        retakeBtn.addEventListener('click', function() {
+          resultSec.classList.remove('show');
+          resultSec.style.display = 'none';
+          form.reset();
+          updateDayOptions();
+          goToStep(1);
+          document.querySelector('.et-hero').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      }
+
+      /* ---------- Toast ---------- */
+      function showToast(msg) {
+        var existing = document.querySelector('.et-toast');
+        if (existing) existing.remove();
+        var toast = document.createElement('div');
+        toast.className = 'et-toast';
+        toast.style.cssText = 'position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--color-accent-dark);color:#fff;padding:0.875rem 1.5rem;border-radius:var(--radius-sm);box-shadow:var(--shadow-md);z-index:9999;font-size:0.9rem;opacity:0;transition:opacity 0.3s ease;';
+        toast.textContent = msg;
+        document.body.appendChild(toast);
+        setTimeout(function(){ toast.style.opacity = '1'; }, 10);
+        setTimeout(function(){ toast.style.opacity = '0'; setTimeout(function(){ toast.remove(); }, 300); }, 2500);
+      }
+
+      /* ---------- Paywall / Payment ---------- */
+      var paywallEl = document.getElementById('etPaywall');
+      var payBtn = document.getElementById('etPayBtn');
+      var payModal = document.getElementById('etPayModal');
+      var payModalClose = document.getElementById('etPayModalClose');
+      var payConfirm = document.getElementById('etPayConfirm');
+      var consultUpgradeEl = document.getElementById('etConsultUpgrade');
+
+      // Sections to blur behind paywall (everything after Day Master)
+      var paywallSections = [
+        'etWealth', 'etCareer', 'etRelationship', 'etHealth',
+        'etLuck', 'etDaYun', 'etDetails', 'etMissing', 'etRecGrid',
+        'etReportActions'
+      ];
+
+      function showPaywall() {
+        // Blur all detailed sections
+        paywallSections.forEach(function(id) {
+          var el = document.getElementById(id);
+          if (el) el.classList.add('et-paywall-blur');
+        });
+        // Show paywall lock
+        if (paywallEl) paywallEl.style.display = 'block';
+        // Hide consultation upgrade
+        if (consultUpgradeEl) consultUpgradeEl.style.display = 'none';
+      }
+
+      function showFullReport() {
+        // Remove blur from all sections
+        paywallSections.forEach(function(id) {
+          var el = document.getElementById(id);
+          if (el) el.classList.remove('et-paywall-blur');
+        });
+        // Hide paywall lock
+        if (paywallEl) paywallEl.style.display = 'none';
+        // Show consultation upgrade
+        if (consultUpgradeEl) consultUpgradeEl.style.display = 'block';
+        // Show email sent toast
+        var emailToast = document.getElementById('etEmailToast');
+        if (emailToast) {
+          setTimeout(function() { emailToast.classList.add('show'); }, 800);
+          setTimeout(function() { emailToast.classList.remove('show'); }, 7000);
+        }
+      }
+
+      // Email toast close button
+      var emailToastClose = document.getElementById('etEmailToastClose');
+      if (emailToastClose) {
+        emailToastClose.addEventListener('click', function() {
+          var et = document.getElementById('etEmailToast');
+          if (et) et.classList.remove('show');
+        });
+      }
+
+      // Pay button - open payment modal
+      if (payBtn) {
+        payBtn.addEventListener('click', function() {
+          if (payModal) { payModal.classList.add('active'); }
+        });
+      }
+
+      // Member unlock - inline form toggle
+      const memberToggle = document.getElementById('etMemberToggle');
+      const memberForm = document.getElementById('etMemberForm');
+      const memberUnlockBtn = document.getElementById('etMemberUnlockBtn');
+      if (memberToggle && memberForm) {
+        memberToggle.addEventListener('click', function() {
+          memberForm.classList.toggle('show');
+        });
+      }
+      if (memberUnlockBtn) {
+        memberUnlockBtn.addEventListener('click', function() {
+          const memEmail = document.getElementById('etMemberEmail')?.value.trim();
+          const memCode = document.getElementById('etMemberCode')?.value.trim();
+          if (!memEmail || !memCode) {
+            alert('Please enter your membership email and code.');
+            return;
+          }
+          if (!memEmail.includes('@')) {
+            alert('Please enter a valid email address.');
+            return;
+          }
+          // Use auth system to set user with membership tier
+          if (window.ovAuth) {
+            window.ovAuth.setUser({
+              name: memEmail.split('@')[0],
+              email: memEmail,
+              tier: 'starter',
+              registeredAt: new Date().toISOString(),
+            });
+          } else {
+            localStorage.setItem('ov-is-member', 'true');
+            localStorage.setItem('ov-test-paid', 'true');
+          }
+          showFullReport();
+          memberForm.classList.remove('show');
+        });
+      }
+
+      // Payment modal close
+      if (payModalClose && payModal) {
+        payModalClose.addEventListener('click', function() {
+          payModal.classList.remove('active');
+        });
+        payModal.addEventListener('click', function(e) {
+          if (e.target === payModal) payModal.classList.remove('active');
+        });
+      }
+
+      // Payment confirm
+      if (payConfirm) {
+        payConfirm.addEventListener('click', function() {
+          var cardNumber = (document.getElementById('payCardNumber') || {}).value || '';
+          var expiry = (document.getElementById('payExpiry') || {}).value || '';
+          var cvc = (document.getElementById('payCvc') || {}).value || '';
+
+          if (!cardNumber || cardNumber.length < 13) {
+            alert('Please enter a valid card number.');
+            return;
+          }
+          if (!expiry || expiry.length < 4) {
+            alert('Please enter a valid expiry date.');
+            return;
+          }
+          if (!cvc || cvc.length < 3) {
+            alert('Please enter a valid CVC.');
+            return;
+          }
+
+          // Simulate payment processing
+          payConfirm.textContent = 'Processing...';
+          payConfirm.disabled = true;
+
+          setTimeout(function() {
+            localStorage.setItem('ov-test-paid', 'true');
+            payModal.classList.remove('active');
+            showFullReport();
+            payConfirm.textContent = 'Pay $9.99';
+            payConfirm.disabled = false;
+          }, 1500);
+        });
+      }
+
+      // Card number formatting
+      var cardInput = document.getElementById('payCardNumber');
+      if (cardInput) {
+        cardInput.addEventListener('input', function(e) {
+          var val = e.target.value.replace(/\s/g, '').replace(/[^\d]/g, '');
+          var formatted = val.replace(/(\d{4})(?=\d)/g, '$1 ');
+          e.target.value = formatted.substring(0, 19);
+        });
+      }
+
+      // Expiry formatting
+      var expiryInput = document.getElementById('payExpiry');
+      if (expiryInput) {
+        expiryInput.addEventListener('input', function(e) {
+          var val = e.target.value.replace(/[^\d]/g, '');
+          if (val.length >= 2) {
+            val = val.substring(0, 2) + '/' + val.substring(2, 4);
+          }
+          e.target.value = val.substring(0, 5);
+        });
+      }
+
+      /* ---------- Modal ---------- */
+      function showModal() {
+        modal.style.display = 'flex';
+        modal.setAttribute('aria-hidden', 'false');
+      }
+      function hideModal() {
+        modal.style.display = 'none';
+        modal.setAttribute('aria-hidden', 'true');
+      }
+      if (modalClose) modalClose.addEventListener('click', hideModal);
+      if (modal) {
+        modal.addEventListener('click', function (e) { if (e.target === modal) hideModal(); });
+      }
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') hideModal(); });
+
+      /* ---------- Language change ---------- */
+      function onLangChange() {
+        var lang = getLang();
+        // Use BaseLayout's translations if already loaded
+        if (window.ovI18n && window.ovI18n.translations && window.ovI18n.translations[lang]) {
+          _cache[lang] = window.ovI18n.translations[lang];
+          applyI18nToResult();
+        } else {
+          // Fetch translations directly as fallback
+          fetch('/i18n/' + lang + '.json')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+              _cache[lang] = data;
+              applyI18nToResult();
+            })
+            .catch(function() {});
+        }
+        if (stepNameEl) {
+          var labelKey = stepNameKeys[currentStep - 1] || '';
+          stepNameEl.setAttribute('data-i18n', labelKey);
+          stepNameEl.textContent = t(labelKey, labelKey);
+        }
+      }
+      // Only listen for ov-i18n-ready (BaseLayout dispatches this after translations are loaded)
+      document.addEventListener('ov-i18n-ready', onLangChange);
+
+      // Initial load: if BaseLayout already initialized, apply now
+      if (window.ovI18n && window.ovI18n.translations) {
+        onLangChange();
+      } else {
+        // Wait for BaseLayout to finish initializing
+        document.addEventListener('ov-i18n-ready', function initOnce() {
+          document.removeEventListener('ov-i18n-ready', initOnce);
+          onLangChange();
+        });
+      }
+    })();
+  </script>
+</BaseLayout>

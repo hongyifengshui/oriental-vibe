@@ -1,0 +1,78 @@
+---
+import '../styles/global.css';
+const pathname = Astro.url.pathname;
+const isActive = (path) => pathname === path ? 'active' : '';
+---
+<header class="navbar">
+  <div class="navbar-container">
+    <a href="/" class="navbar-brand" data-i18n="brand.name">Oriental Vibe</a>
+    <nav class="navbar-links" id="navLinks">
+      <a href="/" class={isActive('/')} data-i18n="nav.home">Home</a>
+      <a href="/shop" class={isActive('/shop')} data-i18n="nav.shop">Shop</a>
+      <a href="/services" class={isActive('/services')} data-i18n="nav.services">Services</a>
+      <a href="/courses" class={isActive('/courses')} data-i18n="nav.courses">Courses</a>
+      <a href="/blog" class={isActive('/blog')} data-i18n="nav.blog">Blog</a>
+      <a href="/membership" class={isActive('/membership')} data-i18n="nav.membership">Membership</a>
+    </nav>
+    <div class="navbar-actions">
+      <div class="lang-switcher">
+        <select id="langSelect" aria-label="Language">
+          <option value="en">EN</option>
+          <option value="zh">繁體中文</option>
+          <option value="de">DE</option>
+          <option value="fr">FR</option>
+          <option value="es">ES</option>
+        </select>
+      </div>
+
+      <!-- Auth: Logged-out CTA -->
+      <button class="ov-login-cta" id="ovLoginCta" data-i18n="auth.login_prompt">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Login / Register
+      </button>
+
+      <!-- Auth: Logged-in User Dropdown -->
+      <div class="ov-user-area" id="ovUserArea" style="display:none;">
+        <button class="ov-user-btn" id="ovUserBtn">
+          <span class="ov-user-avatar">U</span>
+          <span class="ov-user-name">User</span>
+          <span class="ov-user-tier-badge free" style="display:none;">Free</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="ov-user-dropdown" id="ovUserDropdown">
+          <a href="/element-test" class="ov-user-dropdown-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <span data-i18n="nav.cta">Five Elements Test</span>
+          </a>
+          <a href="/membership" class="ov-user-dropdown-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <span data-i18n="nav.membership">Membership</span>
+          </a>
+          <div class="ov-user-dropdown-divider"></div>
+          <button class="ov-user-dropdown-item logout" id="ovLogoutBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <span data-i18n="auth.logout">Sign Out</span>
+          </button>
+        </div>
+      </div>
+
+      <button class="mobile-menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+    </div>
+  </div>
+</header>
+<script is:inline>
+  // 移动端菜单
+  document.getElementById('menuToggle')?.addEventListener('click', () => {
+    document.getElementById('navLinks')?.classList.toggle('open');
+  });
+  // 语言切换
+  const langSelect = document.getElementById('langSelect');
+  if (langSelect) {
+    const savedLang = localStorage.getItem('ov-lang') || 'en';
+    langSelect.value = savedLang;
+    langSelect.addEventListener('change', (e) => {
+      localStorage.setItem('ov-lang', e.target.value);
+      window.dispatchEvent(new CustomEvent('lang-change', { detail: e.target.value }));
+    });
+  }
+</script>
