@@ -1163,25 +1163,11 @@ import '../styles/global.css';
             <div id="setting-payment" style="display:none;">
               <div class="settings-section">
                 <div class="settings-section-title">支付方式配置</div>
-                <div class="setting-row"><div class="setting-info"><h4>支付宝支付</h4><p>启用支付宝收款</p></div><div class="toggle-switch active" id="pay-alipay" onclick="this.classList.toggle('active')"></div></div>
-                <div class="form-row" style="margin-top:18px;">
-                  <div class="form-group"><label class="form-label">支付宝 AppID</label><input class="form-input" placeholder="请输入支付宝 AppID" /></div>
-                  <div class="form-group"><label class="form-label">支付宝密钥</label><input class="form-input" type="password" placeholder="请输入支付宝密钥" /></div>
-                </div>
-                <div class="setting-row"><div class="setting-info"><h4>微信支付</h4><p>启用微信收款</p></div><div class="toggle-switch active" id="pay-wechat" onclick="this.classList.toggle('active')"></div></div>
-                <div class="form-row" style="margin-top:18px;">
-                  <div class="form-group"><label class="form-label">微信商户号</label><input class="form-input" placeholder="请输入微信商户号" /></div>
-                  <div class="form-group"><label class="form-label">微信 API 密钥</label><input class="form-input" type="password" placeholder="请输入 API 密钥" /></div>
-                </div>
-                <div class="setting-row"><div class="setting-info"><h4>PayPal</h4><p>启用 PayPal 国际支付</p></div><div class="toggle-switch" id="pay-paypal" onclick="this.classList.toggle('active')"></div></div>
-                <div class="form-row" style="margin-top:18px;">
-                  <div class="form-group"><label class="form-label">PayPal Client ID</label><input class="form-input" placeholder="请输入 PayPal Client ID" /></div>
-                  <div class="form-group"><label class="form-label">PayPal Secret</label><input class="form-input" type="password" placeholder="请输入 PayPal Secret" /></div>
-                </div>
-                <div class="setting-row"><div class="setting-info"><h4>Stripe</h4><p>启用 Stripe 国际支付</p></div><div class="toggle-switch" id="pay-stripe" onclick="this.classList.toggle('active')"></div></div>
-                <div class="form-row" style="margin-top:18px;">
-                  <div class="form-group"><label class="form-label">Stripe Publishable Key</label><input class="form-input" placeholder="pk_live_..." /></div>
-                  <div class="form-group"><label class="form-label">Stripe Secret Key</label><input class="form-input" type="password" placeholder="sk_live_..." /></div>
+                <div class="setting-row"><div class="setting-info"><h4>启用结账</h4><p>开启后，顾客可在购物车中点击结账</p></div><div class="toggle-switch active" id="pay-enabled" onclick="this.classList.toggle('active')"></div></div>
+                <div class="form-group" style="margin-top:18px;">
+                  <label class="form-label">支付说明</label>
+                  <textarea class="form-input" id="set-payment-info" rows="4" placeholder="输入支付方式说明，例如：&#10;PayPal: paypal.me/yourname&#10;Stripe 支付链接: buy.stripe.com/xxx&#10;或联系客服完成支付"></textarea>
+                  <p style="font-size:12px;color:#8A948C;margin-top:6px;">顾客结账时将看到此内容。支持填写 PayPal 链接、Stripe 支付链接或联系方式。</p>
                 </div>
               </div>
             </div>
@@ -3831,6 +3817,8 @@ import '../styles/global.css';
     if (settings.description) document.getElementById('set-site-desc').value = settings.description;
     if (settings.keywords) document.getElementById('set-keywords').value = settings.keywords;
     if (settings.email) document.getElementById('set-email').value = settings.email;
+    if (settings.paymentInfo) document.getElementById('set-payment-info').value = settings.paymentInfo;
+    if (settings.paymentEnabled === false) document.getElementById('pay-enabled').classList.remove('active');
   }
   function saveSettings() {
     const settings = lsGet('settings') || {};
@@ -3839,6 +3827,8 @@ import '../styles/global.css';
     settings.description = document.getElementById('set-site-desc').value;
     settings.keywords = document.getElementById('set-keywords').value;
     settings.email = document.getElementById('set-email').value;
+    settings.paymentInfo = document.getElementById('set-payment-info').value;
+    settings.paymentEnabled = document.getElementById('pay-enabled').classList.contains('active');
     lsSet('settings', settings);
     showToast('设置已保存', 'success');
   }

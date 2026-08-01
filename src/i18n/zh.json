@@ -814,7 +814,8 @@
     "note": "運費和稅費在結算時計算",
     "continue": "繼續購物",
     "empty": "購物車是空的",
-    "remove": "移除"
+    "remove": "移除",
+    "payment_method": "付款方式"
   },
   "membership": {
     "hero_subtitle": "專屬社群",

@@ -814,7 +814,8 @@
     "note": "Shipping & taxes calculated at checkout",
     "continue": "Continue Shopping",
     "empty": "Your cart is empty",
-    "remove": "Remove"
+    "remove": "Remove",
+    "payment_method": "Payment Method"
   },
   "membership": {
     "hero_subtitle": "Exclusive Community",

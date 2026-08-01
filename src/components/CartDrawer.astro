@@ -29,10 +29,28 @@ import '../styles/global.css';
       <span class="cart-total-price" id="cartTotal">$0</span>
     </div>
     <p class="cart-note" data-i18n="cart.note">Shipping & taxes calculated at checkout</p>
-    <button class="btn btn-primary btn-lg" style="width: 100%;" data-i18n="common.checkout">Checkout</button>
+    <button class="btn btn-primary btn-lg" style="width: 100%;" id="checkoutBtn" data-i18n="common.checkout">Checkout</button>
     <button class="btn btn-secondary" style="width: 100%;" id="cartContinue" data-i18n="cart.continue">Continue Shopping</button>
   </div>
 </aside>
+
+<!-- Checkout Modal -->
+<div class="checkout-overlay" id="checkoutOverlay"></div>
+<div class="checkout-modal" id="checkoutModal">
+  <div class="checkout-modal-header">
+    <h3 data-i18n="common.checkout">Checkout</h3>
+    <button class="checkout-modal-close" id="checkoutModalClose">&times;</button>
+  </div>
+  <div class="checkout-modal-body">
+    <div class="checkout-order-summary" id="checkoutOrderSummary"></div>
+    <div class="checkout-payment-section">
+      <h4 data-i18n="cart.payment_method">Payment Method</h4>
+      <div class="checkout-payment-info" id="checkoutPaymentInfo">
+        <p>Loading payment information...</p>
+      </div>
+    </div>
+  </div>
+</div>
 
 <style>
   .cart-overlay {
@@ -203,6 +221,115 @@ import '../styles/global.css';
     font-size: 0.85rem;
     color: var(--color-text-tertiary);
     text-align: center;
+  }
+
+  /* Checkout Modal */
+  .checkout-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(58, 64, 61, 0.5);
+    backdrop-filter: blur(2px);
+    z-index: calc(var(--z-modal) + 2);
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition-base);
+  }
+  .checkout-overlay.open {
+    opacity: 1;
+    visibility: visible;
+  }
+  .checkout-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
+    background: var(--color-bg-tertiary);
+    border-radius: 16px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    z-index: calc(var(--z-modal) + 3);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-xl);
+  }
+  .checkout-modal.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  .checkout-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  .checkout-modal-header h3 {
+    font-family: var(--font-serif);
+    font-size: 1.3rem;
+    font-weight: 500;
+  }
+  .checkout-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    padding: 0;
+    line-height: 1;
+  }
+  .checkout-modal-close:hover {
+    color: var(--color-text-primary);
+  }
+  .checkout-modal-body {
+    padding: 1.5rem;
+  }
+  .checkout-order-summary {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  .checkout-order-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.35rem 0;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+  }
+  .checkout-order-total {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 0.75rem;
+    margin-top: 0.75rem;
+    border-top: 1px solid var(--color-border-light);
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+  .checkout-payment-section h4 {
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+  }
+  .checkout-payment-info {
+    background: var(--color-bg-secondary);
+    border-radius: 10px;
+    padding: 1rem;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    color: var(--color-text-secondary);
+  }
+  .checkout-payment-info a {
+    color: var(--color-accent-dark);
+    text-decoration: underline;
+  }
+  .checkout-payment-info .no-payment {
+    text-align: center;
+    color: var(--color-text-tertiary);
+    padding: 1rem 0;
   }
 </style>
 
@@ -380,8 +507,86 @@ import '../styles/global.css';
     overlay?.addEventListener('click', closeCart);
     continueBtn?.addEventListener('click', closeCart);
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeCart();
+      if (e.key === 'Escape') {
+        if (document.getElementById('checkoutModal').classList.contains('open')) {
+          closeCheckout();
+        } else {
+          closeCart();
+        }
+      }
     });
+
+    // Checkout modal
+    const checkoutOverlay = document.getElementById('checkoutOverlay');
+    const checkoutModal = document.getElementById('checkoutModal');
+    const checkoutModalClose = document.getElementById('checkoutModalClose');
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    const checkoutOrderSummary = document.getElementById('checkoutOrderSummary');
+    const checkoutPaymentInfo = document.getElementById('checkoutPaymentInfo');
+
+    function getPaymentSettings() {
+      try {
+        const settings = JSON.parse(localStorage.getItem('ov-admin-settings'));
+        return settings || {};
+      } catch { return {}; }
+    }
+
+    function openCheckout() {
+      const cart = getCart();
+      if (cart.length === 0) return;
+
+      const settings = getPaymentSettings();
+      if (settings.paymentEnabled === false) {
+        alert('Payment is currently unavailable. Please contact us for assistance.');
+        return;
+      }
+
+      // Render order summary
+      let itemsHtml = cart.map(item => `
+        <div class="checkout-order-item">
+          <span>${item.name} x${item.quantity}</span>
+          <span>${formatPrice(item.price * item.quantity)}</span>
+        </div>
+      `).join('');
+
+      const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      itemsHtml += `
+        <div class="checkout-order-total">
+          <span>Total</span>
+          <span>${formatPrice(total)}</span>
+        </div>
+      `;
+      checkoutOrderSummary.innerHTML = itemsHtml;
+
+      // Render payment info
+      const paymentInfo = settings.paymentInfo || '';
+      if (paymentInfo.trim()) {
+        // Convert URLs to clickable links
+        const linked = paymentInfo.replace(
+          /(https?:\/\/[^\s]+)/g,
+          '<a href="$1" target="_blank" rel="noopener">$1</a>'
+        );
+        checkoutPaymentInfo.innerHTML = linked;
+      } else {
+        checkoutPaymentInfo.innerHTML = '<p class="no-payment">Please contact us to complete your order.</p>';
+      }
+
+      checkoutOverlay.classList.add('open');
+      checkoutModal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeCheckout() {
+      checkoutOverlay.classList.remove('open');
+      checkoutModal.classList.remove('open');
+      if (!drawer.classList.contains('open')) {
+        document.body.style.overflow = '';
+      }
+    }
+
+    checkoutBtn?.addEventListener('click', openCheckout);
+    checkoutModalClose?.addEventListener('click', closeCheckout);
+    checkoutOverlay?.addEventListener('click', closeCheckout);
 
     document.querySelectorAll('.floating-cart-btn, [data-cart-toggle]').forEach(btn => {
       btn.addEventListener('click', openCart);
