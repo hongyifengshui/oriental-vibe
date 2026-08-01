@@ -1438,21 +1438,21 @@ import '../styles/global.css';
     ];
   }
 
+  const DATA_VERSION = 2; // bump to reset all stored data
   function initData() {
-    if (!lsGet('users')) lsSet('users', genUsers(50));
-    if (!lsGet('products')) lsSet('products', genProducts(20));
-    if (!lsGet('categories')) lsSet('categories', genCategories());
-    if (!lsGet('orders')) {
-      const users = lsGet('users') || [];
-      const products = lsGet('products') || [];
-      lsSet('orders', genOrders(80, users, products));
+    const storedVersion = lsGet('data-version');
+    if (storedVersion !== DATA_VERSION) {
+      // Clear old mock data
+      ['users','products','categories','orders','members','content','benefits'].forEach(k => localStorage.removeItem(LS_PREFIX + k));
+      lsSet('data-version', DATA_VERSION);
     }
-    if (!lsGet('members')) {
-      const users = lsGet('users') || [];
-      lsSet('members', genMembers(users));
-    }
-    if (!lsGet('content')) lsSet('content', genContent());
-    if (!lsGet('benefits')) lsSet('benefits', genBenefits());
+    if (!lsGet('users')) lsSet('users', []);
+    if (!lsGet('products')) lsSet('products', []);
+    if (!lsGet('categories')) lsSet('categories', []);
+    if (!lsGet('orders')) lsSet('orders', []);
+    if (!lsGet('members')) lsSet('members', []);
+    if (!lsGet('content')) lsSet('content', {});
+    if (!lsGet('benefits')) lsSet('benefits', []);
     if (!lsGet('settings')) lsSet('settings', { siteName: '东方能量空间', slogan: 'Oriental Vibe Space' });
   }
   initData();
