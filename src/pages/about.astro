@@ -702,4 +702,22 @@ const values = [
       </div>
     </div>
   </section>
+<script>
+  (function() {
+    var PREFIX = 'ov-admin-';
+    try {
+      var data = JSON.parse(localStorage.getItem(PREFIX + 'page-about'));
+      if (data) {
+        var pagePrefix = 'about';
+        Object.keys(data).forEach(function(key) {
+          var val = data[key];
+          if (!val) return;
+          var sel = '[data-i18n="' + pagePrefix + '.' + key + '"]';
+          var els = document.querySelectorAll(sel);
+          els.forEach(function(el) { el.textContent = val; });
+        });
+      }
+    } catch(e) {}
+  })();
+</script>
 </BaseLayout>

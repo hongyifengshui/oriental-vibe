@@ -50,4 +50,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       </div>
     </div>
   </section>
+<script>
+  (function() {
+    var PREFIX = 'ov-admin-';
+    try {
+      var data = JSON.parse(localStorage.getItem(PREFIX + 'page-terms'));
+      if (data && data.bodyHtml) {
+        var container = document.querySelector('section.section .container > div');
+        if (container) container.innerHTML = data.bodyHtml;
+      }
+    } catch(e) {}
+  })();
+</script>
 </BaseLayout>

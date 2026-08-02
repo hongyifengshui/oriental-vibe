@@ -625,4 +625,25 @@ const trustBadges = [
       document.getElementById('noResults').classList.remove('show');
     }
   </script>
+<script>
+  (function() {
+    var PREFIX = 'ov-admin-';
+    try {
+      var data = JSON.parse(localStorage.getItem(PREFIX + 'page-faq'));
+      if (data) {
+        var pagePrefix = 'faq';
+        Object.keys(data).forEach(function(key) {
+          var val = data[key];
+          if (!val) return;
+          var sel = '[data-i18n="' + pagePrefix + '.' + key + '"]';
+          var els = document.querySelectorAll(sel);
+          els.forEach(function(el) { el.textContent = val; });
+          var selPlaceholder = '[data-i18n-placeholder="' + pagePrefix + '.' + key + '"]';
+          var placeholders = document.querySelectorAll(selPlaceholder);
+          placeholders.forEach(function(el) { el.setAttribute('placeholder', val); });
+        });
+      }
+    } catch(e) {}
+  })();
+</script>
 </BaseLayout>

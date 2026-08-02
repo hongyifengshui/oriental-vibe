@@ -1075,6 +1075,7 @@ import '../styles/global.css';
             <div class="tab-item active" onclick="setContentDataTab('courses', this)">课程管理</div>
             <div class="tab-item" onclick="setContentDataTab('services', this)">服务管理</div>
             <div class="tab-item" onclick="setContentDataTab('blog', this)">博客管理</div>
+            <div class="tab-item" onclick="setContentDataTab('pages', this)">页面内容</div>
           </div>
           <div id="cd-courses-view">
             <div class="toolbar">
@@ -1107,6 +1108,25 @@ import '../styles/global.css';
                 <thead><tr><th>ID</th><th>标题</th><th>分类</th><th>日期</th><th>状态</th><th>操作</th></tr></thead>
                 <tbody id="cd-blog-body"></tbody>
               </table>
+            </div>
+          </div>
+          <div id="cd-pages-view" style="display:none;">
+            <div class="toolbar">
+              <select class="filter-select" id="page-content-select" onchange="renderAdminPageContent()" style="min-width:200px;">
+                <option value="">-- 选择页面 --</option>
+                <option value="home">首页 (Home)</option>
+                <option value="about">关于我们 (About)</option>
+                <option value="contact">联系我们 (Contact)</option>
+                <option value="faq">常见问题 (FAQ)</option>
+                <option value="membership">会员中心 (Membership)</option>
+                <option value="privacy">隐私政策 (Privacy)</option>
+                <option value="terms">服务条款 (Terms)</option>
+                <option value="shipping">配送退货 (Shipping)</option>
+              </select>
+              <button class="btn btn-primary" onclick="saveAdminPageContent()" style="margin-left:auto;">&#128190; 保存页面内容</button>
+            </div>
+            <div id="cd-pages-fields" style="margin-top:16px;">
+              <div class="empty-state"><div class="empty-state-icon">&#128196;</div><p>请从上方下拉菜单选择要编辑的页面</p></div>
             </div>
           </div>
         </div>
@@ -3405,9 +3425,11 @@ import '../styles/global.css';
     document.getElementById('cd-courses-view').style.display = tab === 'courses' ? '' : 'none';
     document.getElementById('cd-services-view').style.display = tab === 'services' ? '' : 'none';
     document.getElementById('cd-blog-view').style.display = tab === 'blog' ? '' : 'none';
+    document.getElementById('cd-pages-view').style.display = tab === 'pages' ? '' : 'none';
     if (tab === 'courses') renderCourses();
     if (tab === 'services') renderServices();
     if (tab === 'blog') renderBlog();
+    if (tab === 'pages') { document.getElementById('page-content-select').value = ''; renderAdminPageContent(); }
   }
 
   // Courses
@@ -3603,6 +3625,192 @@ import '../styles/global.css';
     lsSet('blog', blog);
     showToast('文章已删除', 'success');
     renderBlog();
+  }
+
+  // ========== PAGE CONTENT EDITOR ==========
+  const PAGE_CONTENT_SCHEMAS = {
+    home: {
+      label: '首页 (Home)',
+      fields: [
+        { key: 'hero_subtitle', label: 'Hero 副标题', type: 'text' },
+        { key: 'hero_title', label: 'Hero 主标题', type: 'text' },
+        { key: 'hero_description', label: 'Hero 描述', type: 'textarea' },
+        { key: 'hero_cta', label: 'Hero 按钮文字', type: 'text' },
+        { key: 'bundle_tag', label: 'Bundle 标签', type: 'text' },
+        { key: 'bundle_title', label: 'Bundle 标题', type: 'text' },
+        { key: 'bundle_description', label: 'Bundle 描述', type: 'textarea' },
+        { key: 'bundle_cta', label: 'Bundle 按钮', type: 'text' },
+        { key: 'why_title', label: 'Why Us 标题', type: 'text' },
+        { key: 'why_subtitle', label: 'Why Us 副标题', type: 'text' },
+        { key: 'testimonials_title', label: '客户评价 标题', type: 'text' },
+        { key: 'testimonials_subtitle', label: '客户评价 副标题', type: 'text' },
+        { key: 'newsletter_title', label: 'Newsletter 标题', type: 'text' },
+        { key: 'newsletter_description', label: 'Newsletter 描述', type: 'textarea' },
+        { key: 'newsletter_placeholder', label: 'Newsletter 输入框占位', type: 'text' },
+        { key: 'newsletter_button', label: 'Newsletter 按钮', type: 'text' },
+        { key: 'newsletter_gift', label: 'Newsletter 赠品文案', type: 'text' },
+      ]
+    },
+    about: {
+      label: '关于我们 (About)',
+      fields: [
+        { key: 'hero_subtitle', label: 'Hero 副标题', type: 'text' },
+        { key: 'hero_title', label: 'Hero 主标题', type: 'text' },
+        { key: 'hero_description', label: 'Hero 描述', type: 'textarea' },
+        { key: 'brand_story_subtitle', label: '品牌故事 副标题', type: 'text' },
+        { key: 'brand_story_title', label: '品牌故事 标题', type: 'text' },
+        { key: 'brand_story_p1', label: '品牌故事 段落1', type: 'textarea' },
+        { key: 'brand_story_p2', label: '品牌故事 段落2', type: 'textarea' },
+        { key: 'brand_story_p3', label: '品牌故事 段落3', type: 'textarea' },
+        { key: 'values_subtitle', label: '价值观 副标题', type: 'text' },
+        { key: 'values_title', label: '价值观 标题', type: 'text' },
+        { key: 'team_subtitle', label: '团队 副标题', type: 'text' },
+        { key: 'team_title', label: '团队 标题', type: 'text' },
+        { key: 'team_description', label: '团队 描述', type: 'textarea' },
+        { key: 'timeline_subtitle', label: '时间线 副标题', type: 'text' },
+        { key: 'timeline_title', label: '时间线 标题', type: 'text' },
+        { key: 'cta_title', label: 'CTA 标题', type: 'text' },
+        { key: 'cta_description', label: 'CTA 描述', type: 'textarea' },
+        { key: 'cta_primary', label: 'CTA 主按钮', type: 'text' },
+        { key: 'cta_secondary', label: 'CTA 次按钮', type: 'text' },
+      ]
+    },
+    contact: {
+      label: '联系我们 (Contact)',
+      fields: [
+        { key: 'hero_subtitle', label: 'Hero 副标题', type: 'text' },
+        { key: 'hero_title', label: 'Hero 主标题', type: 'text' },
+        { key: 'hero_description', label: 'Hero 描述', type: 'textarea' },
+        { key: 'email_label', label: 'Email 标签', type: 'text' },
+        { key: 'email_value', label: 'Email 地址', type: 'text' },
+        { key: 'hours_label', label: '工作时间 标签', type: 'text' },
+        { key: 'hours_value', label: '工作时间 内容', type: 'text' },
+        { key: 'form_title', label: '表单 标题', type: 'text' },
+        { key: 'form_subtitle', label: '表单 副标题', type: 'text' },
+        { key: 'name_label', label: '姓名 标签', type: 'text' },
+        { key: 'name_placeholder', label: '姓名 占位', type: 'text' },
+        { key: 'email_form_label', label: 'Email 标签', type: 'text' },
+        { key: 'email_placeholder', label: 'Email 占位', type: 'text' },
+        { key: 'subject_label', label: '主题 标签', type: 'text' },
+        { key: 'subject_placeholder', label: '主题 占位', type: 'text' },
+        { key: 'message_label', label: '消息 标签', type: 'text' },
+        { key: 'message_placeholder', label: '消息 占位', type: 'text' },
+        { key: 'submit_button', label: '提交按钮', type: 'text' },
+        { key: 'success_title', label: '成功提示 标题', type: 'text' },
+        { key: 'success_message', label: '成功提示 消息', type: 'textarea' },
+        { key: 'faq_quick_title', label: 'FAQ 快速链接 标题', type: 'text' },
+        { key: 'faq_shipping', label: 'FAQ 配送', type: 'text' },
+        { key: 'faq_returns', label: 'FAQ 退货', type: 'text' },
+        { key: 'faq_products', label: 'FAQ 产品', type: 'text' },
+        { key: 'faq_membership', label: 'FAQ 会员', type: 'text' },
+        { key: 'faq_services', label: 'FAQ 服务', type: 'text' },
+        { key: 'faq_payment', label: 'FAQ 支付', type: 'text' },
+        { key: 'faq_more_text', label: 'FAQ 更多文字', type: 'text' },
+        { key: 'faq_view_all', label: 'FAQ 查看全部', type: 'text' },
+      ]
+    },
+    faq: {
+      label: '常见问题 (FAQ)',
+      fields: [
+        { key: 'hero_badge', label: 'Hero 徽章', type: 'text' },
+        { key: 'hero_title', label: 'Hero 标题', type: 'text' },
+        { key: 'hero_description', label: 'Hero 描述', type: 'textarea' },
+        { key: 'search_placeholder', label: '搜索框占位', type: 'text' },
+        { key: 'no_results_title', label: '无结果 标题', type: 'text' },
+        { key: 'no_results_text', label: '无结果 描述', type: 'text' },
+        { key: 'clear_search', label: '清除搜索 按钮', type: 'text' },
+        { key: 'cta_title', label: 'CTA 标题', type: 'text' },
+        { key: 'cta_description', label: 'CTA 描述', type: 'textarea' },
+        { key: 'cta_button', label: 'CTA 按钮', type: 'text' },
+      ]
+    },
+    membership: {
+      label: '会员中心 (Membership)',
+      fields: [
+        { key: 'hero_subtitle', label: 'Hero 副标题', type: 'text' },
+        { key: 'hero_title', label: 'Hero 标题', type: 'text' },
+        { key: 'hero_desc', label: 'Hero 描述', type: 'textarea' },
+        { key: 'tiers_title', label: '等级 标题', type: 'text' },
+        { key: 'tiers_desc', label: '等级 描述', type: 'text' },
+        { key: 'compare_title', label: '对比表 标题', type: 'text' },
+        { key: 'compare_desc', label: '对比表 描述', type: 'text' },
+        { key: 'form_title', label: '表单 标题', type: 'text' },
+        { key: 'form_desc', label: '表单 描述', type: 'text' },
+        { key: 'form_name', label: '姓名 标签', type: 'text' },
+        { key: 'form_name_placeholder', label: '姓名 占位', type: 'text' },
+        { key: 'form_email', label: 'Email 标签', type: 'text' },
+        { key: 'form_email_placeholder', label: 'Email 占位', type: 'text' },
+        { key: 'form_tier', label: '等级 标签', type: 'text' },
+        { key: 'form_tier_placeholder', label: '等级 占位', type: 'text' },
+        { key: 'form_payment', label: '支付 标签', type: 'text' },
+        { key: 'form_payment_placeholder', label: '支付 占位', type: 'text' },
+        { key: 'form_agreement', label: '协议 文字', type: 'text' },
+        { key: 'form_submit', label: '提交按钮', type: 'text' },
+      ]
+    },
+    privacy: {
+      label: '隐私政策 (Privacy)',
+      isPolicy: true,
+      fields: [
+        { key: 'bodyHtml', label: 'HTML 正文内容', type: 'html' },
+      ]
+    },
+    terms: {
+      label: '服务条款 (Terms)',
+      isPolicy: true,
+      fields: [
+        { key: 'bodyHtml', label: 'HTML 正文内容', type: 'html' },
+      ]
+    },
+    shipping: {
+      label: '配送退货 (Shipping)',
+      isPolicy: true,
+      fields: [
+        { key: 'bodyHtml', label: 'HTML 正文内容', type: 'html' },
+      ]
+    },
+  };
+
+  function renderAdminPageContent() {
+    const pageId = document.getElementById('page-content-select').value;
+    const container = document.getElementById('cd-pages-fields');
+    if (!pageId) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">&#128196;</div><p>请从上方下拉菜单选择要编辑的页面</p></div>';
+      return;
+    }
+    const schema = PAGE_CONTENT_SCHEMAS[pageId];
+    if (!schema) { container.innerHTML = '<p>未知页面</p>'; return; }
+    const saved = lsGet('page-' + pageId) || {};
+    const fieldsHTML = schema.fields.map(f => {
+      const val = (saved[f.key] !== undefined) ? saved[f.key] : '';
+      const escaped = val.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      if (f.type === 'textarea') {
+        return `<div class="form-group" style="margin-bottom:16px;"><label class="form-label">${f.label}</label><textarea class="form-textarea" id="pc-field-${f.key}" rows="3" style="width:100%;font-family:inherit;font-size:13px;padding:10px 12px;border:1px solid #E8E4DE;border-radius:8px;resize:vertical;">${escaped}</textarea></div>`;
+      } else if (f.type === 'html') {
+        return `<div class="form-group" style="margin-bottom:16px;"><label class="form-label">${f.label} <span style="color:#8A948C;font-size:11px;">(将替换整个页面正文区域)</span></label><textarea class="form-textarea" id="pc-field-${f.key}" rows="20" style="width:100%;font-family:monospace;font-size:12px;padding:10px 12px;border:1px solid #E8E4DE;border-radius:8px;resize:vertical;">${escaped}</textarea></div>`;
+      }
+      return `<div class="form-group" style="margin-bottom:16px;"><label class="form-label">${f.label}</label><input class="form-input" id="pc-field-${f.key}" value="${escaped}" style="width:100%;padding:10px 12px;border:1px solid #E8E4DE;border-radius:8px;font-size:13px;" /></div>`;
+    }).join('');
+    container.innerHTML = `
+      <div class="card">
+        <h3 style="margin-bottom:4px;font-size:16px;">${schema.label}</h3>
+        <p style="color:#8A948C;font-size:12px;margin-bottom:20px;">修改以下字段后点击"保存页面内容"</p>
+        ${fieldsHTML}
+      </div>`;
+  }
+
+  function saveAdminPageContent() {
+    const pageId = document.getElementById('page-content-select').value;
+    if (!pageId) { showToast('请先选择页面', 'error'); return; }
+    const schema = PAGE_CONTENT_SCHEMAS[pageId];
+    if (!schema) { showToast('未知页面类型', 'error'); return; }
+    const data = {};
+    schema.fields.forEach(f => {
+      const el = document.getElementById('pc-field-' + f.key);
+      if (el) data[f.key] = el.value;
+    });
+    lsSet('page-' + pageId, data);
+    showToast('页面内容已保存', 'success');
   }
 
   // ========== USERS ==========

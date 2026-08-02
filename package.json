@@ -13,6 +13,7 @@
   },
   "devDependencies": {
     "gh-pages": "^6.1.0",
-    "opencc-js": "^1.4.1"
+    "opencc-js": "^1.4.1",
+    "wrangler": "^4.110.0"
   }
 }
