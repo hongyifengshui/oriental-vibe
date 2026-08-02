@@ -75,4 +75,15 @@ const isActive = (path) => pathname === path ? 'active' : '';
       window.dispatchEvent(new CustomEvent('lang-change', { detail: e.target.value }));
     });
   }
+
+  // Sync site name from admin settings
+  (function syncSiteName() {
+    try {
+      const settings = JSON.parse(localStorage.getItem('ov-admin-settings'));
+      if (settings?.siteName) {
+        const brand = document.querySelector('.navbar-brand');
+        if (brand) brand.textContent = settings.siteName;
+      }
+    } catch {}
+  })();
 </script>

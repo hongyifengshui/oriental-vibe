@@ -453,4 +453,76 @@ const stars = (rating) => '★'.repeat(rating) + '☆'.repeat(5 - rating);
 
   // Apply on auth change
   document.addEventListener('ov-auth-change', applyMemberDiscounts);
+
+  /* ========== Admin Data Sync ========== */
+  (function syncAdminProducts() {
+    let adminProducts;
+    try {
+      adminProducts = JSON.parse(localStorage.getItem('ov-admin-products'));
+    } catch { adminProducts = null; }
+    if (!adminProducts || adminProducts.length === 0) return;
+
+    const activeProducts = adminProducts.filter(p => p.status !== 'inactive');
+    if (activeProducts.length === 0) return;
+
+    const grid = document.querySelector('.product-grid');
+    if (!grid) return;
+
+    const imgBase = 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=';
+
+    grid.innerHTML = activeProducts.map(p => {
+      const imgSrc = p.image || imgBase + encodeURIComponent(p.name + ' minimalist product photo') + '&image_size=square';
+      const catLabel = p.category || 'Other';
+      const price = parseFloat(p.price) || 0;
+      const rating = p.rating || 4;
+      const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+      return `
+        <div class="card product-card" data-category="${catLabel}" data-product-id="${p.id}" data-product-name="${p.name}" data-product-price="${price}" data-product-image="${imgSrc}">
+          <div class="product-image">
+            <img src="${imgSrc}" alt="${p.name}" loading="lazy" />
+            <span class="product-category">${catLabel}</span>
+          </div>
+          <div class="product-body">
+            <h3>${p.name}</h3>
+            <div class="star-rating"><span class="star">${stars}</span></div>
+            <p>${p.description || ''}</p>
+            <div class="product-footer">
+              <div class="price-wrapper">
+                <span class="price" data-price-usd="${price}">$${price}</span>
+                <span class="member-price" data-i18n="auth.discount_label" style="display:none;">Member Discount</span>
+              </div>
+              <button class="btn btn-primary add-cart-btn" data-i18n="common.add_cart">Add to Cart</button>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+
+    // Re-bind add-to-cart
+    document.querySelectorAll('.add-cart-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        const card = e.target.closest('.product-card');
+        if (!card || !window.__cart) return;
+        const id = card.dataset.productId;
+        const name = card.dataset.productName || card.querySelector('h3')?.textContent || 'Product';
+        const price = parseFloat(card.dataset.productPrice) || 0;
+        const image = card.dataset.productImage || '';
+        window.__cart.addToCart({ id, name, price, image });
+      });
+    });
+
+    // Re-bind filters
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const filter = btn.getAttribute('data-filter');
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.product-card').forEach(card => {
+          const cat = card.getAttribute('data-category');
+          card.style.display = filter === 'all' || cat === filter ? '' : 'none';
+        });
+      });
+    });
+
+    applyMemberDiscounts();
+  })();
 </script>
