@@ -1625,14 +1625,13 @@ import '../styles/global.css';
     const activeMembers = members.filter(m => m.status === 'active').length;
 
     document.getElementById('dash-stats').innerHTML = [
-      { label:'总用户数', value: users.length, icon:'\u{1F465}', change:'+12.5%', up:true, color:'blue' },
-      { label:'今日订单', value: todayOrders.length, icon:'\u{1F4E6}', change:'+8.3%', up:true, color:'green' },
-      { label:'本月营收', value: formatMoney(monthRevenue), icon:'\u{1F4B0}', change:'+15.2%', up:true, color:'orange' },
-      { label:'活跃会员', value: activeMembers, icon:'\u{2B50}', change:'-2.1%', up:false, color:'purple' }
+      { label:'总用户数', value: users.length, icon:'\u{1F465}', color:'blue' },
+      { label:'今日订单', value: todayOrders.length, icon:'\u{1F4E6}', color:'green' },
+      { label:'本月营收', value: formatMoney(monthRevenue), icon:'\u{1F4B0}', color:'orange' },
+      { label:'活跃会员', value: activeMembers, icon:'\u{2B50}', color:'purple' }
     ].map(s => `
       <div class="stat-card">
         <div class="stat-top"><div><div class="stat-label">${s.label}</div><div class="stat-value">${s.value}</div></div><div class="stat-icon ${s.color}">${s.icon}</div></div>
-        <div class="stat-change ${s.up?'up':'down'}">${s.up?'\u{25B2}':'\u{25BC}'} ${s.change} 较上月</div>
       </div>
     `).join('');
 
@@ -1650,13 +1649,14 @@ import '../styles/global.css';
   }
   function renderSalesChart(days) {
     const svg = document.getElementById('sales-chart');
-    const data = []; let maxVal = 0;
-    for (let i=days-1; i>=0; i--) {
-      const val = randInt(2000, 15000);
-      data.push({ label: daysAgo(i).slice(5), val });
-      if (val > maxVal) maxVal = val;
+    const orders = lsGet('orders') || [];
+    const data = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const day = daysAgo(i);
+      const dayRevenue = orders.filter(o => o.createdAt.startsWith(day) && o.status !== 'cancelled').reduce((s, o) => s + parseFloat(o.paidAmount), 0);
+      data.push({ label: day.slice(5), val: dayRevenue });
     }
-    maxVal = Math.ceil(maxVal / 1000) * 1000;
+    const maxVal = Math.max(...data.map(d => d.val), 1000);
     const w=500, h=260, pad={t:20,r:20,b:30,l:50}, cw=w-pad.l-pad.r, ch=h-pad.t-pad.b;
     const points = data.map((d,i) => [pad.l + (i/(data.length-1))*cw, pad.t + ch - (d.val/maxVal)*ch]);
     const areaPath = `M${points[0][0]},${pad.t+ch} ` + points.map(p=>`L${p[0]},${p[1]}`).join(' ') + ` L${points.at(-1)[0]},${pad.t+ch} Z`;
@@ -3719,17 +3719,16 @@ import '../styles/global.css';
     const conversion = users.length > 0 ? ((orders.length / users.length) * 100).toFixed(1) : 0;
 
     document.getElementById('analytics-metrics').innerHTML = [
-      { label:'访客数', value: randInt(5000,20000), change:'+15.3%', up:true },
-      { label:'订单数', value: orders.length, change:'+8.7%', up:true },
-      { label:'销售额', value: formatMoney(revenue).slice(0,8), change:'+12.1%', up:true },
-      { label:'客单价', value: formatMoney(avgOrder), change:'+3.2%', up:true },
-      { label:'转化率', value: conversion + '%', change:'+1.5%', up:true },
-      { label:'新增用户', value: randInt(50,200), change:'-2.4%', up:false }
+      { label:'订单数', value: orders.length },
+      { label:'销售额', value: formatMoney(revenue).slice(0,8) },
+      { label:'客单价', value: formatMoney(avgOrder) },
+      { label:'转化率', value: conversion + '%' },
+      { label:'用户数', value: users.length },
+      { label:'商品数', value: products.length }
     ].map(m => `
       <div class="metric-card">
         <div class="m-label">${m.label}</div>
         <div class="m-value">${m.value}</div>
-        <div class="m-change ${m.up?'up':'down'}">${m.up?'\u{25B2}':'\u{25BC}'} ${m.change}</div>
       </div>
     `).join('');
 
@@ -3743,13 +3742,14 @@ import '../styles/global.css';
   function renderAnalyticsChart(id, days, color, min, max) {
     const svg = document.getElementById(id);
     if (!svg) return;
-    const data = []; let maxVal = 0;
-    for (let i=days-1; i>=0; i--) {
-      const val = randInt(min, max);
-      data.push({ label: daysAgo(i).slice(5), val });
-      if (val > maxVal) maxVal = val;
+    const orders = lsGet('orders') || [];
+    const data = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const day = daysAgo(i);
+      const dayRevenue = orders.filter(o => o.createdAt.startsWith(day) && o.status !== 'cancelled').reduce((s, o) => s + parseFloat(o.paidAmount), 0);
+      data.push({ label: day.slice(5), val: dayRevenue });
     }
-    maxVal = Math.ceil(maxVal / 1000) * 1000;
+    let maxVal = Math.max(...data.map(d => d.val), min);
     const w=500, h=240, pad={t:20,r:20,b:30,l:50}, cw=w-pad.l-pad.r, ch=h-pad.t-pad.b;
     const points = data.map((d,i) => [pad.l + (i/(data.length-1))*cw, pad.t + ch - (d.val/maxVal)*ch]);
     const areaPath = `M${points[0][0]},${pad.t+ch} ` + points.map(p=>`L${p[0]},${p[1]}`).join(' ') + ` L${points.at(-1)[0]},${pad.t+ch} Z`;
@@ -3781,14 +3781,17 @@ import '../styles/global.css';
     `).join('');
   }
   function renderAnalyticsRegion() {
-    const regions = [
-      { name:'广东', value: randInt(200,500) },
-      { name:'北京', value: randInt(150,400) },
-      { name:'上海', value: randInt(150,380) },
-      { name:'浙江', value: randInt(100,300) },
-      { name:'江苏', value: randInt(100,280) },
-      { name:'四川', value: randInt(80,250) }
-    ].sort((a,b) => b.value - a.value);
+    const orders = lsGet('orders') || [];
+    const cityMap = {};
+    orders.forEach(o => {
+      const city = o.address?.city || '未知';
+      cityMap[city] = (cityMap[city] || 0) + 1;
+    });
+    const regions = Object.entries(cityMap).map(([name, value]) => ({ name, value })).sort((a,b) => b.value - a.value);
+    if (regions.length === 0) {
+      document.getElementById('analytics-region').innerHTML = '<div style="text-align:center;color:var(--color-text-tertiary);padding:2rem;">暂无订单数据</div>';
+      return;
+    }
     const max = regions[0].value;
     document.getElementById('analytics-region').innerHTML = regions.map(r => `
       <div class="h-bar-item">
