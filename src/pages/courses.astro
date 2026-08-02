@@ -120,3 +120,32 @@ import { courses } from '../data/courses.js';
     </div>
   </section>
 </BaseLayout>
+
+<script>
+  // Sync admin courses to frontend
+  (function syncAdminCourses() {
+    let adminCourses;
+    try { adminCourses = JSON.parse(localStorage.getItem('ov-admin-courses')); } catch(e) { adminCourses = null; }
+    if (!adminCourses || adminCourses.length === 0) return;
+    const active = adminCourses.filter(c => c.status !== 'inactive');
+    if (active.length === 0) return;
+    const grid = document.querySelector('.grid-3');
+    if (!grid) return;
+    const imgBase = 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=';
+    grid.innerHTML = active.map(c => {
+      const img = c.image || imgBase + encodeURIComponent(c.name + ' course cover') + '&image_size=landscape_4_3';
+      const modulesText = (c.modules && c.lessons && c.hours) ? `${c.modules} Modules · ${c.lessons} Lessons · ${c.hours}h` : '';
+      return `<article class="card fade-in" data-course-id="${c.id}">
+        <img src="${img}" alt="${c.name}" loading="lazy" style="width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:var(--radius-md); margin-bottom:1.25rem;" />
+        <span class="badge badge-popular">${c.level || '入门'}</span>
+        <h3 style="margin:0.75rem 0 0.5rem;">${c.name}</h3>
+        <p>${c.description || ''}</p>
+        ${modulesText ? `<p style="font-size:0.85rem; color:var(--color-text-tertiary); margin-bottom:1rem;">${modulesText}</p>` : ''}
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-top:auto;">
+          <span class="price" data-price-usd="${c.price}" style="font-family:var(--font-serif); font-size:1.6rem; color:var(--color-text-primary);">$${c.price}</span>
+          <button class="btn btn-primary" data-i18n="common.enroll_now">Enroll Now</button>
+        </div>
+      </article>`;
+    }).join('');
+  })();
+</script>

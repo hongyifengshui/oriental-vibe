@@ -72,3 +72,21 @@ const year = new Date().getFullYear();
     </div>
   </div>
 </footer>
+
+<script>
+  // Sync admin settings to footer
+  (function syncFooterSettings() {
+    try {
+      const settings = JSON.parse(localStorage.getItem('ov-admin-settings'));
+      if (!settings) return;
+      if (settings.siteName) {
+        const brand = document.querySelector('.footer-brand');
+        if (brand) brand.textContent = settings.siteName;
+      }
+      if (settings.siteDesc) {
+        const desc = document.querySelector('.footer-description');
+        if (desc) desc.textContent = settings.siteDesc;
+      }
+    } catch(e) {}
+  })();
+</script>

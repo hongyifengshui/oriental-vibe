@@ -36,3 +36,35 @@ import { posts } from '../data/blog.js';
     </div>
   </section>
 </BaseLayout>
+
+<script>
+  // Sync admin blog posts to frontend
+  (function syncAdminBlog() {
+    let adminBlog;
+    try { adminBlog = JSON.parse(localStorage.getItem('ov-admin-blog')); } catch(e) { adminBlog = null; }
+    if (!adminBlog || adminBlog.length === 0) return;
+    const active = adminBlog.filter(b => b.status !== 'inactive');
+    if (active.length === 0) return;
+    const grid = document.querySelector('.grid-2');
+    if (!grid) return;
+    const imgBase = 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=';
+    grid.innerHTML = active.map(b => {
+      const img = b.image || imgBase + encodeURIComponent(b.name + ' blog article') + '&image_size=landscape_16_9';
+      const linkId = b.id || b.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      return `<article class="card fade-in" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
+        <div style="aspect-ratio: 16/9; overflow: hidden;">
+          <img src="${img}" alt="${b.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;" />
+        </div>
+        <div style="padding: 2rem; display: flex; flex-direction: column; flex: 1;">
+          <span class="badge badge-popular" style="align-self: flex-start; margin-bottom: 1rem;">${b.category || 'General'}</span>
+          <h3 style="margin-bottom: 1rem;">${b.name}</h3>
+          <p style="margin-bottom: 1rem; flex: 1;">${b.description || ''}</p>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--color-border-light);">
+            <small>${b.date || ''}</small>
+            <a href="/blog/${linkId}" class="btn btn-secondary" data-i18n="common.read_more">Read More</a>
+          </div>
+        </div>
+      </article>`;
+    }).join('');
+  })();
+</script>

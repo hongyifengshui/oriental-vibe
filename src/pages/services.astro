@@ -647,5 +647,30 @@ const howItWorks = [
         if (e.target === modal) closeModal();
       });
     }
+
+    // Sync admin services to frontend
+    (function syncAdminServices() {
+      let adminServices;
+      try { adminServices = JSON.parse(localStorage.getItem('ov-admin-services')); } catch(e) { adminServices = null; }
+      if (!adminServices || adminServices.length === 0) return;
+      const active = adminServices.filter(s => s.status !== 'inactive');
+      if (active.length === 0) return;
+      const grid = document.querySelector('#pricing .grid-3');
+      if (!grid) return;
+      grid.innerHTML = active.map(s => {
+        const popularClass = s.popular ? ' service-card-popular' : '';
+        const vipClass = s.vip ? ' service-card-vip' : '';
+        const popularBadge = s.popular ? '<span class="badge badge-popular service-badge">Most Popular</span>' : '';
+        const vipBadge = s.vip ? '<span class="badge badge-vip service-badge">VIP</span>' : '';
+        const originalPrice = s.originalPrice ? `<span style="text-decoration:line-through;color:#8A948C;font-size:0.8em;margin-right:8px;">$${s.originalPrice}</span>` : '';
+        return `<div class="card service-card${popularClass}${vipClass}">
+          ${popularBadge}${vipBadge}
+          <h3>${s.name}</h3>
+          <p>${s.description || ''}</p>
+          <div class="service-price" data-price-usd="${s.price}">${originalPrice}$${s.price}</div>
+          <a href="#booking" class="btn btn-primary service-book-btn">Book Now</a>
+        </div>`;
+      }).join('');
+    })();
   })();
 </script>

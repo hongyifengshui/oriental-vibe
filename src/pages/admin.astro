@@ -790,6 +790,7 @@ import '../styles/global.css';
         <div class="nav-section">主菜单</div>
         <div class="nav-item active" data-page="dashboard" onclick="switchPage('dashboard')"><span class="nav-icon">&#9632;</span><span class="nav-label">仪表盘</span></div>
         <div class="nav-item" data-page="content" onclick="switchPage('content')"><span class="nav-icon">&#9998;</span><span class="nav-label">内容管理</span></div>
+        <div class="nav-item" data-page="content-data" onclick="switchPage('content-data')"><span class="nav-icon">&#128196;</span><span class="nav-label">内容数据</span></div>
         <div class="nav-item" data-page="products" onclick="switchPage('products')"><span class="nav-icon">&#128722;</span><span class="nav-label">商品管理</span></div>
         <div class="nav-item" data-page="users" onclick="switchPage('users')"><span class="nav-icon">&#9787;</span><span class="nav-label">用户管理</span></div>
         <div class="nav-item" data-page="orders" onclick="switchPage('orders')"><span class="nav-icon">&#9776;</span><span class="nav-label">订单管理</span></div>
@@ -1064,6 +1065,49 @@ import '../styles/global.css';
           </div>
           <div id="products-category-view" style="display:none;">
             <div class="card"><div class="card-header"><div class="card-title">商品分类</div><div style="display:flex;gap:10px;"><button class="btn btn-outline btn-sm" onclick="showProductTab('list')">&larr; 返回商品列表</button><button class="btn btn-primary btn-sm" onclick="openCategoryModal()">&#10133; 新增分类</button></div></div><div id="categories-list"></div></div>
+          </div>
+        </div>
+
+        <!-- CONTENT DATA -->
+        <div id="page-content-data" class="page-section">
+          <div class="page-header"><h1>内容数据</h1><p style="color:#8A948C;font-size:14px;">管理课程、服务和博客文章数据，前台页面将自动同步</p></div>
+          <div class="tab-bar" style="margin-bottom:24px;">
+            <div class="tab-item active" onclick="setContentDataTab('courses', this)">课程管理</div>
+            <div class="tab-item" onclick="setContentDataTab('services', this)">服务管理</div>
+            <div class="tab-item" onclick="setContentDataTab('blog', this)">博客管理</div>
+          </div>
+          <div id="cd-courses-view">
+            <div class="toolbar">
+              <button class="btn btn-primary" onclick="openCourseModal()">&#10133; 新增课程</button>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead><tr><th>ID</th><th>课程名称</th><th>等级</th><th>价格</th><th>状态</th><th>操作</th></tr></thead>
+                <tbody id="cd-courses-body"></tbody>
+              </table>
+            </div>
+          </div>
+          <div id="cd-services-view" style="display:none;">
+            <div class="toolbar">
+              <button class="btn btn-primary" onclick="openServiceModal()">&#10133; 新增服务</button>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead><tr><th>ID</th><th>服务名称</th><th>价格</th><th>热门</th><th>状态</th><th>操作</th></tr></thead>
+                <tbody id="cd-services-body"></tbody>
+              </table>
+            </div>
+          </div>
+          <div id="cd-blog-view" style="display:none;">
+            <div class="toolbar">
+              <button class="btn btn-primary" onclick="openBlogModal()">&#10133; 新增文章</button>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead><tr><th>ID</th><th>标题</th><th>分类</th><th>日期</th><th>状态</th><th>操作</th></tr></thead>
+                <tbody id="cd-blog-body"></tbody>
+              </table>
+            </div>
           </div>
         </div>
 
@@ -1547,7 +1591,7 @@ import '../styles/global.css';
 
   // ========== PAGE SWITCHING ==========
   let currentPage = 'dashboard';
-  const PAGE_TITLES = { dashboard:'仪表盘', content:'内容管理', products:'商品管理', users:'用户管理', orders:'订单管理', analytics:'数据分析', settings:'系统设置' };
+  const PAGE_TITLES = { dashboard:'仪表盘', content:'内容管理', 'content-data':'内容数据', products:'商品管理', users:'用户管理', orders:'订单管理', analytics:'数据分析', settings:'系统设置' };
 
   function switchPage(page) {
     currentPage = page;
@@ -1566,6 +1610,7 @@ import '../styles/global.css';
       renderContentList();
     }
     if (page==='products') renderProducts();
+    if (page==='content-data') { setContentDataTab('courses', document.querySelector('#page-content-data .tab-item')); }
     if (page==='users') renderUsers();
     if (page==='orders') renderOrders();
     if (page==='analytics') renderAnalytics();
@@ -3093,7 +3138,7 @@ import '../styles/global.css';
         <td>${p.stock}</td>
         <td>${p.sales}</td>
         <td><span class="badge ${statusBadge(p.status)}">${p.status==='active'?'上架中':'已下架'}</span></td>
-        <td><div class="table-actions"><button class="btn btn-outline btn-sm" onclick="editProduct(${p.id})">编辑</button><button class="btn ${p.status==='active'?'btn-warning':'btn-success'} btn-sm" onclick="toggleProductStatus(${p.id})">${p.status==='active'?'下架':'上架'}</button></div></td>
+        <td><div class="table-actions"><button class="btn btn-outline btn-sm" onclick="editProduct(${p.id})">编辑</button><button class="btn ${p.status==='active'?'btn-warning':'btn-success'} btn-sm" onclick="toggleProductStatus(${p.id})">${p.status==='active'?'下架':'上架'}</button><button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id})">删除</button></div></td>
       </tr>
     `}).join('');
     renderPagination('products-pagination', productPage, totalPages, 'gotoProductPage');
@@ -3310,6 +3355,14 @@ import '../styles/global.css';
     lsSet('products', products); renderProducts();
     showToast('状态已更新', 'success');
   }
+  function deleteProduct(id) {
+    if (!confirm('确定删除该商品吗？此操作不可恢复。')) return;
+    let products = lsGet('products') || [];
+    products = products.filter(p => p.id !== id);
+    lsSet('products', products);
+    showToast('商品已删除', 'success');
+    renderProducts();
+  }
   function renderCategories() {
     const categories = lsGet('categories') || [];
     document.getElementById('categories-list').innerHTML = categories.length === 0 ?
@@ -3340,6 +3393,216 @@ import '../styles/global.css';
     categories = categories.filter(c => c.id !== id);
     lsSet('categories', categories); renderCategories();
     showToast('分类已删除', 'success');
+  }
+
+  // ========== CONTENT DATA (Courses/Services/Blog) ==========
+  let contentDataTab = 'courses';
+
+  function setContentDataTab(tab, el) {
+    contentDataTab = tab;
+    document.querySelectorAll('#page-content-data .tab-item').forEach(t => t.classList.remove('active'));
+    if (el) el.classList.add('active');
+    document.getElementById('cd-courses-view').style.display = tab === 'courses' ? '' : 'none';
+    document.getElementById('cd-services-view').style.display = tab === 'services' ? '' : 'none';
+    document.getElementById('cd-blog-view').style.display = tab === 'blog' ? '' : 'none';
+    if (tab === 'courses') renderCourses();
+    if (tab === 'services') renderServices();
+    if (tab === 'blog') renderBlog();
+  }
+
+  // Courses
+  function renderCourses() {
+    const courses = lsGet('courses') || [];
+    document.getElementById('cd-courses-body').innerHTML = courses.length === 0
+      ? `<tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon">📚</div><p>暂无课程数据</p></div></td></tr>`
+      : courses.map(c => `
+        <tr>
+          <td>#${c.id}</td>
+          <td style="font-weight:500;">${c.name}</td>
+          <td><span class="badge badge-secondary">${c.level || '入门'}</span></td>
+          <td style="color:#BFAF96;font-weight:600;">$${c.price}</td>
+          <td><span class="badge ${c.status==='active'?'badge-success':'badge-secondary'}">${c.status==='active'?'上架':'下架'}</span></td>
+          <td><div class="table-actions"><button class="btn btn-outline btn-sm" onclick="editCourse(${c.id})">编辑</button><button class="btn btn-danger btn-sm" onclick="deleteCourse(${c.id})">删除</button></div></td>
+        </tr>`).join('');
+  }
+
+  function openCourseModal(courseId) {
+    const courses = lsGet('courses') || [];
+    const c = courseId ? courses.find(x => x.id === courseId) : null;
+    const isEdit = !!c;
+    openModal(isEdit ? '编辑课程' : '新增课程', `
+      <div class="form-group"><label class="form-label">课程名称 <span class="required">*</span></label><input class="form-input" id="cd-name" value="${c?.name||''}" /></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">等级</label><select class="form-select" id="cd-level"><option value="入门" ${c?.level==='入门'?'selected':''}>入门</option><option value="中级" ${c?.level==='中级'?'selected':''}>中级</option><option value="高级" ${c?.level==='高级'?'selected':''}>高级</option></select></div>
+        <div class="form-group"><label class="form-label">价格 (USD)</label><input class="form-input" type="number" id="cd-price" value="${c?.price||''}" /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">模块数</label><input class="form-input" type="number" id="cd-modules" value="${c?.modules||''}" /></div>
+        <div class="form-group"><label class="form-label">课程数</label><input class="form-input" type="number" id="cd-lessons" value="${c?.lessons||''}" /></div>
+        <div class="form-group"><label class="form-label">时长(h)</label><input class="form-input" type="number" id="cd-hours" value="${c?.hours||''}" step="0.5" /></div>
+      </div>
+      <div class="form-group"><label class="form-label">图片URL</label><input class="form-input" id="cd-image" value="${c?.image||''}" placeholder="https://..." /></div>
+      <div class="form-group"><label class="form-label">课程描述</label><textarea class="form-textarea" id="cd-desc" rows="3">${c?.description||''}</textarea></div>
+      <div class="form-group"><label class="form-label">状态</label><select class="form-select" id="cd-status"><option value="active" ${c?.status==='active'?'selected':''}>上架</option><option value="inactive" ${c?.status!=='active'?'selected':''}>下架</option></select></div>
+    `, `<button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveCourse(${isEdit?c.id:0})">${isEdit?'保存':'新增'}</button>`, true);
+  }
+
+  function saveCourse(id) {
+    const courses = lsGet('courses') || [];
+    const name = document.getElementById('cd-name').value.trim();
+    if (!name) { showToast('请输入课程名称', 'error'); return; }
+    const data = {
+      name,
+      level: document.getElementById('cd-level').value,
+      price: parseInt(document.getElementById('cd-price').value)||0,
+      modules: parseInt(document.getElementById('cd-modules').value)||0,
+      lessons: parseInt(document.getElementById('cd-lessons').value)||0,
+      hours: parseFloat(document.getElementById('cd-hours').value)||0,
+      image: document.getElementById('cd-image').value.trim(),
+      description: document.getElementById('cd-desc').value.trim(),
+      status: document.getElementById('cd-status').value
+    };
+    if (id) { const idx = courses.findIndex(x => x.id===id); if (idx>=0) courses[idx] = { ...courses[idx], ...data }; }
+    else { const maxId = courses.reduce((m,x)=>Math.max(m,x.id),0); courses.push({ id: maxId+1, ...data }); }
+    lsSet('courses', courses);
+    showToast(id ? '课程已更新' : '课程已添加', 'success');
+    closeModal(); renderCourses();
+  }
+
+  function editCourse(id) { openCourseModal(id); }
+  function deleteCourse(id) {
+    if (!confirm('确定删除该课程吗？')) return;
+    let courses = lsGet('courses') || [];
+    courses = courses.filter(c => c.id !== id);
+    lsSet('courses', courses);
+    showToast('课程已删除', 'success');
+    renderCourses();
+  }
+
+  // Services
+  function renderServices() {
+    const services = lsGet('services') || [];
+    document.getElementById('cd-services-body').innerHTML = services.length === 0
+      ? `<tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon">💼</div><p>暂无服务数据</p></div></td></tr>`
+      : services.map(s => `
+        <tr>
+          <td>#${s.id}</td>
+          <td style="font-weight:500;">${s.name}</td>
+          <td style="color:#BFAF96;font-weight:600;">$${s.price}</td>
+          <td>${s.popular ? '<span class="badge badge-warning">热门</span>' : '-'}</td>
+          <td><span class="badge ${s.status==='active'?'badge-success':'badge-secondary'}">${s.status==='active'?'上架':'下架'}</span></td>
+          <td><div class="table-actions"><button class="btn btn-outline btn-sm" onclick="editService(${s.id})">编辑</button><button class="btn btn-danger btn-sm" onclick="deleteService(${s.id})">删除</button></div></td>
+        </tr>`).join('');
+  }
+
+  function openServiceModal(serviceId) {
+    const services = lsGet('services') || [];
+    const s = serviceId ? services.find(x => x.id === serviceId) : null;
+    const isEdit = !!s;
+    openModal(isEdit ? '编辑服务' : '新增服务', `
+      <div class="form-group"><label class="form-label">服务名称 <span class="required">*</span></label><input class="form-input" id="cd-name" value="${s?.name||''}" /></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">价格 (USD)</label><input class="form-input" type="number" id="cd-price" value="${s?.price||''}" /></div>
+        <div class="form-group"><label class="form-label">原价 (USD)</label><input class="form-input" type="number" id="cd-original" value="${s?.originalPrice||''}" /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">热门</label><select class="form-select" id="cd-popular"><option value="0" ${!s?.popular?'selected':''}>否</option><option value="1" ${s?.popular?'selected':''}>是</option></select></div>
+        <div class="form-group"><label class="form-label">VIP</label><select class="form-select" id="cd-vip"><option value="0" ${!s?.vip?'selected':''}>否</option><option value="1" ${s?.vip?'selected':''}>是</option></select></div>
+      </div>
+      <div class="form-group"><label class="form-label">服务描述</label><textarea class="form-textarea" id="cd-desc" rows="3">${s?.description||''}</textarea></div>
+      <div class="form-group"><label class="form-label">状态</label><select class="form-select" id="cd-status"><option value="active" ${s?.status==='active'?'selected':''}>上架</option><option value="inactive" ${s?.status!=='active'?'selected':''}>下架</option></select></div>
+    `, `<button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveService(${isEdit?s.id:0})">${isEdit?'保存':'新增'}</button>`, true);
+  }
+
+  function saveService(id) {
+    const services = lsGet('services') || [];
+    const name = document.getElementById('cd-name').value.trim();
+    if (!name) { showToast('请输入服务名称', 'error'); return; }
+    const data = {
+      name,
+      price: parseInt(document.getElementById('cd-price').value)||0,
+      originalPrice: parseInt(document.getElementById('cd-original').value)||0,
+      popular: document.getElementById('cd-popular').value === '1',
+      vip: document.getElementById('cd-vip').value === '1',
+      description: document.getElementById('cd-desc').value.trim(),
+      status: document.getElementById('cd-status').value
+    };
+    if (id) { const idx = services.findIndex(x => x.id===id); if (idx>=0) services[idx] = { ...services[idx], ...data }; }
+    else { const maxId = services.reduce((m,x)=>Math.max(m,x.id),0); services.push({ id: maxId+1, ...data }); }
+    lsSet('services', services);
+    showToast(id ? '服务已更新' : '服务已添加', 'success');
+    closeModal(); renderServices();
+  }
+
+  function editService(id) { openServiceModal(id); }
+  function deleteService(id) {
+    if (!confirm('确定删除该服务吗？')) return;
+    let services = lsGet('services') || [];
+    services = services.filter(s => s.id !== id);
+    lsSet('services', services);
+    showToast('服务已删除', 'success');
+    renderServices();
+  }
+
+  // Blog
+  function renderBlog() {
+    const blog = lsGet('blog') || [];
+    document.getElementById('cd-blog-body').innerHTML = blog.length === 0
+      ? `<tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon">📝</div><p>暂无博客文章</p></div></td></tr>`
+      : blog.map(b => `
+        <tr>
+          <td>#${b.id}</td>
+          <td style="font-weight:500;">${b.name}</td>
+          <td><span class="badge badge-secondary">${b.category || '通用'}</span></td>
+          <td>${b.date || '-'}</td>
+          <td><span class="badge ${b.status==='active'?'badge-success':'badge-secondary'}">${b.status==='active'?'上架':'下架'}</span></td>
+          <td><div class="table-actions"><button class="btn btn-outline btn-sm" onclick="editBlog(${b.id})">编辑</button><button class="btn btn-danger btn-sm" onclick="deleteBlog(${b.id})">删除</button></div></td>
+        </tr>`).join('');
+  }
+
+  function openBlogModal(blogId) {
+    const blog = lsGet('blog') || [];
+    const b = blogId ? blog.find(x => x.id === blogId) : null;
+    const isEdit = !!b;
+    openModal(isEdit ? '编辑文章' : '新增文章', `
+      <div class="form-group"><label class="form-label">标题 <span class="required">*</span></label><input class="form-input" id="cd-name" value="${b?.name||''}" /></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">分类</label><input class="form-input" id="cd-category" value="${b?.category||''}" placeholder="Home Energy" /></div>
+        <div class="form-group"><label class="form-label">日期</label><input class="form-input" type="date" id="cd-date" value="${b?.date||''}" /></div>
+      </div>
+      <div class="form-group"><label class="form-label">图片URL</label><input class="form-input" id="cd-image" value="${b?.image||''}" placeholder="https://..." /></div>
+      <div class="form-group"><label class="form-label">摘要</label><textarea class="form-textarea" id="cd-desc" rows="3">${b?.description||''}</textarea></div>
+      <div class="form-group"><label class="form-label">状态</label><select class="form-select" id="cd-status"><option value="active" ${b?.status==='active'?'selected':''}>上架</option><option value="inactive" ${b?.status!=='active'?'selected':''}>下架</option></select></div>
+    `, `<button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveBlog(${isEdit?b.id:0})">${isEdit?'保存':'新增'}</button>`, true);
+  }
+
+  function saveBlog(id) {
+    const blog = lsGet('blog') || [];
+    const name = document.getElementById('cd-name').value.trim();
+    if (!name) { showToast('请输入文章标题', 'error'); return; }
+    const data = {
+      name,
+      category: document.getElementById('cd-category').value.trim(),
+      date: document.getElementById('cd-date').value,
+      image: document.getElementById('cd-image').value.trim(),
+      description: document.getElementById('cd-desc').value.trim(),
+      status: document.getElementById('cd-status').value
+    };
+    if (id) { const idx = blog.findIndex(x => x.id===id); if (idx>=0) blog[idx] = { ...blog[idx], ...data }; }
+    else { const maxId = blog.reduce((m,x)=>Math.max(m,x.id),0); blog.push({ id: maxId+1, ...data }); }
+    lsSet('blog', blog);
+    showToast(id ? '文章已更新' : '文章已添加', 'success');
+    closeModal(); renderBlog();
+  }
+
+  function editBlog(id) { openBlogModal(id); }
+  function deleteBlog(id) {
+    if (!confirm('确定删除该文章吗？')) return;
+    let blog = lsGet('blog') || [];
+    blog = blog.filter(b => b.id !== id);
+    lsSet('blog', blog);
+    showToast('文章已删除', 'success');
+    renderBlog();
   }
 
   // ========== USERS ==========
