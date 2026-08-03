@@ -187,6 +187,55 @@ const howItWorks = [
     </div>
   </section>
 
+  <!-- ===== Client Success Stories ===== -->
+  <section class="section fade-in" style="background: var(--color-bg-secondary);">
+    <div class="container">
+      <div class="section-title">
+        <h2 data-i18n="services.stories_title">Client Success Stories</h2>
+        <p data-i18n="services.stories_desc">Real people. Real spaces. Real shifts.</p>
+      </div>
+      <div class="grid grid-2" style="gap: 2rem;">
+        {[
+          { titleKey: 'services.story_1_title', textKey: 'services.story_1_text', icon: 'heart' },
+          { titleKey: 'services.story_2_title', textKey: 'services.story_2_text', icon: 'briefcase' },
+          { titleKey: 'services.story_3_title', textKey: 'services.story_3_text', icon: 'home' },
+          { titleKey: 'services.story_4_title', textKey: 'services.story_4_text', icon: 'compass' },
+        ].map((story) => (
+          <div class="card why-us-card" style="padding: 2rem;">
+            <div class="why-us-icon">
+              {story.icon === 'heart' && (
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-accent-dark);">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                </svg>
+              )}
+              {story.icon === 'briefcase' && (
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-accent-dark);">
+                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                </svg>
+              )}
+              {story.icon === 'home' && (
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-accent-dark);">
+                  <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                  <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+              )}
+              {story.icon === 'compass' && (
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-accent-dark);">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+                </svg>
+              )}
+            </div>
+            <h3 data-i18n={story.titleKey} style="font-size: 1.1rem; margin-bottom: 0.75rem; color: var(--color-text-primary);">Story Title</h3>
+            <p data-i18n={story.textKey} style="color: var(--color-text-secondary); font-size: 0.9rem; line-height: 1.7; margin-bottom: 0;">Story text</p>
+          </div>
+        ))}
+      </div>
+      <p style="text-align: center; margin-top: 2rem; font-size: 0.8rem; color: var(--color-text-tertiary);" data-i18n="services.stories_disclaimer">* Individual experiences. Results vary. For spiritual wellness and personal reflection only.</p>
+    </div>
+  </section>
+
   <!-- ===== Booking Form (Simplified) ===== -->
   <section class="section bundle-section fade-in" id="booking">
     <div class="container">
@@ -295,6 +344,10 @@ const howItWorks = [
       </div>
     </div>
   </section>
+
+  <div class="container" style="text-align:center; padding: 1rem 0 2rem;">
+    <p style="font-size: 0.75rem; color: var(--color-text-tertiary); margin: 0; line-height: 1.5;" data-i18n="services.disclaimer">* Oriental Vibe services are for spiritual wellness, personal reflection, and environmental energy reference only. They are not a substitute for professional medical, psychological, legal, or financial advice. Individual experiences vary. No specific outcomes are guaranteed.</p>
+  </div>
 </BaseLayout>
 
 <style>

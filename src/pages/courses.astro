@@ -119,9 +119,12 @@ import { courses } from '../data/courses.js';
       </div>
     </div>
   </section>
+  <div class="container" style="text-align:center; padding: 1rem 0 2rem;">
+    <p style="font-size: 0.75rem; color: var(--color-text-tertiary); margin: 0; line-height: 1.5;" data-i18n="courses.disclaimer">* Courses are for educational and personal enrichment purposes. They explore traditional cultural philosophies and are not a substitute for professional qualifications, medical advice, or financial planning. Individual learning outcomes vary.</p>
+  </div>
 </BaseLayout>
 
-<script>
+<script is:inline>
   // Sync admin courses to frontend
   (function syncAdminCourses() {
     let adminCourses;

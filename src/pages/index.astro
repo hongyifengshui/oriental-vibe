@@ -216,7 +216,7 @@ const testimonials = [
       <p class="newsletter-gift" data-i18n="home.newsletter_gift">Free Gift: Space Harmony Guide + $10 Discount</p>
     </div>
   </section>
-<script>
+<script is:inline>
   (function() {
     var PREFIX = 'ov-admin-';
     try {
@@ -237,4 +237,7 @@ const testimonials = [
     } catch(e) {}
   })();
 </script>
+  <div class="container" style="text-align:center; padding: 1rem 0 2rem;">
+    <p style="font-size: 0.75rem; color: var(--color-text-tertiary); margin: 0; line-height: 1.5;" data-i18n="home.disclaimer">* Individual experiences. Testimonials reflect personal views. Results vary. For spiritual wellness and personal reflection only. Not a substitute for professional medical, legal, or financial advice.</p>
+  </div>
 </BaseLayout>

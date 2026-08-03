@@ -139,6 +139,9 @@ const stars = (rating) => '★'.repeat(rating) + '☆'.repeat(5 - rating);
     </svg>
     <span class="cart-count">0</span>
   </button>
+  <div class="container" style="text-align:center; padding: 2rem 0 1rem;">
+    <p style="font-size: 0.75rem; color: var(--color-text-tertiary); margin: 0; line-height: 1.5;" data-i18n="shop.disclaimer">* Crystals and decor are for spiritual wellness, personal reflection, and aesthetic enjoyment. Their energetic properties are based on traditional cultural beliefs and are not scientifically proven. Not a substitute for professional medical treatment.</p>
+  </div>
 </BaseLayout>
 
 <style>
@@ -362,7 +365,7 @@ const stars = (rating) => '★'.repeat(rating) + '☆'.repeat(5 - rating);
   }
 </style>
 
-<script>
+<script is:inline>
   // Category filter
   const filterBtns = document.querySelectorAll('.filter-btn');
   const productCards = document.querySelectorAll('.product-card');
