@@ -381,6 +381,18 @@ const stars = (rating) => '★'.repeat(rating) + '☆'.repeat(5 - rating);
     });
   });
 
+  // Helper: resolve the CURRENTLY displayed product price (honors live-applied member discounts)
+  function _resolveCardPrice(card) {
+    if (!card) return 0;
+    const displayEl = card.querySelector('.price:not(.original)');
+    if (displayEl) {
+      const v = parseFloat(displayEl.getAttribute('data-price-usd'));
+      if (!isNaN(v) && v > 0) return v;
+    }
+    const fb = parseFloat(card.dataset.productPrice);
+    return isNaN(fb) ? 0 : fb;
+  }
+
   // Add to cart
   document.querySelectorAll('.add-cart-btn').forEach((btn) => {
     btn.addEventListener('click', (e) => {
@@ -388,7 +400,7 @@ const stars = (rating) => '★'.repeat(rating) + '☆'.repeat(5 - rating);
       if (!card || !window.__cart) return;
       const id = card.dataset.productId;
       const name = card.querySelector('h3')?.textContent || 'Product';
-      const price = parseFloat(card.dataset.productPrice) || 0;
+      const price = _resolveCardPrice(card);
       const image = card.dataset.productImage || '';
       window.__cart.addToCart({ id, name, price, image });
     });
@@ -415,33 +427,48 @@ const stars = (rating) => '★'.repeat(rating) + '☆'.repeat(5 - rating);
     const tier = window.ovAuth.getTier();
 
     document.querySelectorAll('.product-card').forEach(card => {
-      const priceEl = card.querySelector('.price');
+      const priceEl = card.querySelector('.price:not(.original)');
       const memberLabel = card.querySelector('.member-price');
       if (!priceEl || !memberLabel) return;
 
+      // ===== BUG FIX: Always read from ORIGINAL price, prevent compounded discount =====
+      let originalUsd = parseFloat(priceEl.getAttribute('data-original-price-usd'));
+      // Stash the true original price ONCE, on first pass, before any modification happens
+      if (isNaN(originalUsd)) {
+        originalUsd = parseFloat(priceEl.getAttribute('data-price-usd'));
+        if (!isNaN(originalUsd)) priceEl.setAttribute('data-original-price-usd', String(originalUsd));
+      }
+      if (isNaN(originalUsd)) return;
+      // Ensure stale strikethroughs from prior runs don't accumulate
+      const existingOriginal = card.querySelector('span.price.original');
+      if (existingOriginal && existingOriginal !== priceEl) existingOriginal.remove();
+
       if (isMember && discount > 0) {
-        const usdPrice = parseFloat(priceEl.getAttribute('data-price-usd'));
-        const discountedPrice = (usdPrice * (1 - discount)).toFixed(0);
+        const discountedPrice = (originalUsd * (1 - discount)).toFixed(0);
         const discountPct = Math.round(discount * 100);
 
-        // Add original price (strikethrough)
-        if (!card.querySelector('.price.original')) {
+        // Add original price (strikethrough) if not present
+        if (!card.querySelector('span.price.original')) {
           const originalSpan = document.createElement('span');
           originalSpan.className = 'price original';
-          originalSpan.setAttribute('data-price-usd', usdPrice.toString());
-          originalSpan.textContent = '$' + usdPrice;
+          originalSpan.setAttribute('data-original-price-usd', String(originalUsd));
+          originalSpan.textContent = '$' + String(originalUsd);
           priceEl.parentNode.insertBefore(originalSpan, priceEl);
         }
-
-        // Update current price
-        priceEl.setAttribute('data-price-usd', discountedPrice);
-        priceEl.textContent = '$' + discountedPrice;
+        // Update current (display) price to the discounted value, rooted from the true original
+        priceEl.setAttribute('data-price-usd', String(discountedPrice));
+        priceEl.textContent = '$' + String(discountedPrice);
 
         // Show member discount label
         const tierNames = { starter: 'Starter', harmony: 'Harmony', premium: 'Premium' };
         memberLabel.textContent = (tierNames[tier] || 'Member') + ' ' + discountPct + '% off';
         memberLabel.style.display = 'flex';
       } else {
+        // Not a member (or discount removed) — RESET display price to the original value
+        priceEl.setAttribute('data-price-usd', String(originalUsd));
+        priceEl.textContent = '$' + String(originalUsd);
+        const extraOriginal = card.querySelector('span.price.original');
+        if (extraOriginal) extraOriginal.remove();
         memberLabel.style.display = 'none';
       }
     });
@@ -545,7 +572,7 @@ const stars = (rating) => '★'.repeat(rating) + '☆'.repeat(5 - rating);
         if (!card || !window.__cart) return;
         const id = card.dataset.productId;
         const name = card.dataset.productName || card.querySelector('h3')?.textContent || 'Product';
-        const price = parseFloat(card.dataset.productPrice) || 0;
+        const price = _resolveCardPrice(card);
         const image = card.dataset.productImage || '';
         window.__cart.addToCart({ id, name, price, image });
       });

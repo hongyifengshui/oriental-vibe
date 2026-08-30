@@ -27,7 +27,7 @@ export const kbBrand = {
 // ======================== EXPERT / XU WEI ========================
 export const kbExpert = {
   id: "expert",
-  keywords: ["xu wei", "master", "teacher", "consultant", "founder", "expert", "ming li", "dr li", "徐伟", "professor", "lineage", "guiguzi", "北大", "pku"],
+  keywords: ["xu wei", "master", "teacher", "consultant", "founder", "expert", "徐伟", "professor", "lineage", "guiguzi", "北大", "pku"],
   content: {
     title: "Master Xu Wei - Lead Consultant & Lineage Holder",
     subtitle: "80th-Generation Direct Disciple of Guiguzi · 40+ Years · 10,000+ Clients",

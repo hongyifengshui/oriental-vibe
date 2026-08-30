@@ -217,27 +217,37 @@ const { title = 'Oriental Vibe | Space Energy & Life Balance', description = 'An
         }
       }
 
+      // FIX (Financial BUG): All transactions in USD per user requirement ("所有付款方式统一用美金结算").
+      // Display must match settlement currency 1:1 to prevent displayed-total vs actual-payment mismatch.
+      // Rate hardcoded to 1, symbol always $ regardless of language.
       const currencyRates = {
         USD: { symbol: '$', rate: 1 },
-        EUR: { symbol: '€', rate: 0.92 },
-        GBP: { symbol: '£', rate: 0.79 },
-        CNY: { symbol: '¥', rate: 7.24 }
+        EUR: { symbol: '$', rate: 1 },
+        GBP: { symbol: '$', rate: 1 },
+        CNY: { symbol: '$', rate: 1 }
       };
 
       const langToCurrency = {
         en: 'USD',
-        zh: 'CNY',
-        de: 'EUR',
-        fr: 'EUR',
-        es: 'EUR'
+        zh: 'USD',
+        de: 'USD',
+        fr: 'USD',
+        es: 'USD'
       };
 
       function applyCurrency(currency) {
-        const { symbol, rate } = currencyRates[currency] || currencyRates.USD;
+        // Always display USD $ value. data-price-usd stores the authoritative USD amount.
+        const { symbol, rate } = currencyRates.USD;
         document.querySelectorAll('[data-price-usd]').forEach(el => {
           const usd = parseFloat(el.getAttribute('data-price-usd'));
-          const converted = (usd * rate).toFixed(0);
-          el.textContent = `${symbol}${converted}`;
+          if (isNaN(usd)) return;
+          const raw = usd * rate;
+          // FIX: Show decimals only if fractional part exists (e.g. $9.99 → $9.99, $49 → $49)
+          // Prevents $9.99 being truncated to $10 which mismatch with button/payment i18n text.
+          const formatted = (Math.round(raw * 100) / 100) % 1 === 0
+            ? raw.toFixed(0)
+            : raw.toFixed(2);
+          el.textContent = `${symbol}${formatted}`;
         });
       }
 
@@ -282,14 +292,11 @@ const { title = 'Oriental Vibe | Space Energy & Life Balance', description = 'An
         }
         await loadTranslations(lang);
         applyTranslations(lang);
-        const targetCurrency = langToCurrency[lang];
-        if (targetCurrency) {
-          localStorage.setItem('ov-currency', targetCurrency);
-          localStorage.removeItem('ov-currency-manual');
-          applyCurrency(targetCurrency);
-          const currencySelect = document.getElementById('currencySelect');
-          if (currencySelect) currencySelect.value = targetCurrency;
-        }
+        // FIX: Always USD (no longer switch currency on language change — matches settlement 1:1)
+        localStorage.setItem('ov-currency', 'USD');
+        localStorage.removeItem('ov-currency-manual');
+        applyCurrency('USD');
+        // Notify pages that i18n + currency baseline have been refreshed
         document.dispatchEvent(new CustomEvent('ov-i18n-ready', { detail: { lang: lang, translations: translations } }));
       });
 

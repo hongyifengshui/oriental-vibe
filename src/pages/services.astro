@@ -2,15 +2,15 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { services } from '../data/services.js';
 
-const expertImg = 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20asian%20male%20consultant%20in%20minimalist%20nordic%20office%20portrait&image_size=portrait_4_3';
+const expertImg = 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20portrait%20middle%20aged%20chinese%20master%20xu%20wei%20shoulder%20length%20hair%20ponytail%20goatee%20burgundy%20polo%20shirt%20wooden%20prayer%20beads%20bracelet%20black%20studio%20background%20warm%20soft%20light%20wise%20authentic%20lineage%20teacher%20photorealistic&image_size=portrait_4_3';
 const beforeImg = 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=cluttered%20messy%20living%20room%20dark%20unpleasant&image_size=landscape_4_3';
 const afterImg = 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=clean%20minimalist%20living%20room%20scandinavian%20design%20bright%20natural%20light%20crystals&image_size=landscape_4_3';
 
 const expertCreds = [
-  { key: 'services.expert_cred_1', text: '20+ Years Experience' },
-  { key: 'services.expert_cred_2', text: 'Certified Energy Consultant' },
-  { key: 'services.expert_cred_3', text: '10,000+ Clients Served' },
-  { key: 'services.expert_cred_4', text: 'International Practice' },
+  { key: 'services.expert_cred_1', text: '80th-Gen Guiguzi Lineage Holder' },
+  { key: 'services.expert_cred_2', text: '40+ Years of Practice · 10,000+ Clients' },
+  { key: 'services.expert_cred_3', text: 'Distinguished Professor, Peking University' },
+  { key: 'services.expert_cred_4', text: 'UNESCO Intangible Cultural Heritage Lineage' },
 ];
 
 const guarantees = [
@@ -25,7 +25,7 @@ const testimonials = [
     location: "Los Angeles, CA",
     rating: 5,
     textKey: "services.testimonial_1",
-    text: "Dr. Li's home consultation completely transformed our living space. The energy shift was immediate and lasting.",
+    text: "Master Xu Wei's home consultation completely transformed our living space. The energy shift was immediate and lasting.",
     avatar: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=professional%20woman%20portrait%20minimalist%20neutral%20background&image_size=square",
   },
   {
@@ -95,12 +95,12 @@ const howItWorks = [
     <div class="container">
       <div class="expert-grid">
         <div class="expert-image">
-          <img src={expertImg} alt="Dr. Ming Li" loading="lazy" />
+          <img src={expertImg} alt="Xu Wei" loading="lazy" />
         </div>
         <div class="expert-info">
-          <span class="expert-role" data-i18n="services.expert_title">Oriental Space Energy Architect</span>
-          <h2 data-i18n="services.expert_name">Dr. Ming Li</h2>
-          <p data-i18n="services.expert_bio">With over 20 years of experience bridging traditional Chinese energy principles with modern Western lifestyles, Dr. Li has helped thousands of clients transform their living and working spaces.</p>
+          <span class="expert-role" data-i18n="services.expert_title">Master of Environmental Energy Science</span>
+          <h2 data-i18n="services.expert_name">Xu Wei</h2>
+          <p data-i18n="services.expert_bio">Xu Wei is the 80th-generation direct disciple of Guiguzi (2,400-year unbroken lineage) and the 79th-generation disciple of Sun Bin. Founder of Jing Li Xue and Distinguished Professor at Peking University, with 40+ years and 10,000+ clients worldwide.</p>
           <div class="expert-creds">
             {expertCreds.map((cred) => (
               <span class="expert-cred" data-i18n={cred.key}>{cred.text}</span>

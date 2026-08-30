@@ -360,19 +360,30 @@ import '../styles/global.css';
     }
 
     function getCurrency() {
-      return localStorage.getItem('ov-currency') || 'USD';
+      // FIX: USD only — display must match settlement currency to avoid price mismatch
+      return 'USD';
     }
 
+    // FIX (Financial BUG): All display and settlement in USD per user requirement.
+    // Rate locked to 1, symbol always $ regardless of user language selection.
+    // Structure retained for future extensibility; values pinned to USD.
     const currencyRates = {
       USD: { symbol: '$', rate: 1 },
-      EUR: { symbol: '€', rate: 0.92 },
-      GBP: { symbol: '£', rate: 0.79 },
-      CNY: { symbol: '¥', rate: 7.24 }
+      EUR: { symbol: '$', rate: 1 },
+      GBP: { symbol: '$', rate: 1 },
+      CNY: { symbol: '$', rate: 1 }
     };
 
     function formatPrice(usd) {
-      const { symbol, rate } = currencyRates[getCurrency()] || currencyRates.USD;
-      return `${symbol}${(usd * rate).toFixed(0)}`;
+      // Always display in USD ($) — no FX conversion.
+      // Cart stores price in USD; checkout totals must exactly match displayed totals.
+      const { symbol, rate } = currencyRates.USD;
+      const raw = usd * rate;
+      // FIX: Show decimals only if fractional part exists (e.g. $9.99 → $9.99, $49 → $49)
+      const formatted = (Math.round(raw * 100) / 100) % 1 === 0
+        ? raw.toFixed(0)
+        : raw.toFixed(2);
+      return `${symbol}${formatted}`;
     }
 
     function updateCartCount() {

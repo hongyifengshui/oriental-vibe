@@ -10,26 +10,11 @@ const teamMembers = [
   {
     nameKey: 'about.team1_name',
     roleKey: 'about.team1_role',
+    titlesKey: 'about.team1_titles',
+    bioKey: 'about.team1_bio',
+    expertiseKey: 'about.team1_expertise',
     initial: 'X',
-    img: `${imgBase}professional%20asian%20man%20portrait%20minimalist%20neutral%20background%20warm%20light&image_size=square`,
-  },
-  {
-    nameKey: 'about.team2_name',
-    roleKey: 'about.team2_role',
-    initial: 'J',
-    img: `${imgBase}professional%20caucasian%20man%20portrait%20minimalist%20neutral%20background%20warm%20light&image_size=square`,
-  },
-  {
-    nameKey: 'about.team3_name',
-    roleKey: 'about.team3_role',
-    initial: 'S',
-    img: `${imgBase}professional%20asian%20man%20portrait%20minimalist%20neutral%20background%20warm%20light&image_size=square`,
-  },
-  {
-    nameKey: 'about.team4_name',
-    roleKey: 'about.team4_role',
-    initial: 'E',
-    img: `${imgBase}professional%20caucasian%20woman%20portrait%20minimalist%20neutral%20background%20warm%20light&image_size=square`,
+    img: `${imgBase}professional%20portrait%20middle%20aged%20chinese%20master%20xu%20wei%20shoulder%20length%20hair%20ponytail%20goatee%20burgundy%20polo%20shirt%20wooden%20prayer%20beads%20bracelet%20black%20studio%20background%20warm%20soft%20light%20wise%20authentic%20lineage%20teacher%20photorealistic&image_size=square_hd`,
   },
 ];
 
@@ -645,26 +630,82 @@ const values = [
   <section class="section team-section fade-in">
     <div class="container">
       <div class="section-title">
-        <p class="section-subtitle" data-i18n="about.team_subtitle">Meet Our Team</p>
-        <h2 data-i18n="about.team_title">The People Behind Oriental Vibe</h2>
-        <p data-i18n="about.team_description">A passionate team of energy practitioners, designers, and wellness experts dedicated to helping you create harmonious spaces.</p>
+        <p class="section-subtitle" data-i18n="about.team_subtitle">Meet Our Founder</p>
+        <h2 data-i18n="about.team_title">Master Xu Wei · The Lineage Behind Oriental Vibe</h2>
+        <p data-i18n="about.team_description">All teachings, consultations and courses are personally led by Master Xu Wei — ensuring authentic lineage transmission for every client.</p>
       </div>
 
-      <div class="team-grid">
+      <div class="team-grid founder-grid">
         {teamMembers.map((member, index) => (
-          <div class="team-card">
-            <div class="team-image">
+          <div class="team-card founder-card">
+            <div class="team-image founder-image">
               <img src={member.img} alt="" data-i18n-alt={`about.team${index + 1}_alt`} loading="lazy" />
             </div>
-            <div class="team-info">
+            <div class="team-info founder-info">
               <div class="team-name" data-i18n={member.nameKey}>Name</div>
               <div class="team-role" data-i18n={member.roleKey}>Role</div>
+              <div class="team-titles" data-i18n={member.titlesKey} style="margin: 1rem 0 1.25rem; padding: 1rem 1.25rem; background: linear-gradient(135deg, rgba(191,175,150,.08), rgba(138,148,140,.06)); border-left: 3px solid var(--color-accent); border-radius: var(--radius-md); font-size: 0.9rem; line-height: 1.85; color: var(--color-text-secondary);">Titles / Credentials</div>
+              <p class="team-bio" data-i18n={member.bioKey} style="margin: 0 0 1.25rem; font-size: 0.95rem; line-height: 1.85; color: var(--color-text-secondary);">Bio</p>
+              <div class="team-expertise">
+                <h4 style="font-size: 0.85rem; letter-spacing: .08em; text-transform: uppercase; color: var(--color-accent); margin: 0 0 .75rem; font-weight: 600;" data-i18n="about.team_expertise_label">Expertise</h4>
+                <p data-i18n={member.expertiseKey} style="margin:0; font-size: 0.93rem; line-height: 1.85; color: var(--color-text-secondary);">Expertise list</p>
+              </div>
             </div>
           </div>
         ))}
       </div>
     </div>
   </section>
+
+  <style>
+    .founder-grid {
+      grid-template-columns: minmax(0, 1fr);
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .founder-card {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 2.5rem;
+      align-items: start;
+      padding: 2.5rem;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(45,49,48,.06);
+      border: 1px solid rgba(191,175,150,.18);
+    }
+    .founder-image {
+      width: 100%;
+      border-radius: 16px;
+      overflow: hidden;
+      aspect-ratio: 1 / 1;
+    }
+    .founder-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .founder-info .team-name {
+      font-size: 2rem;
+      font-family: var(--font-serif);
+      color: var(--color-text-primary);
+      margin-bottom: 0.35rem;
+    }
+    .founder-info .team-role {
+      font-size: 1.05rem;
+      color: var(--color-accent);
+      font-weight: 600;
+      letter-spacing: .02em;
+    }
+    @media (max-width: 768px) {
+      .founder-card {
+        grid-template-columns: 1fr;
+        padding: 1.5rem;
+        gap: 1.5rem;
+      }
+      .founder-image { max-width: 300px; margin: 0 auto; }
+    }
+  </style>
 
   {/* ===== Timeline Section ===== */}
   <section class="section timeline-section fade-in">
