@@ -701,8 +701,9 @@ const howItWorks = [
       });
     }
 
-    // Sync admin services to frontend
-    (function syncAdminServices() {
+    // Sync admin services to frontend (live refresh)
+    function _admin_services_changed(key) { return key == null || key === 'services'; }
+    function syncAdminServices() {
       let adminServices;
       try { adminServices = JSON.parse(localStorage.getItem('ov-admin-services')); } catch(e) { adminServices = null; }
       if (!adminServices || adminServices.length === 0) return;
@@ -724,6 +725,10 @@ const howItWorks = [
           <a href="#booking" class="btn btn-primary service-book-btn">Book Now</a>
         </div>`;
       }).join('');
-    })();
+    }
+    function _runWhenReady(fn) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn, { once: true }); else fn(); }
+    _runWhenReady(syncAdminServices);
+    window.addEventListener('ov-admin-saved', e => { if (_admin_services_changed(e && e.detail && e.detail.key)) syncAdminServices(); });
+    window.addEventListener('storage', e => { if (e.key && e.key.indexOf('ov-admin-services') === 0) syncAdminServices(); });
   })();
 </script>

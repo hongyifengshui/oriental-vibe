@@ -705,19 +705,33 @@ const values = [
 <script is:inline>
   (function() {
     var PREFIX = 'ov-admin-';
-    try {
-      var data = JSON.parse(localStorage.getItem(PREFIX + 'page-about'));
-      if (data) {
-        var pagePrefix = 'about';
+    var PAGE_ID = 'page-about';
+    var PAGE_PREFIX = 'about';
+    function applyPage() {
+      try {
+        var raw = localStorage.getItem(PREFIX + PAGE_ID);
+        var data = raw ? JSON.parse(raw) : null;
+        if (!data) return;
         Object.keys(data).forEach(function(key) {
           var val = data[key];
-          if (!val) return;
-          var sel = '[data-i18n="' + pagePrefix + '.' + key + '"]';
-          var els = document.querySelectorAll(sel);
-          els.forEach(function(el) { el.textContent = val; });
+          if (val === undefined || val === null || val === '') return;
+          var sel = '[data-i18n="' + PAGE_PREFIX + '.' + key + '"]';
+          document.querySelectorAll(sel).forEach(function(el) { el.textContent = val; });
+          var selPh = '[data-i18n-placeholder="' + PAGE_PREFIX + '.' + key + '"]';
+          document.querySelectorAll(selPh).forEach(function(el) { el.setAttribute('placeholder', val); });
         });
-      }
-    } catch(e) {}
+      } catch(e) {}
+    }
+    function runWhenReady(fn) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn, { once: true }); else fn(); }
+    runWhenReady(applyPage);
+    // Live: same-tab admin-saved + cross-tab storage event
+    window.addEventListener('ov-admin-saved', function(e) {
+      var k = e && e.detail && e.detail.key;
+      if (k == null || k === PAGE_ID) applyPage();
+    });
+    window.addEventListener('storage', function(e) {
+      if (e.key === PREFIX + PAGE_ID) applyPage();
+    });
   })();
 </script>
 </BaseLayout>

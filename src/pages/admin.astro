@@ -1282,9 +1282,21 @@ import '../styles/global.css';
   // ========== DATA LAYER ==========
   const LS_PREFIX = 'ov-admin-';
   const lsGet = k => { try { return JSON.parse(localStorage.getItem(LS_PREFIX + k)); } catch { return null; } };
+  /** Broadcast a save event so:
+    *   (a) same-tab listeners on frontend pages re-render immediately
+    *   (b) other browser tabs still get native "storage" event after setItem
+    * key = logical key WITHOUT the ov-admin- prefix */
+  const broadcastSave = (key, value) => {
+    try {
+      const ev = new CustomEvent('ov-admin-saved', { detail: { key, value, at: Date.now() } });
+      window.dispatchEvent(ev);
+      document.dispatchEvent(ev);
+    } catch {}
+  };
   const lsSet = (k, v) => {
     try {
       localStorage.setItem(LS_PREFIX + k, JSON.stringify(v));
+      broadcastSave(k, v);
       return true;
     } catch (e) {
       console.error('lsSet error:', e);

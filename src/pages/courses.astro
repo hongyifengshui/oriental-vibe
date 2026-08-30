@@ -125,8 +125,9 @@ import { courses } from '../data/courses.js';
 </BaseLayout>
 
 <script is:inline>
-  // Sync admin courses to frontend
-  (function syncAdminCourses() {
+  // Sync admin courses to frontend (live refresh)
+  function _admin_courses_changed(key) { return key == null || key === 'courses'; }
+  function syncAdminCourses() {
     let adminCourses;
     try { adminCourses = JSON.parse(localStorage.getItem('ov-admin-courses')); } catch(e) { adminCourses = null; }
     if (!adminCourses || adminCourses.length === 0) return;
@@ -150,5 +151,9 @@ import { courses } from '../data/courses.js';
         </div>
       </article>`;
     }).join('');
-  })();
+  }
+  function _runWhenReady(fn) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn, { once: true }); else fn(); }
+  _runWhenReady(syncAdminCourses);
+  window.addEventListener('ov-admin-saved', e => { if (_admin_courses_changed(e && e.detail && e.detail.key)) syncAdminCourses(); });
+  window.addEventListener('storage', e => { if (e.key && e.key.indexOf('ov-admin-courses') === 0) syncAdminCourses(); });
 </script>

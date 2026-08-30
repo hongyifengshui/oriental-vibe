@@ -1203,7 +1203,7 @@ small {
   position: fixed;
   right: 1.5rem;
   bottom: 1.5rem;
-  z-index: var(--z-sticky);
+  z-index: 9998; /* Below AI chat bubble (9999) */
   width: 60px;
   height: 60px;
   border-radius: 50%;
@@ -1213,6 +1213,12 @@ small {
   justify-content: center;
   box-shadow: var(--shadow-lg);
   transition: var(--transition-base);
+}
+
+/* Floating AI chat bubble placement — sits above and to the left of WhatsApp, never overlapping */
+.ov-ai-bubble {
+  right: 1.5rem;
+  bottom: calc(1.5rem + 60px + 0.9rem); /* above WhatsApp + gap */
 }
 
 .whatsapp-btn:hover {
@@ -1812,6 +1818,18 @@ small {
     height: 52px;
     right: 1rem;
     bottom: 1rem;
+  }
+
+  /* Tablet: AI bubble on LEFT (opposite side of WhatsApp) to avoid overlay */
+  .ov-ai-bubble {
+    left: 1rem;
+    right: auto;
+    bottom: 1rem;
+  }
+  .ov-ai-panel {
+    right: 1rem;
+    left: 1rem;
+    width: auto;
   }
 
   .whatsapp-btn svg {

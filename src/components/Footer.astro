@@ -73,9 +73,9 @@ const year = new Date().getFullYear();
   </div>
 </footer>
 
-<script>
-  // Sync admin settings to footer
-  (function syncFooterSettings() {
+<script is:inline>
+  // Sync admin settings to footer (live refresh)
+  function syncFooterSettings() {
     try {
       const settings = JSON.parse(localStorage.getItem('ov-admin-settings'));
       if (!settings) return;
@@ -87,6 +87,23 @@ const year = new Date().getFullYear();
         const desc = document.querySelector('.footer-description');
         if (desc) desc.textContent = settings.siteDesc;
       }
+      if (settings.whatsapp) {
+        const whatsappLink = document.querySelector('a.footer-whatsapp-link, a.footer-social-whatsapp, a.footer-contact-whatsapp');
+        if (whatsappLink) {
+          const num = String(settings.whatsapp).replace(/[^\d]/g, '');
+          whatsappLink.setAttribute('href', 'https://wa.me/' + num);
+        }
+      }
+      if (settings.email) {
+        document.querySelectorAll('a.footer-email-link, a.footer-contact-email').forEach(a => {
+          a.setAttribute('href', 'mailto:' + settings.email);
+          if (!a.textContent.trim() || a.textContent.indexOf('@') < 0) a.textContent = settings.email;
+        });
+      }
     } catch(e) {}
-  })();
+  }
+  function runWhenReady(fn) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn, { once: true }); else fn(); }
+  runWhenReady(syncFooterSettings);
+  window.addEventListener('ov-admin-saved', e => { const k = e && e.detail && e.detail.key; if (k == null || k === 'settings') syncFooterSettings(); });
+  window.addEventListener('storage', e => { if (e.key === 'ov-admin-settings') syncFooterSettings(); });
 </script>

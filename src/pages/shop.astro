@@ -457,8 +457,11 @@ const stars = (rating) => '★'.repeat(rating) + '☆'.repeat(5 - rating);
   // Apply on auth change
   document.addEventListener('ov-auth-change', applyMemberDiscounts);
 
-  /* ========== Admin Data Sync ========== */
-  (function syncAdminProducts() {
+  /* ========== Admin Data Sync (live refresh) ========== */
+  function _admin_products_changed(key) {
+    return key == null || key === 'products' || key === 'categories';
+  }
+  function syncAdminProducts() {
     let adminProducts;
     try {
       adminProducts = JSON.parse(localStorage.getItem('ov-admin-products'));
@@ -527,5 +530,15 @@ const stars = (rating) => '★'.repeat(rating) + '☆'.repeat(5 - rating);
     });
 
     applyMemberDiscounts();
-  })();
+  }
+  /* Run once on ready + on admin changes (same-tab custom event + cross-tab native storage event) */
+  function _runWhenReady(fn) {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn, { once: true });
+    else fn();
+  }
+  _runWhenReady(syncAdminProducts);
+  window.addEventListener('ov-admin-saved', e => { if (_admin_products_changed(e && e.detail && e.detail.key)) syncAdminProducts(); });
+  window.addEventListener('storage', e => {
+    if (e.key && e.key.indexOf('ov-admin-products') === 0) syncAdminProducts();
+  });
 </script>

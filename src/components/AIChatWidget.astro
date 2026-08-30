@@ -136,8 +136,6 @@ const { title = "AI Assistant" } = Astro.props;
   /* ---- Bubble ---- */
   .ov-ai-bubble {
     position: fixed;
-    right: 20px;
-    bottom: 20px;
     width: 58px;
     height: 58px;
     border-radius: 50%;
@@ -146,7 +144,7 @@ const { title = "AI Assistant" } = Astro.props;
     border: none;
     cursor: pointer;
     box-shadow: 0 8px 24px rgba(139, 107, 79, 0.4), 0 2px 8px rgba(0,0,0,0.15);
-    z-index: 9998;
+    z-index: 9999; /* Above WhatsApp (9998), cookie banners, nav */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -632,8 +630,9 @@ const { title = "AI Assistant" } = Astro.props;
   /* ---- Mobile ---- */
   @media (max-width: 560px) {
     .ov-ai-bubble {
-      right: 14px;
-      bottom: 76px; /* above WhatsApp */
+      left: 1rem;      /* Left side, opposite WhatsApp (right) → 0 overlap */
+      right: auto;
+      bottom: 1rem;
       width: 52px;
       height: 52px;
     }

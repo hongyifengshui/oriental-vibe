@@ -76,14 +76,19 @@ const isActive = (path) => pathname === path ? 'active' : '';
     });
   }
 
-  // Sync site name from admin settings
-  (function syncSiteName() {
+  // Sync site name from admin settings (live refresh)
+  function syncSiteName() {
     try {
       const settings = JSON.parse(localStorage.getItem('ov-admin-settings'));
-      if (settings?.siteName) {
-        const brand = document.querySelector('.navbar-brand');
-        if (brand) brand.textContent = settings.siteName;
+      if (!settings) return;
+      if (settings.siteName) {
+        document.querySelectorAll('.navbar-brand, .footer-brand').forEach(brand => { brand.textContent = settings.siteName; });
+        document.title = settings.siteName + ' — ' + (settings.slogan || 'Oriental Vibe Space');
       }
     } catch {}
-  })();
+  }
+  function runWhenReady(fn) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn, { once: true }); else fn(); }
+  runWhenReady(syncSiteName);
+  window.addEventListener('ov-admin-saved', e => { const k = e && e.detail && e.detail.key; if (k == null || k === 'settings') syncSiteName(); });
+  window.addEventListener('storage', e => { if (e.key === 'ov-admin-settings') syncSiteName(); });
 </script>
