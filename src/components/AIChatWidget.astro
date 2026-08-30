@@ -1,0 +1,1128 @@
+---
+/**
+ * AI Chat Widget (Floating) — Oriental Vibe
+ * 
+ * - Floating bubble bottom-right (above WhatsApp button on mobile)
+ * - Popup chat panel with header, messages, input, quick replies,
+ *   product/service/course suggestion cards
+ * - Fully responsive (mobile: fullscreen, desktop: 380px x 580px)
+ * - Accessibility: ARIA labels, ESC to close, focus trap
+ * - Persistent: open state + chat history in localStorage
+ * - i18n aware: reads from document current lang context
+ */
+
+const { title = "AI Assistant" } = Astro.props;
+---
+
+<!-- ====== Chat Bubble (trigger) ====== -->
+<button
+  id="ovAiBubble"
+  class="ov-ai-bubble"
+  type="button"
+  aria-label="Open AI Assistant chat"
+  title="Chat with our AI Assistant"
+>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M12 2a10 10 0 1 0 10 10" />
+    <path d="M12 2a10 10 0 0 1 10 10h-7l-3-3-3 3H2A10 10 0 0 1 12 2z" />
+    <circle cx="9" cy="12" r="1" fill="currentColor" />
+    <circle cx="15" cy="12" r="1" fill="currentColor" />
+    <path d="M9 16c1 1 4 1 6 0" />
+  </svg>
+  <span id="ovAiBadge" class="ov-ai-badge" hidden>1</span>
+</button>
+
+<!-- ====== Chat Panel ====== -->
+<aside
+  id="ovAiPanel"
+  class="ov-ai-panel"
+  role="dialog"
+  aria-modal="false"
+  aria-label="AI Assistant Chat"
+  aria-hidden="true"
+  hidden
+>
+  <!-- Header -->
+  <header class="ov-ai-header">
+    <div class="ov-ai-header-left">
+      <div class="ov-ai-avatar" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="7" r="4" />
+          <path d="M5 21c0-4 3-7 7-7s7 3 7 7" />
+          <circle cx="10" cy="7" r="0.5" fill="currentColor" />
+          <circle cx="14" cy="7" r="0.5" fill="currentColor" />
+        </svg>
+        <span class="ov-ai-online" aria-hidden="true"></span>
+      </div>
+      <div>
+        <div class="ov-ai-title" data-i18n="ai.title">Oriental Vibe AI</div>
+        <div class="ov-ai-subtitle">
+          <span class="ov-ai-status-dot"></span>
+          <span data-i18n="ai.online">Online · Replies instantly</span>
+        </div>
+      </div>
+    </div>
+    <button
+      id="ovAiClose"
+      class="ov-ai-close"
+      type="button"
+      aria-label="Close chat panel"
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" aria-hidden="true">
+        <path d="M6 6l12 12M18 6L6 18" />
+      </svg>
+    </button>
+  </header>
+
+  <!-- Messages area -->
+  <div id="ovAiMessages" class="ov-ai-messages">
+    <!-- Messages injected by JS -->
+  </div>
+
+  <!-- Typing indicator (hidden by default) -->
+  <div id="ovAiTyping" class="ov-ai-typing" hidden>
+    <div class="ov-ai-typing-avatar">AI</div>
+    <div class="ov-ai-typing-bubble">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+
+  <!-- Quick replies -->
+  <div id="ovAiQuickReplies" class="ov-ai-quick" hidden>
+    <!-- Quick reply chips injected by JS -->
+  </div>
+
+  <!-- Input -->
+  <footer class="ov-ai-footer">
+    <form id="ovAiForm" class="ov-ai-form" onsubmit="return false;" autocomplete="off">
+      <input
+        id="ovAiInput"
+        class="ov-ai-input"
+        type="text"
+        placeholder="Ask about crystals, consultations, courses…"
+        data-i18n-placeholder="ai.placeholder"
+        maxlength="500"
+        aria-label="Type your message"
+        autocomplete="off"
+      />
+      <button
+        id="ovAiSend"
+        class="ov-ai-send"
+        type="submit"
+        aria-label="Send message"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M22 2L11 13" />
+          <path d="M22 2l-7 20-4-9-9-4 20-7z" />
+        </svg>
+      </button>
+    </form>
+    <div class="ov-ai-powered">
+      <span data-i18n="ai.powered">Powered by Oriental Vibe Knowledge Base</span>
+    </div>
+  </footer>
+</aside>
+
+<!-- ====== Chat Widget Styles ====== -->
+<style>
+  /* ---- Bubble ---- */
+  .ov-ai-bubble {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #8B6B4F 0%, #B08A68 50%, #D4A76A 100%);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(139, 107, 79, 0.4), 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 9998;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.3s ease;
+    animation: ovAiBubblePulse 2.4s ease-in-out infinite;
+  }
+  .ov-ai-bubble:hover {
+    transform: scale(1.06);
+    box-shadow: 0 12px 32px rgba(139, 107, 79, 0.5), 0 4px 12px rgba(0,0,0,0.2);
+  }
+  .ov-ai-bubble:active { transform: scale(0.96); }
+  .ov-ai-bubble svg { width: 28px; height: 28px; }
+  .ov-ai-bubble.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.8);
+  }
+
+  @keyframes ovAiBubblePulse {
+    0%, 100% { box-shadow: 0 8px 24px rgba(139, 107, 79, 0.4), 0 0 0 0 rgba(176, 138, 104, 0.5); }
+    50% { box-shadow: 0 8px 24px rgba(139, 107, 79, 0.4), 0 0 0 14px rgba(176, 138, 104, 0); }
+  }
+
+  .ov-ai-badge {
+    position: absolute;
+    top: 4px;
+    right: 2px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: #E63946;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(230,57,70,0.4);
+  }
+
+  /* ---- Panel ---- */
+  .ov-ai-panel {
+    position: fixed;
+    right: 20px;
+    bottom: 90px;
+    width: 380px;
+    max-width: calc(100vw - 40px);
+    height: 580px;
+    max-height: calc(100vh - 120px);
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.2), 0 8px 24px rgba(0,0,0,0.1);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform-origin: bottom right;
+    border: 1px solid rgba(139, 107, 79, 0.15);
+    animation: ovAiPanelIn 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  @keyframes ovAiPanelIn {
+    from { opacity: 0; transform: scale(0.9) translateY(10px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .ov-ai-panel[hidden] { display: none !important; }
+
+  /* ---- Header ---- */
+  .ov-ai-header {
+    background: linear-gradient(135deg, #8B6B4F 0%, #B08A68 100%);
+    color: #fff;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .ov-ai-header-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .ov-ai-avatar {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.22);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    backdrop-filter: blur(4px);
+  }
+  .ov-ai-avatar svg { width: 22px; height: 22px; }
+  .ov-ai-online {
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #27C26E;
+    border: 2px solid #8B6B4F;
+  }
+  .ov-ai-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0.01em;
+  }
+  .ov-ai-subtitle {
+    font-size: 12px;
+    opacity: 0.88;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 2px;
+  }
+  .ov-ai-status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #8BFFB5;
+    box-shadow: 0 0 8px rgba(139, 255, 181, 0.8);
+    flex-shrink: 0;
+    animation: ovAiStatusBlink 1.6s ease-in-out infinite;
+  }
+  @keyframes ovAiStatusBlink { 50% { opacity: 0.5; } }
+
+  .ov-ai-close {
+    background: transparent;
+    border: none;
+    color: #fff;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+    flex-shrink: 0;
+  }
+  .ov-ai-close:hover { background: rgba(255,255,255,0.18); }
+  .ov-ai-close svg { width: 18px; height: 18px; }
+
+  /* ---- Messages ---- */
+  .ov-ai-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px 16px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    background: #FDF9F4;
+    scroll-behavior: smooth;
+  }
+  .ov-ai-messages::-webkit-scrollbar { width: 6px; }
+  .ov-ai-messages::-webkit-scrollbar-thumb { background: rgba(139,107,79,0.25); border-radius: 3px; }
+  .ov-ai-messages::-webkit-scrollbar-track { background: transparent; }
+
+  .ov-msg { display: flex; gap: 8px; max-width: 100%; }
+  .ov-msg-user { justify-content: flex-end; }
+
+  .ov-msg-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    letter-spacing: -0.02em;
+  }
+  .ov-msg-avatar-bot {
+    background: linear-gradient(135deg, #8B6B4F, #B08A68);
+    color: #fff;
+  }
+  .ov-msg-avatar-user {
+    background: #E8D9C8;
+    color: #5C4330;
+  }
+  .ov-msg-user .ov-msg-body { order: -1; }
+
+  .ov-msg-body {
+    max-width: calc(100% - 40px);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .ov-msg-bubble {
+    padding: 10px 14px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.55;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    animation: ovAiMsgIn 0.25s ease-out both;
+  }
+  @keyframes ovAiMsgIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .ov-msg-bot .ov-msg-bubble {
+    background: #fff;
+    color: #2C241B;
+    border: 1px solid rgba(139, 107, 79, 0.12);
+    border-top-left-radius: 4px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  }
+  .ov-msg-user .ov-msg-bubble {
+    background: linear-gradient(135deg, #8B6B4F, #B08A68);
+    color: #fff;
+    border-top-right-radius: 4px;
+    box-shadow: 0 4px 12px rgba(139, 107, 79, 0.22);
+  }
+
+  /* markdown lite: bold */
+  .ov-msg-bubble strong { font-weight: 700; }
+  .ov-msg-bot .ov-msg-bubble strong { color: #6E4E2E; }
+  .ov-msg-user .ov-msg-bubble strong { color: #fff; }
+
+  .ov-msg-time {
+    font-size: 10px;
+    color: rgba(44, 36, 27, 0.4);
+    padding: 0 4px;
+  }
+  .ov-msg-user .ov-msg-time { text-align: right; }
+
+  /* Cards (product/service/course) */
+  .ov-msg-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 2px;
+  }
+  .ov-card {
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+    background: #fff;
+    border: 1px solid rgba(139, 107, 79, 0.15);
+    border-radius: 12px;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+    align-items: center;
+  }
+  .ov-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(139, 107, 79, 0.15);
+    border-color: rgba(139, 107, 79, 0.35);
+  }
+  .ov-card-img {
+    width: 52px;
+    height: 52px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #F3E8D8, #E7D3B8);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    font-size: 20px;
+  }
+  .ov-card-img img { width: 100%; height: 100%; object-fit: cover; }
+  .ov-card-info { flex: 1; min-width: 0; }
+  .ov-card-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #2C241B;
+    line-height: 1.3;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .ov-card-meta {
+    font-size: 12px;
+    color: #8B6B4F;
+    font-weight: 600;
+  }
+
+  /* Buttons (inline CTA from AI responses) */
+  .ov-msg-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  .ov-btn {
+    padding: 7px 13px;
+    border-radius: 999px;
+    border: 1.5px solid #B08A68;
+    background: #fff;
+    color: #6E4E2E;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+  }
+  .ov-btn:hover {
+    background: #B08A68;
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(139, 107, 79, 0.25);
+  }
+  .ov-btn-primary {
+    background: linear-gradient(135deg, #8B6B4F, #B08A68);
+    color: #fff;
+    border-color: transparent;
+  }
+  .ov-btn-primary:hover {
+    box-shadow: 0 6px 16px rgba(139, 107, 79, 0.35);
+  }
+
+  /* ---- Typing indicator ---- */
+  .ov-ai-typing {
+    display: flex;
+    gap: 8px;
+    padding: 0 16px 6px;
+    background: #FDF9F4;
+  }
+  .ov-ai-typing[hidden] { display: none !important; }
+  .ov-ai-typing-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #8B6B4F, #B08A68);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .ov-ai-typing-bubble {
+    background: #fff;
+    border: 1px solid rgba(139,107,79,0.12);
+    border-top-left-radius: 4px;
+    border-radius: 14px;
+    padding: 12px 16px;
+    display: flex;
+    gap: 5px;
+    align-items: center;
+  }
+  .ov-ai-typing-bubble span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #B08A68;
+    animation: ovAiTyping 1.3s infinite;
+  }
+  .ov-ai-typing-bubble span:nth-child(2) { animation-delay: 0.18s; }
+  .ov-ai-typing-bubble span:nth-child(3) { animation-delay: 0.36s; }
+  @keyframes ovAiTyping {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.45; }
+    30%           { transform: translateY(-5px); opacity: 1; }
+  }
+
+  /* ---- Quick Replies ---- */
+  .ov-ai-quick {
+    background: #FDF9F4;
+    padding: 4px 16px 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    border-top: 1px solid rgba(139,107,79,0.08);
+  }
+  .ov-ai-quick[hidden] { display: none !important; }
+  .ov-quick-chip {
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: #fff;
+    border: 1px solid rgba(139, 107, 79, 0.2);
+    color: #5C4330;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .ov-quick-chip:hover {
+    background: #B08A68;
+    border-color: #B08A68;
+    color: #fff;
+  }
+
+  /* ---- Footer / Input ---- */
+  .ov-ai-footer {
+    padding: 10px 12px 12px;
+    background: #fff;
+    border-top: 1px solid rgba(139, 107, 79, 0.08);
+    flex-shrink: 0;
+  }
+  .ov-ai-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #F7F1E8;
+    border-radius: 999px;
+    padding: 4px 4px 4px 16px;
+    border: 1.5px solid transparent;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .ov-ai-form:focus-within {
+    border-color: #B08A68;
+    background: #fff;
+  }
+  .ov-ai-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 14px;
+    padding: 8px 0;
+    color: #2C241B;
+    min-width: 0;
+    font-family: inherit;
+  }
+  .ov-ai-input::placeholder { color: rgba(44, 36, 27, 0.4); }
+  .ov-ai-send {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, #8B6B4F, #B08A68);
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .ov-ai-send:hover:not(:disabled) {
+    transform: scale(1.06);
+    box-shadow: 0 4px 12px rgba(139, 107, 79, 0.35);
+  }
+  .ov-ai-send:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .ov-ai-send svg { width: 18px; height: 18px; }
+
+  .ov-ai-powered {
+    text-align: center;
+    margin-top: 8px;
+    font-size: 10.5px;
+    color: rgba(44, 36, 27, 0.35);
+    letter-spacing: 0.02em;
+  }
+
+  /* ---- Mobile ---- */
+  @media (max-width: 560px) {
+    .ov-ai-bubble {
+      right: 14px;
+      bottom: 76px; /* above WhatsApp */
+      width: 52px;
+      height: 52px;
+    }
+    .ov-ai-bubble svg { width: 24px; height: 24px; }
+
+    .ov-ai-panel {
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      max-width: 100%;
+      height: 100vh;
+      max-height: 100vh;
+      border-radius: 0;
+      animation: ovAiPanelUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    }
+    @keyframes ovAiPanelUp {
+      from { transform: translateY(100%); }
+      to   { transform: translateY(0); }
+    }
+    .ov-ai-header { padding: 16px; }
+    .ov-ai-title { font-size: 17px; }
+    .ov-ai-messages { padding: 16px; }
+    .ov-ai-footer { padding: 12px 14px 14px; }
+  }
+
+  @media (max-width: 380px) {
+    .ov-card { padding: 8px; gap: 8px; }
+    .ov-card-img { width: 44px; height: 44px; }
+  }
+</style>
+
+<!-- ====== Widget Logic ====== -->
+<script type="module">
+  import { createAIAssistant, AI_KNOWLEDGE } from '../utils/ai-agent.js';
+
+  const STORAGE_KEY = 'ov-ai-widget-v1';
+  const CONVERSATION_KEY = 'ov-ai-history-v1';
+
+  /* ---------- DOM refs ---------- */
+  const bubble   = document.getElementById('ovAiBubble');
+  const badge    = document.getElementById('ovAiBadge');
+  const panel    = document.getElementById('ovAiPanel');
+  const closeBtn = document.getElementById('ovAiClose');
+  const messages = document.getElementById('ovAiMessages');
+  const typing   = document.getElementById('ovAiTyping');
+  const quickR   = document.getElementById('ovAiQuickReplies');
+  const form     = document.getElementById('ovAiForm');
+  const input    = document.getElementById('ovAiInput');
+  const sendBtn  = document.getElementById('ovAiSend');
+
+  /* ---------- Init AI ---------- */
+  const ai = createAIAssistant({ complianceLevel: "medium" });
+
+  /* ---------- State ---------- */
+  let isOpen = false;
+  let welcomeShown = false;
+
+  /* ---------- Persistence helpers ---------- */
+  function loadSavedHistory() {
+    try {
+      const raw = localStorage.getItem(CONVERSATION_KEY);
+      if (!raw) return null;
+      const data = JSON.parse(raw);
+      if (Array.isArray(data) && data.length) return data;
+    } catch (_) {}
+    return null;
+  }
+  function saveHistory(hist) {
+    try {
+      localStorage.setItem(CONVERSATION_KEY, JSON.stringify(hist.slice(-30)));
+    } catch (_) {}
+  }
+
+  function saveOpenState(open) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ open, welcomeShown })); } catch (_) {}
+  }
+  function loadOpenState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (_) {}
+    return { open: false, welcomeShown: false };
+  }
+
+  /* ---------- Render ---------- */
+  function scrollToBottom() {
+    requestAnimationFrame(() => {
+      messages.scrollTop = messages.scrollHeight;
+    });
+  }
+
+  function formatTime(ts) {
+    try {
+      const d = new Date(ts);
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch { return ''; }
+  }
+
+  function renderMarkdownLite(text) {
+    // Escape HTML first
+    let html = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    // **bold**
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    // *bullet or italic* → bullet lines keep as-is; we'll split lines
+    // links: [text](url)
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g,
+      '<a href="$2" target="_blank" rel="noopener noreferrer" class="ov-msg-link">$1</a>');
+    // Line breaks
+    html = html.replace(/\n/g, '<br>');
+    return html;
+  }
+
+  function renderMessage({ role, text, buttons, cards, time }) {
+    const wrap = document.createElement('div');
+    wrap.className = `ov-msg ov-msg-${role === 'user' ? 'user' : 'bot'}`;
+
+    const avatar = document.createElement('div');
+    avatar.className = `ov-msg-avatar ov-msg-avatar-${role === 'user' ? 'user' : 'bot'}`;
+    avatar.textContent = role === 'user' ? 'U' : 'AI';
+    avatar.setAttribute('aria-hidden', 'true');
+
+    const body = document.createElement('div');
+    body.className = 'ov-msg-body';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'ov-msg-bubble';
+    bubble.innerHTML = renderMarkdownLite(text || '');
+
+    body.appendChild(bubble);
+
+    // Cards
+    if (cards && (cards.products?.length || cards.services?.length || cards.courses?.length)) {
+      const cardContainer = document.createElement('div');
+      cardContainer.className = 'ov-msg-cards';
+
+      const allCards = [
+        ...(cards.products || []).map(p => ({
+          ...p, kind: 'product',
+          icon: '💎',
+          meta: `$${typeof p.price === 'number' ? p.price : p.price.replace('$', '')}`,
+          link: '/shop',
+          image: p.image || null
+        })),
+        ...(cards.services || []).map(s => ({
+          ...s, kind: 'service',
+          icon: s.vip ? '👑' : (s.popular ? '⭐' : '🔮'),
+          meta: s.price || '',
+          link: '/services',
+          image: null
+        })),
+        ...(cards.courses || []).map(c => ({
+          ...c, kind: 'course',
+          icon: '📚',
+          meta: c.price || '',
+          link: '/courses',
+          image: c.image || null
+        }))
+      ];
+
+      for (const card of allCards.slice(0, 3)) {
+        const a = document.createElement('a');
+        a.className = 'ov-card';
+        a.href = card.link;
+        a.target = card.link.startsWith('http') ? '_blank' : '_self';
+        a.rel = 'noopener noreferrer';
+
+        const img = document.createElement('div');
+        img.className = 'ov-card-img';
+        if (card.image) {
+          const realImg = document.createElement('img');
+          realImg.src = card.image;
+          realImg.alt = card.name || '';
+          realImg.loading = 'lazy';
+          img.appendChild(realImg);
+        } else {
+          img.textContent = card.icon || '✨';
+        }
+
+        const info = document.createElement('div');
+        info.className = 'ov-card-info';
+
+        const name = document.createElement('div');
+        name.className = 'ov-card-name';
+        name.textContent = card.name || '';
+
+        const meta = document.createElement('div');
+        meta.className = 'ov-card-meta';
+        meta.textContent = card.meta || '';
+
+        info.appendChild(name);
+        info.appendChild(meta);
+        a.appendChild(img);
+        a.appendChild(info);
+        cardContainer.appendChild(a);
+      }
+      body.appendChild(cardContainer);
+    }
+
+    // Buttons
+    if (buttons && buttons.length) {
+      const btnsWrap = document.createElement('div');
+      btnsWrap.className = 'ov-msg-buttons';
+      buttons.forEach(b => {
+        if (b.action === 'link' || !b.action) {
+          const a = document.createElement('a');
+          a.className = 'ov-btn ov-btn-primary';
+          a.href = b.url;
+          a.target = (b.url && b.url.startsWith('http')) ? '_blank' : '_self';
+          a.rel = 'noopener noreferrer';
+          a.textContent = b.label;
+          btnsWrap.appendChild(a);
+        } else if (b.action === 'ask' || b.action === 'payload') {
+          const btn = document.createElement('button');
+          btn.className = 'ov-btn';
+          btn.type = 'button';
+          btn.textContent = b.label;
+          btn.addEventListener('click', () => {
+            sendMessage(b.payload || b.label, true);
+          });
+          btnsWrap.appendChild(btn);
+        } else if (b.action === 'prompt') {
+          const btn = document.createElement('button');
+          btn.className = 'ov-btn';
+          btn.type = 'button';
+          btn.textContent = b.label;
+          btn.addEventListener('click', () => {
+            input.focus();
+            input.placeholder = 'Type your question...';
+          });
+          btnsWrap.appendChild(btn);
+        } else if (b.action === 'human') {
+          const btn = document.createElement('button');
+          btn.className = 'ov-btn';
+          btn.type = 'button';
+          btn.textContent = b.label;
+          btn.addEventListener('click', () => {
+            sendMessage("I'd like to talk to a human agent please.", true);
+          });
+          btnsWrap.appendChild(btn);
+        }
+      });
+      body.appendChild(btnsWrap);
+    }
+
+    // Time
+    if (time) {
+      const t = document.createElement('div');
+      t.className = 'ov-msg-time';
+      t.textContent = formatTime(time);
+      body.appendChild(t);
+    }
+
+    if (role === 'user') {
+      wrap.appendChild(body);
+      wrap.appendChild(avatar);
+    } else {
+      wrap.appendChild(avatar);
+      wrap.appendChild(body);
+    }
+
+    messages.appendChild(wrap);
+    scrollToBottom();
+  }
+
+  function renderQuickReplies(items) {
+    if (!items || !items.length) {
+      quickR.hidden = true;
+      quickR.innerHTML = '';
+      return;
+    }
+    quickR.innerHTML = '';
+    items.forEach(item => {
+      const chip = document.createElement('button');
+      chip.className = 'ov-quick-chip';
+      chip.type = 'button';
+      chip.textContent = item.label;
+      chip.addEventListener('click', () => {
+        if (item.action === 'link') {
+          window.open(item.url, item.url.startsWith('http') ? '_blank' : '_self');
+        } else if (item.action === 'ask') {
+          sendMessage(item.payload || item.label, true);
+        } else {
+          sendMessage(item.label, true);
+        }
+      });
+      quickR.appendChild(chip);
+    });
+    quickR.hidden = false;
+  }
+
+  function showTyping(show) {
+    typing.hidden = !show;
+    if (show) scrollToBottom();
+  }
+
+  function setBadge(count) {
+    if (count <= 0) { badge.hidden = true; return; }
+    badge.textContent = count > 9 ? '9+' : String(count);
+    badge.hidden = false;
+  }
+
+  /* ---------- Open / Close ---------- */
+  function openPanel(forceWelcome = false) {
+    isOpen = true;
+    panel.hidden = false;
+    panel.setAttribute('aria-hidden', 'false');
+    bubble.classList.add('is-hidden');
+    saveOpenState(true);
+    setBadge(0);
+
+    if (!welcomeShown || forceWelcome) {
+      welcomeShown = true;
+      saveOpenState(true);
+      // Restore history or show welcome
+      const hist = loadSavedHistory();
+      if (hist && !forceWelcome) {
+        hist.forEach(m => renderMessage(m));
+        // Also restore AI memory (lightweight)
+        hist.slice(-6).forEach(m => ai.remember(m.role, m.text || ''));
+        // Default quick replies
+        renderQuickReplies([
+          { label: "💎 Recommend crystals", action: "ask", payload: "Recommend crystals for love and wealth" },
+          { label: "📅 Book a consultation", action: "link", url: "/services" },
+          { label: "🧪 Five Elements Test", action: "link", url: "/element-test" },
+          { label: "❓ Shipping / Returns", action: "ask", payload: "What are shipping and return policies?" }
+        ]);
+      } else {
+        // AI welcome
+        triggerAI("Hello", true); // will trigger greeting intent through pipeline
+      }
+    } else {
+      // Just re-open, restore existing messages
+      const hist = loadSavedHistory();
+      if (hist && messages.children.length === 0) {
+        hist.forEach(m => renderMessage(m));
+        hist.slice(-6).forEach(m => ai.remember(m.role, m.text || ''));
+        renderQuickReplies([
+          { label: "🛒 Shop recommendations", action: "ask", payload: "What do you recommend for beginners?" },
+          { label: "💬 Human support", action: "human" }
+        ]);
+      }
+    }
+
+    setTimeout(() => input.focus(), 320);
+  }
+
+  function closePanel() {
+    isOpen = false;
+    panel.hidden = true;
+    panel.setAttribute('aria-hidden', 'true');
+    bubble.classList.remove('is-hidden');
+    saveOpenState(false);
+    // Save history
+    const histEl = Array.from(messages.querySelectorAll('.ov-msg')).map((el, i) => {
+      // Read from rendered
+      const role = el.classList.contains('ov-msg-user') ? 'user' : (el.classList.contains('ov-msg-bot') ? 'assistant' : 'assistant');
+      const b = el.querySelector('.ov-msg-bubble');
+      return { role, text: b ? b.innerText.replace(/\n+/g, '\n').trim() : '', time: Date.now() - i * 1000 };
+    }).filter(m => m.text);
+    saveHistory(histEl);
+  }
+
+  function togglePanel() {
+    if (isOpen) closePanel();
+    else openPanel();
+  }
+
+  /* ---------- Message flow ---------- */
+  async function sendMessage(text, silent = false) {
+    const msg = (text || input.value || '').trim();
+    if (!msg) return;
+    if (!isOpen) openPanel();
+
+    input.value = '';
+    sendBtn.disabled = true;
+
+    // Render user
+    const userMsg = { role: 'user', text: msg, time: Date.now() };
+    renderMessage(userMsg);
+
+    // AI: typing
+    const typingDelay = 350 + Math.min(600, msg.length * 8);
+    showTyping(true);
+
+    setTimeout(async () => {
+      try {
+        const res = await ai.answer(msg);
+        showTyping(false);
+        const aiMsg = { role: 'assistant', text: res.text, buttons: res.buttons, cards: res.cards, time: Date.now() };
+        renderMessage(aiMsg);
+        renderQuickReplies(deriveQuickReplies(res, aiMsg.text));
+      } catch (e) {
+        showTyping(false);
+        console.error('[OrientalVibe AI]', e);
+        renderMessage({
+          role: 'assistant',
+          text: "Sorry, something went wrong while thinking 💭 Could you try again? If the issue persists, our human team is here to help.",
+          time: Date.now(),
+          buttons: [
+            { label: "💬 Talk to a human", action: "human" },
+            { label: "🔄 Try again", action: "prompt" }
+          ]
+        });
+      } finally {
+        sendBtn.disabled = false;
+        input.focus();
+      }
+    }, typingDelay);
+  }
+
+  async function triggerAI(msg) {
+    // Like sendMessage but without rendering user bubble
+    const m = (msg || "").trim();
+    showTyping(true);
+    setTimeout(async () => {
+      try {
+        const res = await ai.answer(m);
+        showTyping(false);
+        const aiMsg = { role: 'assistant', text: res.text, buttons: res.buttons, cards: res.cards, time: Date.now() };
+        renderMessage(aiMsg);
+        renderQuickReplies(deriveQuickReplies(res, aiMsg.text));
+      } catch (e) {
+        showTyping(false);
+        console.error('[OrientalVibe AI]', e);
+      }
+    }, 380);
+  }
+
+  function deriveQuickReplies(aiRes, text) {
+    // Always show a few relevant chips
+    const chips = [];
+    const lower = (text || "").toLowerCase();
+
+    if (lower.includes("return") || lower.includes("shipping") || lower.includes("policy") || lower.includes("faq")) {
+      chips.push({ label: "🧪 Try Free Test", action: "link", url: "/element-test" });
+      chips.push({ label: "🛒 Browse Shop", action: "link", url: "/shop" });
+    } else if (lower.includes("love") || lower.includes("relationship") || lower.includes("wealth") || lower.includes("career")) {
+      chips.push({ label: "💎 More recommendations", action: "ask", payload: "Give me more crystal recommendations" });
+      chips.push({ label: "📅 Consultation with Xu Wei", action: "link", url: "/services" });
+    } else if (lower.includes("course") || lower.includes("learn")) {
+      chips.push({ label: "📚 All Courses", action: "link", url: "/courses" });
+      chips.push({ label: "💰 All-Access Pass (40% off)", action: "link", url: "/courses" });
+    } else {
+      chips.push({ label: "🧪 Five Elements Test", action: "link", url: "/element-test" });
+      chips.push({ label: "🛍️ Shop", action: "link", url: "/shop" });
+      chips.push({ label: "📅 Consult", action: "link", url: "/services" });
+    }
+    chips.push({ label: "💬 Human help", action: "human" });
+    return chips.slice(0, 4);
+  }
+
+  /* ---------- Event listeners ---------- */
+  bubble.addEventListener('click', togglePanel);
+  closeBtn.addEventListener('click', closePanel);
+  form.addEventListener('submit', (e) => { e.preventDefault(); sendMessage(); });
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+    if (e.key === 'Escape' && isOpen) closePanel();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isOpen) closePanel();
+  });
+
+  // Click outside to close (desktop only)
+  document.addEventListener('click', (e) => {
+    if (!isOpen) return;
+    if (window.innerWidth <= 560) return;
+    if (panel.contains(e.target) || bubble.contains(e.target)) return;
+    if (e.target.closest('[data-ov-ai-skip]')) return;
+    closePanel();
+  });
+
+  /* ---------- Resume ---------- */
+  const saved = loadOpenState();
+  welcomeShown = !!saved.welcomeShown;
+  if (saved.open) {
+    // Open shortly after paint so layout has settled
+    setTimeout(() => openPanel(), 300);
+  } else {
+    // Unread badge once on first visit (small nudge)
+    try {
+      const alreadyNudged = localStorage.getItem('ov-ai-nudged');
+      if (!alreadyNudged) {
+        setTimeout(() => {
+          setBadge(1);
+          localStorage.setItem('ov-ai-nudged', '1');
+        }, 3500);
+      }
+    } catch (_) {}
+  }
+
+  // i18n: if page has i18n context, apply existing placeholders (best effort)
+  try {
+    if (window.__ovI18n && typeof window.__ovI18n === 'function') {
+      const getText = (key, fallback) => {
+        try { return window.__ovI18n(key) || fallback; } catch { return fallback; }
+      };
+      const title = document.querySelector('[data-i18n="ai.title"]');
+      if (title) title.textContent = getText('ai.title', 'Oriental Vibe AI');
+      const sub = document.querySelector('[data-i18n="ai.online"]');
+      if (sub) sub.textContent = getText('ai.online', 'Online · Replies instantly');
+      const ph = document.querySelector('[data-i18n-placeholder="ai.placeholder"]');
+      if (ph) ph.placeholder = getText('ai.placeholder', 'Ask about crystals, consultations, courses…');
+      const pw = document.querySelector('[data-i18n="ai.powered"]');
+      if (pw) pw.textContent = getText('ai.powered', 'Powered by Oriental Vibe Knowledge Base');
+    }
+  } catch (_) {}
+</script>

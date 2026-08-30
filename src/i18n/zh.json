@@ -1132,5 +1132,19 @@
     "trust_packaging": "儀式感神聖包裝",
     "trust_shipping": "全球配送",
     "trust_satisfaction": "30天滿意保證"
+  },
+  "ai": {
+    "title": "東方能量AI顧問",
+    "online": "線上 · 即時回覆",
+    "offline": "目前離線",
+    "placeholder": "請諮詢水晶、服務、課程相關問題……",
+    "powered": "由 Oriental Vibe 智能知識庫提供支援",
+    "greeting": "您好！我是東方能量空間的AI顧問 ✨ 可以協助您挑選適合的水晶產品、介紹徐偉老師的諮詢服務、線上課程內容、配送退貨政策，或引導您完成免費五行測試。請問今天想了解什麼？",
+    "human_handover": "正在為您連結真人客服。聯絡信箱：support@orientalvibe1314.com · WhatsApp：+1-555-ORIENTAL",
+    "input_error": "請先輸入您的訊息再送出。",
+    "quick_shop": "商品推薦",
+    "quick_test": "免費五行測試",
+    "quick_consult": "預約諮詢",
+    "quick_human": "聯繫真人客服"
   }
 }

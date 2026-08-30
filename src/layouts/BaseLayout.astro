@@ -6,6 +6,7 @@ import CookieBanner from '../components/CookieBanner.astro';
 import WhatsAppButton from '../components/WhatsAppButton.astro';
 import CartDrawer from '../components/CartDrawer.astro';
 import Analytics from '../components/Analytics.astro';
+import AIChatWidget from '../components/AIChatWidget.astro';
 
 const { title = 'Oriental Vibe | Space Energy & Life Balance', description = 'Ancient Eastern Energy for Modern Western Living. Balance Your Home, Calm Your Mind, Upgrade Your Life Vibe.' } = Astro.props;
 ---
@@ -48,6 +49,7 @@ const { title = 'Oriental Vibe | Space Energy & Life Balance', description = 'An
   <CookieBanner />
   <WhatsAppButton />
   <CartDrawer />
+  <AIChatWidget />
 
   <!-- ===== Auth Modal ===== -->
   <div class="ov-auth-overlay" id="authOverlay">

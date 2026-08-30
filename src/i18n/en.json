@@ -1132,5 +1132,19 @@
     "trust_packaging": "Sacred Ceremonial Packaging",
     "trust_shipping": "Worldwide Shipping",
     "trust_satisfaction": "30-Day Satisfaction Guarantee"
+  },
+  "ai": {
+    "title": "Oriental Vibe AI",
+    "online": "Online · Replies instantly",
+    "offline": "Currently offline",
+    "placeholder": "Ask about crystals, consultations, courses…",
+    "powered": "Powered by Oriental Vibe Knowledge Base",
+    "greeting": "Hello! I'm the Oriental Vibe AI Assistant. I can help you find the perfect crystals, explain our consultation services, walk you through courses, answer shipping/policy questions, or guide you to the Free Five Elements Test. What can I help with today?",
+    "human_handover": "Connecting you with a human support agent. Email: support@orientalvibe1314.com · WhatsApp: +1-555-ORIENTAL",
+    "input_error": "Please enter your message before sending.",
+    "quick_shop": "Shop recommendations",
+    "quick_test": "Free Five Elements Test",
+    "quick_consult": "Book Consultation",
+    "quick_human": "Talk to a human"
   }
 }
