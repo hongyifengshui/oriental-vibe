@@ -76,19 +76,26 @@ const isActive = (path) => pathname === path ? 'active' : '';
     });
   }
 
-  // Sync site name from admin settings (live refresh)
+  // Sync site name from admin settings (live refresh + survives i18n re-render)
   function syncSiteName() {
     try {
       const settings = JSON.parse(localStorage.getItem('ov-admin-settings'));
       if (!settings) return;
       if (settings.siteName) {
         document.querySelectorAll('.navbar-brand, .footer-brand').forEach(brand => { brand.textContent = settings.siteName; });
-        document.title = settings.siteName + ' — ' + (settings.slogan || 'Oriental Vibe Space');
+        const suffix = settings.slogan ? (' — ' + settings.slogan) : '';
+        document.title = settings.siteName + suffix;
       }
     } catch {}
   }
   function runWhenReady(fn) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn, { once: true }); else fn(); }
+  // Run ASAP, then again after i18n has finished translating (to make sure translations don't overwrite admin value)
   runWhenReady(syncSiteName);
-  window.addEventListener('ov-admin-saved', e => { const k = e && e.detail && e.detail.key; if (k == null || k === 'settings') syncSiteName(); });
-  window.addEventListener('storage', e => { if (e.key === 'ov-admin-settings') syncSiteName(); });
+  // 1) i18n system dispatches lang-change after applying translations; re-run sync to win
+  window.addEventListener('lang-change', () => setTimeout(syncSiteName, 0));
+  // 2) Admin saves: always live-refresh on both channels
+  window.addEventListener('ov-admin-saved', e => { const k = e && e.detail && e.detail.key; if (k == null || k === 'settings') setTimeout(syncSiteName, 0); });
+  window.addEventListener('storage', e => { if (e.key === 'ov-admin-settings') setTimeout(syncSiteName, 0); });
+  // 3) Safety: also run at load event to beat any lingering translate-in-progress state
+  window.addEventListener('load', syncSiteName, { once: true });
 </script>
