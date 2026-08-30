@@ -458,8 +458,43 @@ const stars = (rating) => '★'.repeat(rating) + '☆'.repeat(5 - rating);
   document.addEventListener('ov-auth-change', applyMemberDiscounts);
 
   /* ========== Admin Data Sync (live refresh) ========== */
-  function _admin_products_changed(key) {
-    return key == null || key === 'products' || key === 'categories';
+  function _admin_shop_changed(key) {
+    return key == null || key === 'products' || key === 'categories' ||
+           key === 'benefits' || key === 'membershipLevels' || key === 'members';
+  }
+  function syncShopCategories() {
+    let adminCats;
+    try { adminCats = JSON.parse(localStorage.getItem('ov-admin-categories')); } catch(e) { adminCats = null; }
+    // Read from default categories too, merge by id/name
+    const defaults = [
+      {name:'All', slug:'all'}, {name:'Crystals', slug:'crystals'}, {name:'Incense', slug:'incense'},
+      {name:'Essential Oils', slug:'oils'}, {name:'Accessories', slug:'accessories'}, {name:'Bundles', slug:'bundles'}
+    ];
+    const merged = [];
+    const seen = new Set();
+    const push = (item) => { const k = (item.slug||item.name||'').toLowerCase(); if(!k || seen.has(k)) return; seen.add(k); merged.push(item); };
+    (Array.isArray(adminCats) ? adminCats.filter(c => c && c.status !== 'inactive') : []).forEach(push);
+    defaults.forEach(push);
+    const container = document.querySelector('.category-filters');
+    if (container && merged.length > 0) {
+      const active = container.querySelector('.filter-btn.active')?.dataset?.filter || 'all';
+      container.innerHTML = merged.map(c => {
+        const slug = c.slug || c.name === 'All' ? 'all' : String(c.name||'').toLowerCase().replace(/[^a-z0-9]+/g,'-') || 'other';
+        const label = c.name || 'Other';
+        return `<button class="filter-btn ${active === slug ? 'active' : ''}" data-filter="${slug === 'all' ? 'all' : String(c.name||'').toLowerCase().replace(/[^a-z0-9]+/g,'-')}">${label}</button>`;
+      }).join('');
+      container.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const filter = btn.getAttribute('data-filter');
+          document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          document.querySelectorAll('.product-card').forEach(card => {
+            const cat = (card.getAttribute('data-category') || '').toLowerCase().replace(/[^a-z0-9]+/g,'-');
+            card.style.display = filter === 'all' || cat === filter || card.getAttribute('data-category') === btn.textContent.trim() ? '' : 'none';
+          });
+        });
+      });
+    }
   }
   function syncAdminProducts() {
     let adminProducts;
@@ -536,9 +571,17 @@ const stars = (rating) => '★'.repeat(rating) + '☆'.repeat(5 - rating);
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn, { once: true });
     else fn();
   }
-  _runWhenReady(syncAdminProducts);
-  window.addEventListener('ov-admin-saved', e => { if (_admin_products_changed(e && e.detail && e.detail.key)) syncAdminProducts(); });
+  function _refreshShopAll() { syncAdminProducts(); syncShopCategories(); applyMemberDiscounts(); }
+  _runWhenReady(_refreshShopAll);
+  window.addEventListener('ov-admin-saved', e => {
+    if (_admin_shop_changed(e && e.detail && e.detail.key)) _refreshShopAll();
+  });
   window.addEventListener('storage', e => {
-    if (e.key && e.key.indexOf('ov-admin-products') === 0) syncAdminProducts();
+    if (!e.key) return;
+    if (e.key.indexOf('ov-admin-products') === 0 || e.key.indexOf('ov-admin-categories') === 0 ||
+        e.key.indexOf('ov-admin-benefits') === 0 || e.key.indexOf('ov-admin-membershipLevels') === 0 ||
+        e.key.indexOf('ov-admin-members') === 0) {
+      _refreshShopAll();
+    }
   });
 </script>

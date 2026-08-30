@@ -630,12 +630,39 @@ const trustBadges = [
     var PREFIX = 'ov-admin-';
     var PAGE_ID = 'page-faq';
     var PAGE_PREFIX = 'faq';
+    // Admin writes FAQ data into TWO places (two UI tabs):
+    //   A) page-faq  (editor view)   -> ov-admin-page-faq  ->  { q1, a1, q2, a2, q3, a3, ... }
+    //   B) content   (content-data)  -> ov-admin-content   ->  { faq_q1: "...", faq_a1: "...", ... }
+    // We merge A + B, with A winning when both define a key.
+    function loadMergedFaqData() {
+      var data = {};
+      try {
+        var rawB = localStorage.getItem(PREFIX + 'content');
+        var objB = rawB ? JSON.parse(rawB) : null;
+        if (objB && typeof objB === 'object') {
+          Object.keys(objB).forEach(function(k) {
+            if (k.indexOf('faq_') === 0) {
+              var inner = k.slice(4);
+              if (inner) data[inner] = objB[k];
+            }
+          });
+        }
+      } catch(e) {}
+      try {
+        var rawA = localStorage.getItem(PREFIX + PAGE_ID);
+        var objA = rawA ? JSON.parse(rawA) : null;
+        if (objA && typeof objA === 'object') {
+          Object.keys(objA).forEach(function(k) { if (objA[k] != null && objA[k] !== '') data[k] = objA[k]; });
+        }
+      } catch(e) {}
+      return data;
+    }
     function applyPage() {
       try {
-        var raw = localStorage.getItem(PREFIX + PAGE_ID);
-        var data = raw ? JSON.parse(raw) : null;
-        if (!data) return;
-        Object.keys(data).forEach(function(key) {
+        var data = loadMergedFaqData();
+        var keys = Object.keys(data);
+        if (keys.length === 0) return;
+        keys.forEach(function(key) {
           var val = data[key];
           if (val === undefined || val === null || val === '') return;
           var sel = '[data-i18n="' + PAGE_PREFIX + '.' + key + '"]';
@@ -647,8 +674,15 @@ const trustBadges = [
     }
     function runWhenReady(fn) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn, { once: true }); else fn(); }
     runWhenReady(applyPage);
-    window.addEventListener('ov-admin-saved', function(e) { var k = e && e.detail && e.detail.key; if (k == null || k === PAGE_ID) applyPage(); });
-    window.addEventListener('storage', function(e) { if (e.key === PREFIX + PAGE_ID) applyPage(); });
+    // Listen to BOTH keys
+    window.addEventListener('ov-admin-saved', function(e) {
+      var k = e && e.detail && e.detail.key;
+      if (k == null || k === PAGE_ID || k === 'content') applyPage();
+    });
+    window.addEventListener('storage', function(e) {
+      if (!e.key) return;
+      if (e.key === PREFIX + PAGE_ID || e.key === PREFIX + 'content') applyPage();
+    });
   })();
 </script>
 </BaseLayout>

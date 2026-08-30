@@ -606,5 +606,27 @@ import '../styles/global.css';
 
     updateCartCount();
     window.__cart = { addToCart, openCart, closeCart, getCart };
+
+    // Live refresh: settings changed in admin → if checkout modal IS open right now, re-render it
+    function settingsKeyChanged(k) {
+      return k == null || k === 'settings' ||
+        (typeof k === 'string' && k.indexOf('ov-admin-settings') === 0);
+    }
+    function rerenderCheckoutIfOpen() {
+      if (checkoutModal && checkoutModal.classList.contains('open')) openCheckout();
+    }
+    window.addEventListener('ov-admin-saved', function(e) {
+      if (settingsKeyChanged(e && e.detail && e.detail.key)) {
+        // If drawer is open, re-render cart so member discounts reflect latest membership levels too
+        if (drawer && drawer.classList.contains('open')) renderCart();
+        rerenderCheckoutIfOpen();
+      }
+    });
+    window.addEventListener('storage', function(e) {
+      if (settingsKeyChanged(e ? e.key : null)) {
+        if (drawer && drawer.classList.contains('open')) renderCart();
+        rerenderCheckoutIfOpen();
+      }
+    });
   })();
 </script>

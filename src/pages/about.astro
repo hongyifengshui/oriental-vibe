@@ -707,11 +707,53 @@ const values = [
     var PREFIX = 'ov-admin-';
     var PAGE_ID = 'page-about';
     var PAGE_PREFIX = 'about';
+    // Merge two sources:
+    //   A) ov-admin-page-about   -> flat keys (editor field tab)
+    //   B) ov-admin-content.about-> banner + sections[{type:text/features/team/cta}] -> flatten to fields
+    function flattenFromContent(content, pageKey) {
+      var data = {};
+      var pd = (content || {})[pageKey] || {};
+      if (pd.banner) {
+        if (pd.banner.title) data.hero_title = pd.banner.title;
+        if (pd.banner.subtitle) data.hero_subtitle = pd.banner.subtitle;
+        if (pd.banner.description) data.hero_description = pd.banner.description;
+      }
+      if (pd.sections && pd.sections.length) {
+        pd.sections.forEach(function(s, i) {
+          if (!s) return;
+          var prefix = 'section' + (i + 1);
+          if (s.title) data[prefix + '_title'] = s.title;
+          if (s.content) {
+            var text = String(s.content).replace(/<[^>]+>/g, ' ').trim().slice(0, 800);
+            if (text) data[prefix + '_body'] = text;
+          }
+        });
+      }
+      if (pd.seo) {
+        if (pd.seo.title) data.meta_title = pd.seo.title;
+        if (pd.seo.description) data.meta_desc = pd.seo.description;
+      }
+      return data;
+    }
+    function loadMerged() {
+      var out = {};
+      try {
+        var rawContent = localStorage.getItem(PREFIX + 'content');
+        var content = rawContent ? JSON.parse(rawContent) : null;
+        Object.assign(out, flattenFromContent(content, PAGE_ID.replace('page-', '')));
+      } catch(e) {}
+      try {
+        var rawPage = localStorage.getItem(PREFIX + PAGE_ID);
+        var page = rawPage ? JSON.parse(rawPage) : null;
+        if (page && typeof page === 'object') {
+          Object.keys(page).forEach(function(k) { if (page[k] != null && String(page[k]) !== '') out[k] = page[k]; });
+        }
+      } catch(e) {}
+      return out;
+    }
     function applyPage() {
       try {
-        var raw = localStorage.getItem(PREFIX + PAGE_ID);
-        var data = raw ? JSON.parse(raw) : null;
-        if (!data) return;
+        var data = loadMerged();
         Object.keys(data).forEach(function(key) {
           var val = data[key];
           if (val === undefined || val === null || val === '') return;
@@ -724,14 +766,16 @@ const values = [
     }
     function runWhenReady(fn) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn, { once: true }); else fn(); }
     runWhenReady(applyPage);
-    // Live: same-tab admin-saved + cross-tab storage event
     window.addEventListener('ov-admin-saved', function(e) {
       var k = e && e.detail && e.detail.key;
-      if (k == null || k === PAGE_ID) applyPage();
+      if (k == null || k === PAGE_ID || k === 'content') setTimeout(applyPage, 0);
     });
     window.addEventListener('storage', function(e) {
-      if (e.key === PREFIX + PAGE_ID) applyPage();
+      if (!e.key) return;
+      if (e.key === PREFIX + PAGE_ID || e.key === PREFIX + 'content') setTimeout(applyPage, 0);
     });
+    window.addEventListener('load', applyPage, { once: true });
+    window.addEventListener('lang-change', function() { setTimeout(applyPage, 0); });
   })();
 </script>
 </BaseLayout>

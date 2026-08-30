@@ -221,12 +221,89 @@ const testimonials = [
     var PREFIX = 'ov-admin-';
     var PAGE_ID = 'page-home';
     var PAGE_PREFIX = 'home';
+    // Admin writes home text into TWO places. Merge them:
+    //   A) ov-admin-page-home      -> direct 1:1 keys like hero_title, why_title, etc. (editor tab)
+    //   B) ov-admin-content.home   -> { banner, sections[{type:'pricing'|'features'|'faq', ...}] } (content manager savePageContent/saveBanner/saveSection)
+    //      Flatten B's banner.title/btn + section faqs/plans/features[] into home.<key> format.
+    function flattenFromContent(content, pageKey) {
+      var data = {};
+      var pageData = (content || {})[pageKey] || {};
+      if (pageData.banner) {
+        if (pageData.banner.title) data.hero_title = pageData.banner.title;
+        if (pageData.banner.subtitle) data.hero_subtitle = pageData.banner.subtitle;
+        if (pageData.banner.description) data.hero_description = pageData.banner.description;
+        if (pageData.banner.buttonText) data.hero_cta = pageData.banner.buttonText;
+      }
+      if (pageData.sections && pageData.sections.length) {
+        pageData.sections.forEach(function(s) {
+          if (!s) return;
+          if (s.type === 'faq') {
+            var list = Array.isArray(s.faqs) ? s.faqs : [];
+            list.forEach(function(f, idx) {
+              var n = idx + 1;
+              if (f && f.q) data['faq_q' + n] = f.q;
+              if (f && f.a) data['faq_a' + n] = f.a;
+            });
+            if (s.title) data.faq_title = s.title;
+          }
+          if (s.type === 'features') {
+            var list = Array.isArray(s.features) ? s.features : [];
+            // Map N features → why_title / why_subtitle fallback
+            if (s.title) data.why_title = s.title;
+            if (s.subtitle) data.why_subtitle = s.subtitle;
+            list.forEach(function(f, idx) {
+              var n = idx + 1;
+              if (f && f.title) data['feat_' + n + '_title'] = f.title;
+              if (f && f.desc)  data['feat_' + n + '_desc']  = f.desc;
+              if (f && f.icon)  data['feat_' + n + '_icon']  = f.icon;
+            });
+          }
+          if (s.type === 'pricing') {
+            var list = Array.isArray(s.plans) ? s.plans : [];
+            if (s.title) data.tiers_title = s.title;
+            if (s.subtitle) data.tiers_desc = s.subtitle;
+            list.forEach(function(p, idx) {
+              var n = idx + 1;
+              if (p && p.name) data['tier_' + n + '_name'] = p.name;
+              if (p && p.price) data['tier_' + n + '_price'] = String(p.price);
+              if (p && Array.isArray(p.features)) data['tier_' + n + '_features'] = p.features.join('\n');
+            });
+          }
+          // Generic sections: map title → key like trust_1 / bundle_ / newsletter / testimonials
+          if (s.type === 'hero' || s.type === 'cta' || s.type === 'text') {
+            if (s.title) data[PAGE_PREFIX + '_' + s.type + '_title'] = s.title;
+            if (s.content && !data.hero_description && s.type === 'text') data.hero_description = String(s.content).replace(/<[^>]+>/g, ' ').slice(0, 300);
+          }
+        });
+      }
+      if (pageData.seo) {
+        if (pageData.seo.title) data.meta_title = pageData.seo.title;
+        if (pageData.seo.description) data.meta_desc = pageData.seo.description;
+      }
+      return data;
+    }
+    function loadMerged() {
+      var out = {};
+      try {
+        var rawContent = localStorage.getItem(PREFIX + 'content');
+        var content = rawContent ? JSON.parse(rawContent) : null;
+        Object.assign(out, flattenFromContent(content, PAGE_ID.replace('page-', '')));
+      } catch(e) {}
+      try {
+        var rawPage = localStorage.getItem(PREFIX + PAGE_ID);
+        var page = rawPage ? JSON.parse(rawPage) : null;
+        if (page && typeof page === 'object') {
+          Object.keys(page).forEach(function(k) { if (page[k] != null && page[k] !== '') out[k] = page[k]; });
+        }
+      } catch(e) {}
+      return out;
+    }
     function applyPage() {
       try {
-        var raw = localStorage.getItem(PREFIX + PAGE_ID);
-        var data = raw ? JSON.parse(raw) : null;
-        if (!data) return;
-        Object.keys(data).forEach(function(key) {
+        var data = loadMerged();
+        var keys = Object.keys(data);
+        if (keys.length === 0) return;
+        keys.forEach(function(key) {
           var val = data[key];
           if (val === undefined || val === null || val === '') return;
           var sel = '[data-i18n="' + PAGE_PREFIX + '.' + key + '"]';
@@ -238,8 +315,17 @@ const testimonials = [
     }
     function runWhenReady(fn) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn, { once: true }); else fn(); }
     runWhenReady(applyPage);
-    window.addEventListener('ov-admin-saved', function(e) { var k = e && e.detail && e.detail.key; if (k == null || k === PAGE_ID) applyPage(); });
-    window.addEventListener('storage', function(e) { if (e.key === PREFIX + PAGE_ID) applyPage(); });
+    window.addEventListener('ov-admin-saved', function(e) {
+      var k = e && e.detail && e.detail.key;
+      if (k == null || k === PAGE_ID || k === 'content') setTimeout(applyPage, 0);
+    });
+    window.addEventListener('storage', function(e) {
+      if (!e.key) return;
+      if (e.key === PREFIX + PAGE_ID || e.key === PREFIX + 'content') setTimeout(applyPage, 0);
+    });
+    window.addEventListener('load', applyPage, { once: true });
+    // Re-run after i18n lang-change translation applies to avoid translation clobbering admin-written copy
+    window.addEventListener('lang-change', function() { setTimeout(applyPage, 0); });
   })();
 </script>
   <div class="container" style="text-align:center; padding: 1rem 0 2rem;">
