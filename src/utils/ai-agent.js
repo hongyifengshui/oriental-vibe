@@ -854,3 +854,39 @@ export const AI_KNOWLEDGE = {
   kbContact,
   quickLinks
 };
+
+/* ============================================================
+   Helpers shared with Widget / cloud functions
+   ============================================================ */
+
+/**
+ * Detect language based on CJK character presence. Returns "zh" or "en".
+ * Used by chat widget to signal /api/chat which system prompt language to use.
+ * Also exported to keep a single helper for both client and server.
+ */
+export function detectLanguage(text) {
+  if (typeof text !== "string" || !text) return "en";
+  return /[\u4e00-\u9fff\u3400-\u4dbf]/.test(text) ? "zh" : "en";
+}
+
+/**
+ * Build a lightweight local prompt snapshot (for debugging / future LLM-in-browser
+ * experiments). Mirrors the RAG assembly on the server but returns a string.
+ * Not used by default; exported for parity with /functions/api/_shared/rag-context.js
+ */
+export function buildLocalContextPrompt(lang = "en") {
+  const header = lang === "zh"
+    ? "你是东方能量空间的 AI 客服助手。回答以下问题。"
+    : "You are the AI assistant for Oriental Vibe spiritual wellness brand. Answer the following.";
+  const snippets = [
+    header,
+    `Products (count): ${kbProducts.length}`,
+    `Bundles (count): ${kbBundles.length}`,
+    `Services (count): ${kbServices.length}`,
+    `Courses (count): ${kbCourses.length}`,
+    `FAQ (count): ${kbFAQ.length}`,
+    `Brand: ${kbBrand.content.title} — ${kbBrand.content.text.slice(0, 120)}`,
+    `Expert: ${kbExpert.content.title} — ${kbExpert.content.subtitle}`
+  ];
+  return snippets.join("\n");
+}

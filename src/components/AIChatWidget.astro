@@ -123,6 +123,10 @@ const { title = "AI Assistant" } = Astro.props;
     </form>
     <div class="ov-ai-powered">
       <span data-i18n="ai.powered">Powered by Oriental Vibe Knowledge Base</span>
+      <span id="ovAiPoweredBadge" class="ov-gpt-badge ov-fallback" title="AI engine">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="9" height="9"><path d="M12 2 3 7l9 5 9-5-9-5zm0 8L3 15l9 5 9-5-9-5z"/></svg>
+        <span id="ovAiEngineText">LOCAL KB</span>
+      </span>
     </div>
   </footer>
 </aside>
@@ -606,6 +610,24 @@ const { title = "AI Assistant" } = Astro.props;
     color: rgba(44, 36, 27, 0.35);
     letter-spacing: 0.02em;
   }
+  .ov-ai-powered .ov-gpt-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 1px 6px;
+    margin-left: 4px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(16,185,129,0.12), rgba(59,130,246,0.12));
+    color: rgba(5, 150, 105, 0.88);
+    font-weight: 600;
+    font-size: 9.5px;
+    letter-spacing: 0.02em;
+    transition: all 0.3s;
+  }
+  .ov-ai-powered .ov-gpt-badge.ov-fallback {
+    background: rgba(139, 107, 79, 0.1);
+    color: #8B6B4F;
+  }
 
   /* ---- Mobile ---- */
   @media (max-width: 560px) {
@@ -645,25 +667,44 @@ const { title = "AI Assistant" } = Astro.props;
 
 <!-- ====== Widget Logic ====== -->
 <script type="module">
-  import { createAIAssistant, AI_KNOWLEDGE } from '../utils/ai-agent.js';
+  import { createAIAssistant, AI_KNOWLEDGE, detectLanguage } from '../utils/ai-agent.js';
 
   const STORAGE_KEY = 'ov-ai-widget-v1';
   const CONVERSATION_KEY = 'ov-ai-history-v1';
+  const REMOTE_ENDPOINT = '/api/chat';
 
   /* ---------- DOM refs ---------- */
-  const bubble   = document.getElementById('ovAiBubble');
-  const badge    = document.getElementById('ovAiBadge');
-  const panel    = document.getElementById('ovAiPanel');
-  const closeBtn = document.getElementById('ovAiClose');
-  const messages = document.getElementById('ovAiMessages');
-  const typing   = document.getElementById('ovAiTyping');
-  const quickR   = document.getElementById('ovAiQuickReplies');
-  const form     = document.getElementById('ovAiForm');
-  const input    = document.getElementById('ovAiInput');
-  const sendBtn  = document.getElementById('ovAiSend');
+  const bubble    = document.getElementById('ovAiBubble');
+  const badge     = document.getElementById('ovAiBadge');
+  const panel     = document.getElementById('ovAiPanel');
+  const closeBtn  = document.getElementById('ovAiClose');
+  const messages  = document.getElementById('ovAiMessages');
+  const typing    = document.getElementById('ovAiTyping');
+  const quickR    = document.getElementById('ovAiQuickReplies');
+  const form      = document.getElementById('ovAiForm');
+  const input     = document.getElementById('ovAiInput');
+  const sendBtn   = document.getElementById('ovAiSend');
+  const engineEl  = document.getElementById('ovAiEngineText');
+  const badgeEl   = document.getElementById('ovAiPoweredBadge');
 
   /* ---------- Init AI ---------- */
-  const ai = createAIAssistant({ complianceLevel: "medium" });
+  const aiLocal = createAIAssistant({ complianceLevel: "medium" });
+
+  /* ---------- Remote engine state ---------- */
+  // We start "unknown" and probe once on first message. Once proven, stay ON.
+  // States: "unknown" | "available" | "fallback"
+  let remoteEngineState = "unknown";
+
+  function setEngineBadge(state, modelLabel) {
+    if (state === "available") {
+      badgeEl.classList.remove("ov-fallback");
+      engineEl.textContent = modelLabel && modelLabel.includes("gpt-4o-mini") ? "GPT-4o mini" :
+                             modelLabel ? modelLabel.toUpperCase() : "AI";
+    } else {
+      badgeEl.classList.add("ov-fallback");
+      engineEl.textContent = "LOCAL KB";
+    }
+  }
 
   /* ---------- State ---------- */
   let isOpen = false;
@@ -696,6 +737,65 @@ const { title = "AI Assistant" } = Astro.props;
     return { open: false, welcomeShown: false };
   }
 
+  /* ---------- Remote engine call ---------- */
+  async function callRemoteAI({ message, history, lang }) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 22000);
+      const resp = await fetch(REMOTE_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message,
+          history: (history || []).slice(-10).map(m => ({ role: m.role, text: m.text })),
+          lang
+        }),
+        signal: controller.signal
+      });
+      clearTimeout(timeout);
+
+      let payload = null;
+      try { payload = await resp.json(); } catch (_) {}
+
+      // HTTP 429 rate-limit: surface message but also fall back
+      if (resp.status === 429) {
+        return { ok: false, rateLimited: true, result: payload ? {
+          text: payload.text || "I'm handling a lot of requests right now. Could you try again in a minute? If this keeps happening, our human support is here 💙",
+          buttons: payload.buttons || [],
+          cards: payload.cards || { products: [], services: [], courses: [] }
+        } : null };
+      }
+
+      if (!payload) return { ok: false };
+
+      // The server explicitly signals a fallback (no OPENAI_API_KEY set, or upstream 502)
+      if (payload._fallback || payload.missingKey) {
+        return { ok: false, missingKey: !!payload.missingKey, upstreamError: !!payload.upstreamError };
+      }
+
+      if (payload.ok === true || (typeof payload.text === "string" && payload.text.length > 0)) {
+        return {
+          ok: true,
+          model: payload.model || "gpt-4o-mini",
+          result: {
+            text: payload.text,
+            buttons: payload.buttons || [],
+            cards: {
+              products: payload.cards?.products || [],
+              services: payload.cards?.services || [],
+              courses:  payload.cards?.courses  || []
+            }
+          }
+        };
+      }
+
+      return { ok: false, upstreamError: !!payload.upstreamError };
+    } catch (err) {
+      // Network / fetch / abort
+      return { ok: false, network: true, error: String(err?.message || err).slice(0, 80) };
+    }
+  }
+
   /* ---------- Render ---------- */
   function scrollToBottom() {
     requestAnimationFrame(() => {
@@ -711,18 +811,13 @@ const { title = "AI Assistant" } = Astro.props;
   }
 
   function renderMarkdownLite(text) {
-    // Escape HTML first
     let html = text
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
-    // **bold**
     html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-    // *bullet or italic* → bullet lines keep as-is; we'll split lines
-    // links: [text](url)
     html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g,
       '<a href="$2" target="_blank" rel="noopener noreferrer" class="ov-msg-link">$1</a>');
-    // Line breaks
     html = html.replace(/\n/g, '<br>');
     return html;
   }
@@ -754,22 +849,22 @@ const { title = "AI Assistant" } = Astro.props;
         ...(cards.products || []).map(p => ({
           ...p, kind: 'product',
           icon: '💎',
-          meta: `$${typeof p.price === 'number' ? p.price : p.price.replace('$', '')}`,
-          link: '/shop',
+          meta: typeof p.price === 'number' ? `$${p.price}` : (p.price || ''),
+          link: p.link || '/shop',
           image: p.image || null
         })),
         ...(cards.services || []).map(s => ({
           ...s, kind: 'service',
-          icon: s.vip ? '👑' : (s.popular ? '⭐' : '🔮'),
+          icon: s.vip ? '👑' : (s.popular ? '⭐' : s.icon || '🔮'),
           meta: s.price || '',
-          link: '/services',
+          link: s.link || '/services',
           image: null
         })),
         ...(cards.courses || []).map(c => ({
           ...c, kind: 'course',
-          icon: '📚',
+          icon: c.icon || '📚',
           meta: c.price || '',
-          link: '/courses',
+          link: c.link || '/courses',
           image: c.image || null
         }))
       ];
@@ -778,7 +873,7 @@ const { title = "AI Assistant" } = Astro.props;
         const a = document.createElement('a');
         a.className = 'ov-card';
         a.href = card.link;
-        a.target = card.link.startsWith('http') ? '_blank' : '_self';
+        a.target = (card.link && card.link.startsWith('http')) ? '_blank' : '_self';
         a.rel = 'noopener noreferrer';
 
         const img = document.createElement('div');
@@ -818,7 +913,8 @@ const { title = "AI Assistant" } = Astro.props;
       const btnsWrap = document.createElement('div');
       btnsWrap.className = 'ov-msg-buttons';
       buttons.forEach(b => {
-        if (b.action === 'link' || !b.action) {
+        const action = b.action || ((b.url) ? 'link' : 'prompt');
+        if (action === 'link') {
           const a = document.createElement('a');
           a.className = 'ov-btn ov-btn-primary';
           a.href = b.url;
@@ -826,7 +922,7 @@ const { title = "AI Assistant" } = Astro.props;
           a.rel = 'noopener noreferrer';
           a.textContent = b.label;
           btnsWrap.appendChild(a);
-        } else if (b.action === 'ask' || b.action === 'payload') {
+        } else if (action === 'ask' || action === 'payload') {
           const btn = document.createElement('button');
           btn.className = 'ov-btn';
           btn.type = 'button';
@@ -835,7 +931,7 @@ const { title = "AI Assistant" } = Astro.props;
             sendMessage(b.payload || b.label, true);
           });
           btnsWrap.appendChild(btn);
-        } else if (b.action === 'prompt') {
+        } else if (action === 'prompt') {
           const btn = document.createElement('button');
           btn.className = 'ov-btn';
           btn.type = 'button';
@@ -845,7 +941,7 @@ const { title = "AI Assistant" } = Astro.props;
             input.placeholder = 'Type your question...';
           });
           btnsWrap.appendChild(btn);
-        } else if (b.action === 'human') {
+        } else if (action === 'human') {
           const btn = document.createElement('button');
           btn.className = 'ov-btn';
           btn.type = 'button';
@@ -854,6 +950,13 @@ const { title = "AI Assistant" } = Astro.props;
             sendMessage("I'd like to talk to a human agent please.", true);
           });
           btnsWrap.appendChild(btn);
+        } else if (b.url) {
+          // fallback: treat as link
+          const a = document.createElement('a');
+          a.className = 'ov-btn ov-btn-primary';
+          a.href = b.url;
+          a.textContent = b.label;
+          btnsWrap.appendChild(a);
         }
       });
       body.appendChild(btnsWrap);
@@ -928,13 +1031,10 @@ const { title = "AI Assistant" } = Astro.props;
     if (!welcomeShown || forceWelcome) {
       welcomeShown = true;
       saveOpenState(true);
-      // Restore history or show welcome
       const hist = loadSavedHistory();
       if (hist && !forceWelcome) {
         hist.forEach(m => renderMessage(m));
-        // Also restore AI memory (lightweight)
-        hist.slice(-6).forEach(m => ai.remember(m.role, m.text || ''));
-        // Default quick replies
+        hist.slice(-6).forEach(m => aiLocal.remember(m.role, m.text || ''));
         renderQuickReplies([
           { label: "💎 Recommend crystals", action: "ask", payload: "Recommend crystals for love and wealth" },
           { label: "📅 Book a consultation", action: "link", url: "/services" },
@@ -942,15 +1042,13 @@ const { title = "AI Assistant" } = Astro.props;
           { label: "❓ Shipping / Returns", action: "ask", payload: "What are shipping and return policies?" }
         ]);
       } else {
-        // AI welcome
-        triggerAI("Hello", true); // will trigger greeting intent through pipeline
+        triggerAI("Hello", true);
       }
     } else {
-      // Just re-open, restore existing messages
       const hist = loadSavedHistory();
       if (hist && messages.children.length === 0) {
         hist.forEach(m => renderMessage(m));
-        hist.slice(-6).forEach(m => ai.remember(m.role, m.text || ''));
+        hist.slice(-6).forEach(m => aiLocal.remember(m.role, m.text || ''));
         renderQuickReplies([
           { label: "🛒 Shop recommendations", action: "ask", payload: "What do you recommend for beginners?" },
           { label: "💬 Human support", action: "human" }
@@ -967,9 +1065,7 @@ const { title = "AI Assistant" } = Astro.props;
     panel.setAttribute('aria-hidden', 'true');
     bubble.classList.remove('is-hidden');
     saveOpenState(false);
-    // Save history
     const histEl = Array.from(messages.querySelectorAll('.ov-msg')).map((el, i) => {
-      // Read from rendered
       const role = el.classList.contains('ov-msg-user') ? 'user' : (el.classList.contains('ov-msg-bot') ? 'assistant' : 'assistant');
       const b = el.querySelector('.ov-msg-bubble');
       return { role, text: b ? b.innerText.replace(/\n+/g, '\n').trim() : '', time: Date.now() - i * 1000 };
@@ -983,6 +1079,14 @@ const { title = "AI Assistant" } = Astro.props;
   }
 
   /* ---------- Message flow ---------- */
+  function currentHistoryForRemote() {
+    return Array.from(messages.querySelectorAll('.ov-msg')).map(el => {
+      const role = el.classList.contains('ov-msg-user') ? 'user' : 'assistant';
+      const b = el.querySelector('.ov-msg-bubble');
+      return { role, text: b ? b.innerText.replace(/\n+/g, '\n').trim() : '' };
+    }).filter(m => m.text).slice(-10);
+  }
+
   async function sendMessage(text, silent = false) {
     const msg = (text || input.value || '').trim();
     if (!msg) return;
@@ -991,60 +1095,122 @@ const { title = "AI Assistant" } = Astro.props;
     input.value = '';
     sendBtn.disabled = true;
 
-    // Render user
     const userMsg = { role: 'user', text: msg, time: Date.now() };
     renderMessage(userMsg);
 
-    // AI: typing
-    const typingDelay = 350 + Math.min(600, msg.length * 8);
+    // Local AI: add to memory even when remote is used (for fallback)
+    aiLocal.remember('user', msg);
+
     showTyping(true);
 
-    setTimeout(async () => {
+    // Try remote engine first (if state unknown/available); else immediately fallback
+    let finalResult = null;
+    let usedRemote = false;
+    let usedFallback = false;
+    let modelLabel = null;
+
+    if (remoteEngineState !== "fallback") {
+      const lang = detectLanguage(msg);
+      const history = currentHistoryForRemote();
+      // Small UI delay to avoid flicker when API is fast
+      const minDelay = new Promise(r => setTimeout(r, 450));
+      const [remote] = await Promise.all([
+        callRemoteAI({ message: msg, history, lang }),
+        minDelay
+      ]);
+
+      if (remote.ok && remote.result) {
+        usedRemote = true;
+        finalResult = remote.result;
+        modelLabel = remote.model;
+        remoteEngineState = "available";
+      } else if (remote.rateLimited && remote.result) {
+        // Show rate-limited text but stay available for next message
+        finalResult = remote.result;
+        usedRemote = true;
+      } else {
+        // missingKey / upstreamError / network / 502 → fallback
+        remoteEngineState = "fallback";
+        usedFallback = true;
+      }
+    } else {
+      usedFallback = true;
+    }
+
+    // Local fallback
+    if (!finalResult) {
       try {
-        const res = await ai.answer(msg);
-        showTyping(false);
-        const aiMsg = { role: 'assistant', text: res.text, buttons: res.buttons, cards: res.cards, time: Date.now() };
-        renderMessage(aiMsg);
-        renderQuickReplies(deriveQuickReplies(res, aiMsg.text));
+        // Simulate natural thinking delay
+        await new Promise(r => setTimeout(r, 550));
+        finalResult = await aiLocal.answer(msg);
       } catch (e) {
-        showTyping(false);
-        console.error('[OrientalVibe AI]', e);
-        renderMessage({
-          role: 'assistant',
-          text: "Sorry, something went wrong while thinking 💭 Could you try again? If the issue persists, our human team is here to help.",
-          time: Date.now(),
+        console.error('[OrientalVibe AI] local fallback error', e);
+        finalResult = {
+          text: "Sorry, I couldn't generate a reply 💭 Please try again, or reach out to our human support team.",
           buttons: [
             { label: "💬 Talk to a human", action: "human" },
             { label: "🔄 Try again", action: "prompt" }
-          ]
-        });
-      } finally {
-        sendBtn.disabled = false;
-        input.focus();
+          ],
+          cards: {}
+        };
       }
-    }, typingDelay);
+    }
+
+    showTyping(false);
+    setEngineBadge(usedRemote ? "available" : "fallback", modelLabel);
+
+    const aiMsg = {
+      role: 'assistant',
+      text: finalResult.text,
+      buttons: finalResult.buttons || [],
+      cards: finalResult.cards || {},
+      time: Date.now()
+    };
+    renderMessage(aiMsg);
+    aiLocal.remember('assistant', aiMsg.text, { via: usedRemote ? 'remote' : 'local' });
+    renderQuickReplies(deriveQuickReplies(finalResult, aiMsg.text));
+
+    sendBtn.disabled = false;
+    setTimeout(() => input.focus(), 30);
   }
 
   async function triggerAI(msg) {
-    // Like sendMessage but without rendering user bubble
     const m = (msg || "").trim();
     showTyping(true);
-    setTimeout(async () => {
-      try {
-        const res = await ai.answer(m);
-        showTyping(false);
-        const aiMsg = { role: 'assistant', text: res.text, buttons: res.buttons, cards: res.cards, time: Date.now() };
-        renderMessage(aiMsg);
-        renderQuickReplies(deriveQuickReplies(res, aiMsg.text));
-      } catch (e) {
-        showTyping(false);
-        console.error('[OrientalVibe AI]', e);
-      }
-    }, 380);
+    // For first greeting (trigger on panel open), prefer local AI because it's fast,
+    // but still probe remote availability once in background to flip badge.
+    const greetingPromise = (async () => {
+      await new Promise(r => setTimeout(r, 400));
+      const res = await aiLocal.answer(m);
+      aiLocal.remember('assistant', res.text, { via: 'local' });
+      return res;
+    })();
+
+    // Background probe:
+    if (remoteEngineState === "unknown") {
+      callRemoteAI({ message: "ping", history: [], lang: "en" }).then(r => {
+        if (r.ok) {
+          remoteEngineState = "available";
+          setEngineBadge("available", r.model);
+        } else if (r.missingKey || r.network || r.upstreamError) {
+          remoteEngineState = "fallback";
+        }
+      }).catch(() => { remoteEngineState = "fallback"; });
+    }
+
+    try {
+      const res = await greetingPromise;
+      showTyping(false);
+      const aiMsg = { role: 'assistant', text: res.text, buttons: res.buttons, cards: res.cards, time: Date.now() };
+      renderMessage(aiMsg);
+      renderQuickReplies(deriveQuickReplies(res, aiMsg.text));
+    } catch (e) {
+      showTyping(false);
+      console.error('[OrientalVibe AI]', e);
+    }
   }
 
   function deriveQuickReplies(aiRes, text) {
-    // Always show a few relevant chips
     const chips = [];
     const lower = (text || "").toLowerCase();
 
@@ -1094,10 +1260,8 @@ const { title = "AI Assistant" } = Astro.props;
   const saved = loadOpenState();
   welcomeShown = !!saved.welcomeShown;
   if (saved.open) {
-    // Open shortly after paint so layout has settled
     setTimeout(() => openPanel(), 300);
   } else {
-    // Unread badge once on first visit (small nudge)
     try {
       const alreadyNudged = localStorage.getItem('ov-ai-nudged');
       if (!alreadyNudged) {
@@ -1109,7 +1273,20 @@ const { title = "AI Assistant" } = Astro.props;
     } catch (_) {}
   }
 
-  // i18n: if page has i18n context, apply existing placeholders (best effort)
+  /* ---------- Probe remote engine on page load (after 3s idle) ---------- */
+  setTimeout(() => {
+    if (remoteEngineState !== "unknown") return;
+    callRemoteAI({ message: "Hello", history: [], lang: "en" }).then(r => {
+      if (r.ok) {
+        remoteEngineState = "available";
+        setEngineBadge("available", r.model);
+      } else {
+        remoteEngineState = "fallback";
+      }
+    }).catch(() => { remoteEngineState = "fallback"; });
+  }, 4000);
+
+  // i18n
   try {
     if (window.__ovI18n && typeof window.__ovI18n === 'function') {
       const getText = (key, fallback) => {
