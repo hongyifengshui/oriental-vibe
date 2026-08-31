@@ -1,0 +1,167 @@
+---
+// 6 枚 SVG 资质图章：SEAL-01/05/06 方形朱砂白文（师承传承类），SEAL-02/03/04 圆形蜡封烫金（教授/艺术家类）
+// 所有章 viewBox="0 0 200 200"，外部 CSS 控制尺寸。内部纯 SVG，零外部素材。
+const props = Astro.props || {};
+const size = (typeof props.size === 'string' && props.size) || '88px';
+const withLabel = props.withLabel !== false;
+let lang = (typeof props.lang === 'string') ? props.lang : 'en';
+if (!['zh','en','es','fr','de'].includes(lang)) lang = 'en';
+
+const seals = {
+  '01': { zh: { body: '境力學', sub: '創始人印', type: 'square' }, en: { title: 'Founder · Jing Li Xue', sub: 'Environmental Energy Science' } },
+  '02': { zh: { body: '三絕',   sub: '書 · 畫 · 文', type: 'circle' }, en: { title: 'Artist · Calligrapher · Writer', sub: 'Literary & Visual Arts' } },
+  '03': { zh: { body: '特聘',   sub: '河北美術學院', type: 'circle' }, en: { title: 'Distinguished Visiting Professor', sub: 'Hebei Academy of Fine Arts' } },
+  '04': { zh: { body: '燕園',   sub: '北大篆刻研究院', type: 'circle' }, en: { title: 'Distinguished Research Fellow', sub: 'PKU Institute of Seal Cutting Studies' } },
+  '05': { zh: { body: '嫡傳',   sub: '鬼谷八十 · 臏七十九', type: 'square' }, en: { title: '80th Gen Guiguzi · 79th Gen Sun Bin', sub: 'Direct Lineage Holder' } },
+  '06': { zh: { body: '非遺',   sub: '金口訣 · 祝由十三科', type: 'square' }, en: { title: 'ICH Inheritor', sub: 'Golden Formulas + Zhuyou 13 Sections' } },
+};
+
+const VALID_WHICH = { '01':1,'02':1,'03':1,'04':1,'05':1,'06':1 };
+function zhTextNodes(which) {
+  var s = seals[which] || seals['01'];
+  if (s.zh.type === 'square') {
+    // 方形朱砂白文 2x2（body 四字拆 4 象限，body 不足 4 字则补空格 / 合并）
+    const chars = Array.from(s.zh.body);
+    while (chars.length < 4) chars.push('');
+    return [
+      { x: 52, y: 88, ch: chars[0] },
+      { x: 112, y: 88, ch: chars[1] },
+      { x: 52, y: 140, ch: chars[2] },
+      { x: 112, y: 140, ch: chars[3] },
+    ];
+  }
+  // 圆形蜡封：上 3 字，下 3 字 + 中间 2 字（sub 不画进章内）
+  const chars = Array.from(s.zh.body);
+  return [
+    { x: 70, y: 76, ch: chars[0] || '' },
+    { x: 100, y: 76, ch: chars[1] || '' },
+    { x: 130, y: 76, ch: chars[2] || '' },
+    { x: 70, y: 134, ch: chars[3] || '' },
+    { x: 100, y: 134, ch: chars[4] || '' },
+    { x: 130, y: 134, ch: chars[5] || '' },
+  ];
+}
+---
+
+<style>
+.seal-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px 18px; }
+@media (max-width: 720px) { .seal-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.seal-unit { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.seal-label { text-align: center; }
+.seal-title { font-size: 13px; font-weight: 600; color: #3A403D; line-height: 1.3; }
+.seal-sub   { font-size: 11px; color: #8A948C; margin-top: 2px; line-height: 1.3; max-width: 220px; }
+.seal-wrap { width: var(--seal-size, 88px); height: var(--seal-size, 88px); }
+</style>
+
+<div class="seal-grid" id="about-seal-badges"
+     style={`--seal-size:${size};`}>
+  {(['01','02','03','04','05','06']).map(id => {
+    const s = seals[id];
+    const isSquare = s.zh.type === 'square';
+    const useZh = lang === 'zh';
+    const labelTitle = useZh
+      ? (id === '01' ? '境力學 創始人' : id === '02' ? '藝術家 · 書法家 · 文學家'
+         : id === '03' ? '河北美術學院 特聘教授' : id === '04' ? '北京大學篆刻研究院 特聘研究員'
+         : id === '05' ? '鬼谷子第80代 · 孫臏第79代 嫡傳' : '金口訣 · 祝由十三科 非遺傳承')
+      : s.en.title;
+    const labelSub = useZh ? s.zh.sub : s.en.sub;
+
+    return (
+    <div class="seal-unit" data-seal={id}
+         title={`${labelTitle} — ${labelSub}`}>
+      <div class="seal-wrap">
+      {isSquare ? (
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-label={labelTitle}>
+          <defs>
+            <filter id={`seal-dmg-${id}`} x="-10%" y="-10%" width="120%" height="120%">
+              <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed={10 + Number(id)} />
+              <feDisplacementMap in="SourceGraphic" scale="6" />
+            </filter>
+          </defs>
+          {/* 外框：朱砂底 + 残损边 */}
+          <rect x="14" y="14" width="172" height="172" rx="8" fill="#A8322C" filter={`url(#seal-dmg-${id})`} />
+          <rect x="22" y="22" width="156" height="156" rx="4" fill="none" stroke="#F5F1EB" stroke-width="2.5" opacity=".92" />
+          {/* 十字田字界格（淡） */}
+          <g stroke="#F5F1EB" stroke-width="0.6" opacity=".22">
+            <line x1="100" y1="30" x2="100" y2="170" />
+            <line x1="30" y1="100" x2="170" y2="100" />
+          </g>
+          {/* 白文篆字（4 象限） */}
+          <g fill="#F5F1EB" text-anchor="middle" font-family="'STKaiti','KaiTi','楷体',serif"
+             font-weight="700" filter={`url(#seal-dmg-${id})`}>
+            {zhTextNodes(id).map(n => (
+              <text x={n.x} y={n.y} font-size="46" dominant-baseline="middle">{n.ch}</text>
+            ))}
+          </g>
+          {/* 右下角小 "徐偉" 落款 */}
+          <g fill="#F5F1EB" font-family="'STKaiti',KaiTi,serif" font-size="10" opacity=".9"
+             text-anchor="end">
+            <text x="182" y="194">徐偉</text>
+          </g>
+        </svg>
+      ) : (
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-label={labelTitle}>
+          <defs>
+            <radialGradient id={`wax-${id}`} cx="35%" cy="32%" r="72%">
+              <stop offset="0%" stop-color="#8A2226" />
+              <stop offset="60%" stop-color="#6B1619" />
+              <stop offset="100%" stop-color="#4A0E10" />
+            </radialGradient>
+            <radialGradient id={`gold-${id}`} cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#F7E7B4" />
+              <stop offset="100%" stop-color="#C9A24C" />
+            </radialGradient>
+            <filter id={`wax-rough-${id}`}>
+              <feTurbulence baseFrequency="0.75" numOctaves="2" seed={20 + Number(id)} />
+              <feDisplacementMap in="SourceGraphic" scale="3.5" />
+            </filter>
+          </defs>
+          {/* 蜡封外溢滴效果 */}
+          <g fill={`url(#wax-${id})`} filter={`url(#wax-rough-${id})`}>
+            <circle cx="100" cy="100" r="82" />
+            <circle cx="168" cy="56" r="14" opacity=".85" />
+            <circle cx="38" cy="156" r="12" opacity=".8" />
+            <circle cx="162" cy="152" r="9" opacity=".7" />
+          </g>
+          {/* 烫金双圈 */}
+          <circle cx="100" cy="100" r="70" fill="none" stroke={`url(#gold-${id})`} stroke-width="1.2" />
+          <circle cx="100" cy="100" r="62" fill="none" stroke={`url(#gold-${id})`} stroke-width="0.6" opacity=".85" />
+          {/* 篆字内容（2 行中文，书法字体） */}
+          <g fill={`url(#gold-${id})`} text-anchor="middle"
+             font-family="'STKaiti','KaiTi','楷体',serif" font-weight="700">
+            {zhTextNodes(id).map(n => (
+              <text x={n.x} y={n.y} font-size="34" dominant-baseline="middle">{n.ch}</text>
+            ))}
+          </g>
+          {/* 顶部年份 */}
+          <text x="100" y="46" fill={`url(#gold-${id})`} text-anchor="middle"
+                font-family="'Cinzel',Georgia,serif" font-size="8" letter-spacing="2">
+            {id === '03' ? 'EST · 2010' : id === '04' ? 'EST · 2015' : 'SINCE · 1986'}
+          </text>
+          {/* 底部小字 */}
+          <text x="100" y="162" fill={`url(#gold-${id})`} text-anchor="middle"
+                font-family="'STKaiti',KaiTi,serif" font-size="8" opacity=".95">
+            {s.zh.sub.slice(0, 10)}
+          </text>
+        </svg>
+      )}
+      </div>
+      {withLabel && (
+        <div class="seal-label">
+          <div class="seal-title">{labelTitle}</div>
+          <div class="seal-sub">{labelSub}</div>
+        </div>
+      )}
+    </div>
+    );
+  })}
+</div>
+
+<!-- 合规小字：非中文页显示荣誉头衔说明 -->
+{lang !== 'zh' && (
+  <p class="seal-compliance" style="font-size:11px;color:#8A948C;margin-top:18px;line-height:1.55;max-width:780px;">
+    <em>Compliance note</em>: "Visiting / Research Fellow" titles above denote honorary distinguished appointments
+    conferred by the respective academic institutions in recognition of lineage contributions, independent of any
+    official trademarked branding. Names used with permission.
+  </p>
+)}

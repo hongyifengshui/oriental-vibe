@@ -27,27 +27,85 @@ export const kbBrand = {
 // ======================== EXPERT / XU WEI ========================
 export const kbExpert = {
   id: "expert",
-  keywords: ["xu wei", "master", "teacher", "consultant", "founder", "expert", "徐伟", "professor", "lineage", "guiguzi", "北大", "pku"],
+  keywords: [
+    "xu wei", "master", "teacher", "consultant", "founder", "expert", "徐伟", "徐偉",
+    "professor", "lineage", "guiguzi", "sun bin", "北大", "pku", "hebei academy",
+    "ich", "heritage", "jing li xue", "disciples", "disciple line", "certified",
+    "qualification", "resume", "cv", "credentials", "about", "who is"
+  ],
   content: {
-    title: "Master Xu Wei - Lead Consultant & Lineage Holder",
-    subtitle: "80th-Generation Direct Disciple of Guiguzi · 40+ Years · 10,000+ Clients",
-    bio: "Xu Wei (徐伟) is the 80th-generation direct disciple of Guiguzi (鬼谷子) — a 2,400-year unbroken esoteric lineage — and the 79th-generation disciple of Sun Bin. He is the founder of Jing Li Xue (Environmental Energy Science, 境理学) and a Distinguished Professor at Peking University. Master Xu Wei has dedicated over 40 years to helping more than 10,000 individuals and enterprises — from listed company CEOs to families in crisis — transform their lives through the ancient art of environmental energy harmonization. His lineage's core teachings, including the Sun Bin Golden Formulas and Zhuyou Thirteen Sections, are recognized as UNESCO Intangible Cultural Heritage.",
+    title: "Master Xu Wei (徐偉) — Lead Consultant & Lineage Holder",
+    subtitle: "80th-Gen Guiguzi · 79th-Gen Sun Bin · 40+ Years · 10,000+ Clients · 12 Countries",
+    bio:
+`Xu Wei (徐偉, not 徐伟 — traditional signature) is the explicitly documented 80th-generation
+direct lineage holder of Guiguzi (鬼谷子, 4th century BCE) and 79th-generation of Sun Bin
+(孫臏, 369–316 BCE, author of Sun Bin's Art of War). Both successions are recorded in the
+clan Zi Pu (族譜 / hand-copied genealogy books) spanning 2,400+ years unbroken.
+He founded Jing Li Xue (境力學 / Environmental Energy Science), a proprietary framework
+codifying four classical systems — Ba Zi (Four Pillars), Kan Yu (Form-School Feng Shui),
+Sun Bin Jin Kou Jue (Golden Formulas Numerology), and Ze Ji (Auspicious Timing) — into a
+single, learnable modern system taught across 3 teaching tiers (Foundations, Advanced
+cohort, Disciples Line by application).
+Two honorary academic chairs (honorary, not official degrees) are conferred upon him by
+leading Chinese academies:
+  • 2010 — Distinguished Visiting Professor, Hebei Academy of Fine Arts (河北美術學院特聘教授)
+  • 2015 — Distinguished Research Fellow, Peking University Institute of Seal Cutting Studies
+           (北京大學篆刻研究院特聘研究員)
+He is also a named ICH (Intangible Cultural Heritage) lineage inheritor for two classical
+practices entrusted to him as sole direct holder: (1) Sun Bin Jin Kou Jue (孫臏金口訣), the
+2,400-year numerological decision system used by military strategists, and (2) Zhuyou
+Thirteen Sections (祝由十三科), the ancient energy-healing canon recorded in the Yellow
+Emperor's Inner Canon.
+Beyond practice, he is a three-discipline artist (三絕) — calligraphy, Chinese ink painting
+and literary prose — whose works are collected by private galleries across Greater China.
+His 40-year career spans 10,000+ private and commercial engagements across 12+ countries,
+including commercial real estate portfolios (up to $18M AUM), Series-A SaaS HQ strategic
+space design, cross-border e-commerce seller strategy, and private family retainers
+(SF Bay Area, London, Singapore, Kuala Lumpur).`,
     credentials: [
-      "80th-Generation Guiguzi Lineage Holder (2,400+ years)",
-      "79th-Generation Sun Bin Disciple",
-      "Founder of Jing Li Xue (Environmental Energy Science)",
-      "Distinguished Professor, Peking University (北京大学特聘教授)",
-      "40+ Years of Practical Experience · 10,000+ Clients Worldwide",
-      "UNESCO Intangible Cultural Heritage Lineage (Sun Bin Golden Formulas / Zhuyou Thirteen Sections)"
+      "80th-Gen Guiguzi Lineage Holder · 2,400+ years recorded in Zi Pu clan genealogy",
+      "79th-Gen Sun Bin Direct Disciple (孫臏 嫡傳) · sole holder of the oral canon",
+      "Founder · Jing Li Xue (境力學) Environmental Energy Science system",
+      "Distinguished Visiting Professor, Hebei Academy of Fine Arts (2010–Present) · 河北美術學院 特聘教授",
+      "Distinguished Research Fellow, Peking University Institute of Seal Cutting Studies (2015–Present) · 北京大學篆刻研究院 特聘研究員",
+      "Named ICH Inheritor · Sun Bin Jin Kou Jue (孫臏金口訣) + Zhuyou Thirteen Sections (祝由十三科)",
+      "Three-Discipline Artist (三絕) · Calligraphy · Chinese Ink Painting · Literary Prose",
+      "40+ Years consulting · 10,000+ clients · 12+ countries (North America / EU / SEA / Greater China)"
+    ],
+    sixSeals: [
+      "SEAL 01 · 境力學 創始人印 — Founder, Jing Li Xue System",
+      "SEAL 02 · 三絕 — Artist / Calligrapher / Literary Writer (Three Disciplines)",
+      "SEAL 03 · 特聘 — Hebei Academy of Fine Arts Distinguished Visiting Professor (2010)",
+      "SEAL 04 · 燕園 — PKU Institute of Seal Cutting Studies Distinguished Research Fellow (2015)",
+      "SEAL 05 · 嫡傳 — 80th-Gen Guiguzi · 79th-Gen Sun Bin Direct Lineage",
+      "SEAL 06 · 非遺 — ICH Inheritor · Jin Kou Jue + Zhuyou Thirteen Sections"
     ],
     offerings: [
-      "Personal BaZi (Four Pillars) Life Energy Blueprint Readings",
-      "Home & Residential Space Energy Harmony Consultations",
-      "Business & Commercial Office Full Energy Audits",
-      "On-site VIP Premium Property Consultations (within 50 miles)",
-      "Online course instructor for Face Reading, Name Analysis, and Guiguzi Advanced"
+      "Personal Four Pillars / Ba Zi Life Blueprint Reading — $199",
+      "Geographical Kan Yu (Form-School Feng Shui) — remote or on-site audit — $499",
+      "Sun Bin Jin Kou Jue Numerology — Big Decision sessions — $299",
+      "Plum Blossom Divination (Mei Hua Yi Shu) rapid situational Q&A — $149",
+      "Auspicious Timing (Ze Ji) for weddings, signings, launches, moves — $149",
+      "Comprehensive Si Zhu + Ba Gua holistic pattern reading (family / enterprise / legacy) — $399",
+      "Jing Li Xue FOUNDATIONS online course (12 modules + 6 live Q&A) — $499",
+      "Jing Li Xue ADVANCED 12-week cohort + Alumni Circle — $1,990",
+      "Jing Li Xue DISCIPLES LINE · oral transmission · by application only",
+      "All paid consultations include a 20+ page written report + two 30-minute follow-up calls (30-day follow-up guarantee). See the About page for the full lineage narrative, timeline, academic affiliations, and case studies."
     ],
-    cta: "To book a consultation with Master Xu Wei, visit the Services page or ask me about our consultation tiers.",
+    compliance:
+`Compliance guardrails the AI must observe whenever discussing Master Xu Wei:
+ (1) Never use the words "cure", "treat", "diagnose", "heal", "medical" in a way that implies
+     Master Xu Wei's services are medical. Correct framing: "cultural / educational / personal
+     coaching consultations within the classical Chinese Yi Xue tradition".
+ (2) Academic titles (Distinguished Visiting Professor, Distinguished Research Fellow) are
+     HONORARY appointments. NEVER state or imply they are official university degrees.
+     Always append the institutional disclaimer when relevant: "honorary distinguished
+     appointment conferred with institutional permission; not an official degree or trademark
+     of the institution."
+ (3) Never guarantee financial, romantic, legal, or medical outcomes. Only describe what the
+     consultation delivers: a written report with documented lineage sources, prioritised
+     action steps, and 30-day follow-up support.`,
+    cta: "To book a consultation with Master Xu Wei: open the Services page or go to /booking directly. To learn his full lineage, six credentials, 40-year timeline and academic chairs, visit the About page (/about). To join his Jing Li Xue teaching tiers, browse the Courses page (/courses).",
     link: "/services"
   }
 };

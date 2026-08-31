@@ -1,0 +1,99 @@
+---
+// 40 年成长时间线 — 水平滑动（桌面）→ 竖排（<=768px），共 8 节点
+const p = Astro.props || {};
+let lang = (typeof p.lang === 'string') ? p.lang : 'en';
+if (!['zh','en','es','fr','de'].includes(lang)) lang = 'en';
+
+const items = (lang === 'zh' ? [
+  { y: '1986', t: '開啟家學傳承', d: '八歲起，隨家族長輩系統入門易學、書法、中醫理論基礎。', icon: '📜' },
+  { y: '1995', t: '首次公開掛牌咨詢', d: '在山東當地開展面向社會的咨詢服務，第一年即服務超過 300 家庭。', icon: '🪧' },
+  { y: '2003', t: '《金口訣》獲非遺認定', d: '孫臏金口訣 2400 年傳承體系入選省級非遺名錄，徐偉老師任主講傳承人。', icon: '🏅' },
+  { y: '2010', t: '河北美術學院 特聘教授', d: '受聘為河北美術學院特聘教授，講授易學美學、書法與空間美學跨學科課程。', icon: '🎓' },
+  { y: '2015', t: '北大篆刻研究院 特聘研究員', d: '受聘北京大學篆刻研究院特聘研究員，發表《境力學與傳統印學》系列專題。', icon: '🏛️' },
+  { y: '2018', t: '《境力學》課程體系創立', d: '綜合八字、堪輿、金口訣、擇吉四術，首創系統化教學框架，開啟弟子級傳授。', icon: '🌱' },
+  { y: '2020', t: '全球咨詢客戶 10,000+', d: '服務足跡覆蓋 12+ 國家，包括商業地產、跨國公司總部、私人家族信托咨詢。', icon: '🌐' },
+  { y: '2026', t: 'Oriental Vibe 全球平台上線', d: '以東方智慧 + 西方科技融合為核心理念，東方能量空間 面向全球客戶提供服務。', icon: '🚀' },
+] : [
+  { y: '1986', t: 'Lineage Training Begins', d: 'Started classical Yi Xue, calligraphy, and TCM foundational training under family elders at age 8.', icon: '📜' },
+  { y: '1995', t: 'First Public Practice', d: 'Opened consulting practice in Shandong; served 300+ families in the first year.', icon: '🪧' },
+  { y: '2003', t: 'Golden Formulas — ICH Listed', d: 'The 2,400-year Sun Bin Jin Kou Jue tradition inscribed on the provincial ICH roster with Xu Wei as lead inheritor.', icon: '🏅' },
+  { y: '2010', t: 'Hebei Academy of Fine Arts', d: 'Appointed Distinguished Visiting Professor; taught cross-disciplinary Yi Xue aesthetics, calligraphy & space design.', icon: '🎓' },
+  { y: '2015', t: 'PKU Seal Cutting Institute', d: 'Named Distinguished Research Fellow at Peking University Institute of Seal Cutting Studies.', icon: '🏛️' },
+  { y: '2018', t: 'Founded Jing Li Xue', d: 'Synthesized Ba Zi + Kan Yu + Jin Kou Jue + Ze Ji into a systematic teaching framework; began Disciple-level transmission.', icon: '🌱' },
+  { y: '2020', t: '10,000+ Clients Worldwide', d: 'Consulting footprint across 12+ countries: commercial real estate, corporate HQ, private family retainers.', icon: '🌐' },
+  { y: '2026', t: 'Oriental Vibe Global Platform', d: 'Eastern wisdom meets Western tech — the Oriental Vibe Space opens to a global English-speaking audience.', icon: '🚀' },
+]);
+---
+
+<style>
+.timeline-wrap { width: 100%; }
+.timeline-scroll {
+  display: flex;
+  gap: 18px;
+  padding: 20px 12px 40px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+}
+.timeline-scroll::-webkit-scrollbar { height: 8px; }
+.timeline-scroll::-webkit-scrollbar-thumb { background: #E1D7C5; border-radius: 4px; }
+.t-node {
+  scroll-snap-align: start;
+  flex: 0 0 260px;
+  background: #fff;
+  border: 1px solid #E8E4DE;
+  border-radius: 14px;
+  padding: 18px 18px 20px;
+  position: relative;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.t-node:hover { transform: translateY(-4px); box-shadow: 0 10px 28px rgba(58,64,61,.08); border-color: #D9CDB6; }
+.t-year {
+  display: inline-flex; align-items: baseline; gap: 6px;
+  font-family: 'Cinzel', Georgia, serif; font-size: 22px; font-weight: 700; color: #A6977C;
+  letter-spacing: 1px;
+}
+.t-year .icon { font-size: 18px; margin-left: auto; }
+.t-title { margin-top: 6px; font-size: 14px; font-weight: 600; color: #3A403D; line-height: 1.3; }
+.t-desc { margin-top: 6px; font-size: 12.5px; color: #6B726F; line-height: 1.6; }
+.t-bullet { position: absolute; left: 18px; bottom: -10px; width: 18px; height: 18px; border-radius: 50%; background: #BFAF96; box-shadow: 0 0 0 4px #FAFAF8, 0 0 0 6px #E8E0D4; }
+
+.timeline-line {
+  position: relative;
+  height: 2px; background: linear-gradient(90deg, transparent, #BFAF96 15%, #BFAF96 85%, transparent);
+  margin: 0 12px;
+}
+.timeline-line::after {
+  content: '';
+  position: absolute; right: -2px; top: -6px;
+  width: 14px; height: 14px; border-top: 2px solid #BFAF96; border-right: 2px solid #BFAF96; transform: rotate(45deg);
+}
+
+@media (max-width: 768px) {
+  .timeline-scroll { flex-direction: column; overflow-x: visible; }
+  .t-node { flex: 0 0 auto; width: 100%; margin-left: 24px; max-width: calc(100% - 36px); }
+  .t-bullet { left: -34px; top: 26px; bottom: auto; }
+  .timeline-line { display: none; }
+  .timeline-wrap { position: relative; }
+  .timeline-wrap::before {
+    content: ''; position: absolute; left: 14px; top: 20px; bottom: 30px; width: 2px; background: #E1D7C5;
+  }
+}
+</style>
+
+<div class="timeline-wrap" id="about-timeline">
+  <div class="timeline-scroll">
+    {items.map(it => (
+      <div class="t-node" data-year={it.y}>
+        <div style="display:flex;align-items:baseline;">
+          <span class="t-year">{it.y}</span>
+          <span class="icon" style="margin-left:auto;">{it.icon}</span>
+        </div>
+        <div class="t-title">{it.t}</div>
+        <div class="t-desc">{it.d}</div>
+        <span class="t-bullet" aria-hidden="true"></span>
+      </div>
+    ))}
+  </div>
+  <div class="timeline-line" aria-hidden="true"></div>
+</div>
