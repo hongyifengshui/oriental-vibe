@@ -251,6 +251,81 @@ const { title = 'Oriental Vibe | Space Energy & Life Balance', description = 'An
         });
       }
 
+      // A 子项目 D1 bootstrap：前台页面加载时，异步把云端 D1 数据同步到 localStorage（乐观缓存 60s）。
+      // - SSR 渲染 DOM 时使用 Astro build-time 静态数据（保证首屏不白屏）。
+      // - D1 返回后，本地缓存更新并派发一次合成的 ov-admin-saved 事件，让各页面的同步脚本重渲染。
+      // - 无论 D1 成功 / 失败 / 超时（3s），都不阻塞 i18n + auth 初始化。
+      async function bootstrapD1Once() {
+        if (typeof fetch !== 'function') return false;
+        try {
+          const ctrl = new AbortController();
+          const t = setTimeout(() => ctrl.abort(), 3000);
+          const resp = await fetch('/api/data/all', {
+            method: 'GET',
+            credentials: 'same-origin',
+            cache: 'default',
+            signal: ctrl.signal,
+          }).catch(() => null);
+          clearTimeout(t);
+          if (!resp || !resp.ok) return false;
+          const snap = await resp.json().catch(() => null);
+          if (!snap || !snap.ok) return false;
+          const PFX = 'ov-admin-';
+          const broadcasted = [];
+          function writeAndBroadcast(key, value) {
+            if (value == null) return;
+            const raw = typeof value === 'string' ? value : JSON.stringify(value);
+            try { localStorage.setItem(PFX + key, raw); } catch (e) { /* quota ignore */ }
+            broadcasted.push(key);
+          }
+          if (Array.isArray(snap.products)) writeAndBroadcast('products', snap.products);
+          if (Array.isArray(snap.categories)) writeAndBroadcast('categories', snap.categories);
+          if (snap.membershipLevels) writeAndBroadcast('membershipLevels', snap.membershipLevels);
+          if (snap.benefits) writeAndBroadcast('benefits', snap.benefits);
+          if (snap.settings) {
+            if (snap.settings.whatsappNumber != null) writeAndBroadcast('whatsappNumber', snap.settings.whatsappNumber);
+            if (snap.settings.paymentInfo != null) writeAndBroadcast('paymentInfo', snap.settings.paymentInfo);
+            if (snap.settings.contactInfo != null) writeAndBroadcast('contactInfo', snap.settings.contactInfo);
+            if (snap.settings.aiConfig != null) writeAndBroadcast('aiConfig', snap.settings.aiConfig);
+          }
+          // 合并一个 settings 对象（兼容 admin page 直接 lsGet('settings') 的用法）
+          if (snap.settings) {
+            try {
+              const prev = JSON.parse(localStorage.getItem(PFX + 'settings') || '{}');
+              const merged = Object.assign({}, prev || {}, {
+                whatsappNumber: snap.settings.whatsappNumber,
+                paymentInfo: snap.settings.paymentInfo,
+                paymentEnabled: snap.settings.paymentInfo && (snap.settings.paymentInfo.stripe || snap.settings.paymentInfo.paypal),
+                aiConfig: snap.settings.aiConfig,
+              });
+              localStorage.setItem(PFX + 'settings', JSON.stringify(merged));
+              broadcasted.push('settings');
+            } catch (e) {}
+          }
+          if (snap.content && typeof snap.content === 'object') {
+            var content = {};
+            Object.keys(snap.content).forEach(function (pageKey) {
+              writeAndBroadcast(pageKey, snap.content[pageKey]);
+              content[pageKey] = snap.content[pageKey];
+            });
+            writeAndBroadcast('content', content);
+          }
+          // 派发一次合成事件：各页面用 broadcastSave 的 listener 会重渲染。
+          try {
+            const synthetic = new CustomEvent('ov-admin-saved', {
+              detail: { key: '__all__', keys: broadcasted, snapshot: snap, at: Date.now() },
+            });
+            window.dispatchEvent(synthetic);
+            document.dispatchEvent(synthetic);
+          } catch (e) {}
+          return true;
+        } catch (e) {
+          // 静默降级：D1 不可用时不阻塞任何功能。
+          if (window.console) console.info('[d1-bootstrap] skipped:', (e && e.message) || e);
+          return false;
+        }
+      }
+
       async function init() {
         const currentLang = localStorage.getItem('ov-lang') || 'en';
         const hasManualCurrency = localStorage.getItem('ov-currency-manual') === 'true';
@@ -282,6 +357,13 @@ const { title = 'Oriental Vibe | Space Energy & Life Balance', description = 'An
           translations: translations
         };
         document.dispatchEvent(new CustomEvent('ov-i18n-ready', { detail: { lang: currentLang, translations: translations } }));
+
+        // D1 云端数据后台加载（非阻塞）。失败静默，成功则覆盖 localStorage 并派发统一同步事件。
+        // 与 init() 并发执行，不等待。
+        if (typeof window.__ovD1Bootstrapped === 'undefined') {
+          window.__ovD1Bootstrapped = true;
+          setTimeout(bootstrapD1Once, 150);
+        }
       }
 
       window.addEventListener('lang-change', async (e) => {

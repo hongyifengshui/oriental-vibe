@@ -1,0 +1,19 @@
+# Cloudflare Wrangler 配置 — 用于本地 D1 开发调试（d1 migrations execute 等）
+# Pages 部署走 GitHub Action，不依赖本文件，但 Pages 环境需绑定相同 D1 名称 "OV_DB"
+# 绑定名必须与 functions/api/_shared/db.js 中读取的 env.DB 一致
+
+name = "oriental-space-energy-api"
+compatibility_date = "2025-03-01"
+compatibility_flags = ["nodejs_compat"]
+
+# 本地 D1（wrangler d1 execute 用）
+[[d1_databases]]
+binding = "DB"
+database_name = "oriental-vibe-db"
+database_id = "local"  # 本地占位；在 Cloudflare 真正创建后替换成真实 id
+
+# Pages 环境变量在 CF Dashboard 配置：
+# - AUTH_SECRET（>=32 字节随机字符串，给 Cookie 签名）
+# - OPENAI_API_KEY（已在 chat.js 中使用）
+# - SUPER_ADMIN_EMAIL（首次 /api/auth/init 用；可选，已存在就忽略）
+# - SUPER_ADMIN_INIT_PASSWORD（首次 /api/auth/init 用；可选，默认生成临时密码并返回）

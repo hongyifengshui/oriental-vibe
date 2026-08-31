@@ -4329,5 +4329,168 @@ import '../styles/global.css';
   });
   if (document.readyState !== 'loading') checkAuth();
   </script>
+
+  <!-- A 子项目：Cloudflare D1 云端持久层 + Admin Auth 自举补丁 -->
+  <!-- 覆盖 checkAuth / handleLogin / logout / lsSet / showAdminProfile，
+       把 localStorage 改为本地缓存 + D1 云端双写，支持登录 Cookie、
+       忘记密码流程、以及一键 localStorage → D1 迁移向导。 -->
+  <script is:inline src="/utils/admin-cloud.js" onerror="this._inlineFallback=true;__adminCloudFallback&&__adminCloudFallback();"></script>
+  <script is:inline>
+  // 由于 Astro 静态打包对 `<script src>` 只复制 public/ 下文件，这里把 admin-cloud.js
+  // 的完整代码内联兜底（避免 /utils/admin-cloud.js 404）。
+  // 见 src/utils/admin-cloud.js 源文件。
+  (function(){try{if(window.__adminCloudPatched)return;}catch(e){}
+  var _code = (function(){/*__ADMIN_CLOUD_INLINE_PLACEHOLDER__*/}).toString();
+  })();
+  </script>
+  <script is:inline>
+/* ADMIN-CLOUD-START */
+(function patchAdminForCloud(){'use strict';
+  function readCookie(n){var m=document.cookie.match(new RegExp('(^|; )'+n+'=([^;]*)'));return m?decodeURIComponent(m[2]):'';}
+  async function requestJSON(url,opts){opts=opts||{};var h=Object.assign({'Accept':'application/json'},opts.headers||{});
+    if(opts.body&&typeof opts.body!=='string'){h['Content-Type']='application/json';opts.body=JSON.stringify(opts.body);}
+    opts.credentials=opts.credentials||'same-origin';opts.headers=h;
+    var r=await fetch(url,opts);var d={};try{d=await r.json();}catch(e){d={};}
+    if(!r.ok){var e=new Error(d.error||('HTTP '+r.status));e.status=r.status;e.data=d;throw e;}return d;}
+  var currentAdmin=null;var migrationDone=false;
+  var oldCheckAuth=window.checkAuth,oldLogin=window.handleLogin,oldLogout=window.logout,oldLsSet=window.lsSet;
+  function renderAdminName(a){document.querySelectorAll('.admin-info .name').forEach(function(el){el.textContent=a.name||a.email||'Admin';});
+    var rm={super_admin:'超级管理员',ops:'运营',support:'客服'};
+    document.querySelectorAll('.admin-info .role').forEach(function(el){el.textContent=rm[a.role]||a.role||'';});
+    document.querySelectorAll('.admin-avatar').forEach(function(el){var ch=(a.name||a.email||'A').trim().charAt(0).toUpperCase();el.textContent=ch;});}
+  function showLayout(){var l=document.getElementById('login-page');var a=document.getElementById('admin-layout');
+    if(l)l.style.display='none';if(a)a.classList.add('show');
+    if(typeof window.renderDashboard==='function')window.renderDashboard();}
+  function showLogin(){var l=document.getElementById('login-page');var a=document.getElementById('admin-layout');
+    if(l)l.style.display='flex';if(a)a.classList.remove('show');}
+  async function cloudCheckAuth(){var hash=location.hash||'';if(/^#reset\//.test(hash))return renderResetView(hash);
+    try{var r=await requestJSON('/api/auth/me',{method:'GET'});if(r&&r.ok&&r.admin){currentAdmin=r.admin;renderAdminName(r.admin);showLayout();afterLoggedIn();return;}}catch(e){}
+    showLogin();}
+  function renderResetView(hash){var parts=decodeURIComponent(hash).replace(/^#reset\//,'').split('/');var email=parts[0]||'',token=parts[1]||'';
+    var login=document.getElementById('login-page');if(login)login.style.display='flex';document.getElementById('admin-layout').classList.remove('show');
+    var card=login.querySelector('.login-card');card.innerHTML='<div class=\"login-logo\"><div class=\"login-logo-icon\">&#128274;</div><h1>重置密码</h1><p>请输入新密码（至少 10 位）</p></div>'+
+      '<div class=\"login-error\" id=\"reset-error\"></div>'+
+      '<form class=\"login-form\" onsubmit=\"return submitResetPassword(event)\">'+
+        '<div class=\"form-group\"><label>管理员邮箱</label><input type=\"email\" class=\"form-input\" id=\"reset-email\" value=\"'+email.replace(/\"/g,'&quot;')+'\" autocomplete=\"username\" /></div>'+
+        '<div class=\"form-group\"><label>新密码</label><input type=\"password\" class=\"form-input\" id=\"reset-p1\" autocomplete=\"new-password\" /></div>'+
+        '<div class=\"form-group\"><label>确认新密码</label><input type=\"password\" class=\"form-input\" id=\"reset-p2\" autocomplete=\"new-password\" /></div>'+
+        '<button type=\"submit\" class=\"login-btn\">提交新密码并登录</button>'+
+        '<div style=\"margin-top:14px;text-align:center;\"><a href=\"#!\" onclick=\"location.hash=\\'\\';location.reload()\" style=\"color:#BFAF96;font-size:13px;\">\u2190 返回登录页</a></div>'+
+      '</form>';return false;}
+  async function submitResetPassword(e){if(e)e.preventDefault();
+    var email=document.getElementById('reset-email').value.trim().toLowerCase();
+    var p1=document.getElementById('reset-p1').value;var p2=document.getElementById('reset-p2').value;
+    var el=document.getElementById('reset-error');if(p1.length<10)return resetErr(el,'新密码至少 10 位');if(p1!==p2)return resetErr(el,'两次密码不一致');
+    var hash=location.hash||'';var segs=decodeURIComponent(hash).split('/');var token=segs[2]||segs[1]||'';
+    try{await requestJSON('/api/auth/reset-password',{method:'POST',body:{email:email,token:token,newPassword:p1}});
+      window.showToast&&window.showToast('密码已重置，正在跳转登录页...','success');
+      setTimeout(function(){location.hash='';location.reload();},1200);}catch(err){return resetErr(el,err.message||'重置失败');}return false;}
+  function resetErr(el,m){if(!el){alert(m);return false;}el.textContent=m;el.classList.add('show');el.style.animation='none';void el.offsetHeight;el.style.animation='';return false;}
+  window.submitResetPassword=submitResetPassword;window.renderResetPasswordView=renderResetView;
+  function showLoginError(m){var el=document.getElementById('login-error');if(!el)return alert(m);el.textContent=m||'登录失败';el.classList.add('show');el.style.animation='none';void el.offsetHeight;el.style.animation='';}
+  async function cloudLogin(e){if(e)e.preventDefault();
+    var email=(document.getElementById('login-username').value||'').trim().toLowerCase();
+    var password=(document.getElementById('login-password').value||'').toString();
+    var errorEl=document.getElementById('login-error');if(errorEl)errorEl.classList.remove('show');
+    if(!email||!password)return showLoginError('请输入邮箱和密码');
+    try{var r=await requestJSON('/api/auth/login',{method:'POST',body:{email:email,password:password}});
+      if(!r||!r.ok)throw new Error(r&&r.error||'login failed');
+      currentAdmin=r.admin;window.lsSet('token','cookie-based-'+Date.now());
+      window.lsSet('admin-user',{name:r.admin.name||r.admin.email,role:r.admin.role,email:r.admin.email});
+      if(document.getElementById('remember-me').checked)window.lsSet('remember-username',email);else localStorage.removeItem('ov-admin-remember-username');
+      renderAdminName(r.admin);showLayout();window.showToast&&window.showToast('登录成功，欢迎回来！','success');afterLoggedIn();}
+    catch(err){showLoginError(err.message||'账号或密码错误');}}
+  async function cloudLogout(){if(!confirm('确定要退出登录吗？'))return;
+    try{await requestJSON('/api/auth/logout',{method:'POST'});}catch(e){}
+    localStorage.removeItem('ov-admin-token');localStorage.removeItem('ov-admin-admin-user');currentAdmin=null;
+    document.getElementById('admin-layout').classList.remove('show');
+    var login=document.getElementById('login-page');if(login)login.style.display='flex';
+    var pw=document.getElementById('login-password');if(pw)pw.value='';document.getElementById('login-error')&&document.getElementById('login-error').classList.remove('show');
+    location.hash='';location.reload();}
+  window.openForgotPassword=function(e){if(e){e.preventDefault();e.stopPropagation();}
+    var html='<div class=\"form-group\"><label class=\"form-label\">管理员邮箱</label>'+
+      '<input id=\"fg-email\" class=\"form-input\" type=\"email\" placeholder=\"name@company.com\" autocomplete=\"email\" />'+
+      '<div class=\"form-hint\">提交后生成 1 小时有效的重置链接。Email 通道未开通时，链接会直接显示在页面上（请私下转给当事人）。</div></div>'+
+      '<div id=\"fg-result\" style=\"display:none;\"></div>';
+    var footer='<button class=\"btn btn-outline\" onclick=\"closeModal()\">取消</button><button class=\"btn btn-primary\" onclick=\"submitForgotPassword()\">生成重置链接</button>';
+    window.openModal&&window.openModal('忘记密码',html,footer);};
+  window.submitForgotPassword=async function(){var email=document.getElementById('fg-email').value.trim();
+    var out=document.getElementById('fg-result');out.style.display='block';out.innerHTML='<div style=\"color:#8A948C;\">处理中...</div>';
+    try{var r=await requestJSON('/api/auth/forgot-password',{method:'POST',body:{email:email}});
+      if(r._devOnlyResetLink){var u=location.origin+'/admin'+r._devOnlyResetLink;
+        out.innerHTML='<div class=\"badge badge-success\" style=\"margin-bottom:10px;\">重置链接已生成（1 小时内有效）</div>'+
+          '<div class=\"form-hint\">请把以下链接发送给 <b>'+email+'</b>：</div>'+
+          '<div style=\"background:#FAFAF8;border:1px solid #E8E4DE;border-radius:8px;padding:10px 14px;word-break:break-all;margin-top:8px;\"><a href=\"'+u+'\" target=\"_blank\" rel=\"noopener\" style=\"color:#BFAF96;\">'+u+'</a></div>'+
+          '<div class=\"form-hint\" style=\"margin-top:10px;\">生产环境请开通 MAIL_FROM+MAIL_API_TOKEN，将自动发送邮件不再显示。</div>';}
+      else{out.innerHTML='<div class=\"badge badge-success\">已提交：若邮箱已注册将收到邮件。</div>';}}
+    catch(e){out.innerHTML='<div class=\"badge badge-danger\">失败：'+(e.message||e)+'</div>';}};
+  async function cloudLsSet(k,v){var localOk=oldLsSet?oldLsSet(k,v):true;if(!currentAdmin)return localOk;var body=null;
+    switch(k){case 'products':body={table:'products',rows:Array.isArray(v)?v:[]};break;case 'categories':body={table:'categories',rows:Array.isArray(v)?v:[]};break;case 'orders':body={table:'orders',rows:Array.isArray(v)?v:[]};break;case 'users':body={table:'users',rows:Array.isArray(v)?v:[]};break;
+      case 'settings':case 'paymentInfo':case 'whatsappNumber':case 'membershipLevels':case 'benefits':case 'content':
+      case 'page-home':case 'page-about':case 'page-faq':case 'page-services':case 'page-blog':case 'page-courses':case 'page-membership':case 'page-contact':
+        body={kv:{}};body.kv[k]=v;break;default:return localOk;}
+    try{var r=await requestJSON('/api/admin/bulk-upsert',{method:'POST',body:body});if(!r||!r.ok)throw new Error(r&&r.error||'save rejected');return true;}
+    catch(e){var msg='云端保存失败（已保留在本机）：'+(e.message||e);window.showToast?window.showToast(msg,'warning'):console.warn(msg);return localOk;}}
+  function mergeSnap(snap){function wr(k,v){if(v!=null)localStorage.setItem('ov-admin-'+k,typeof v==='string'?v:JSON.stringify(v));}
+    if(Array.isArray(snap.products)&&snap.products.length)wr('products',snap.products);
+    if(Array.isArray(snap.categories)&&snap.categories.length)wr('categories',snap.categories);
+    if(snap.membershipLevels)wr('membershipLevels',snap.membershipLevels);
+    if(snap.benefits)wr('benefits',snap.benefits);
+    if(snap.settings){wr('whatsappNumber',snap.settings.whatsappNumber);if(snap.settings.paymentInfo)wr('paymentInfo',snap.settings.paymentInfo);if(snap.settings.contactInfo)wr('contactInfo',snap.settings.contactInfo);if(snap.settings.aiConfig)wr('aiConfig',snap.settings.aiConfig);}
+    if(snap.content){Object.keys(snap.content).forEach(function(k){wr(k,snap.content[k]);});}}
+  async function afterLoggedIn(){try{var s=await requestJSON('/api/data/all');if(s&&s.ok)mergeSnap(s);}catch(e){}maybeMigrate();}
+  function maybeMigrate(){if(migrationDone)return;if(localStorage.getItem('ov-admin-d1-migrated')){migrationDone=true;return;}
+    var g=window.lsGet?window.lsGet:function(_){return null;};
+    var stats={products:(g('products')||[]).length,orders:(g('orders')||[]).length,users:(g('users')||[]).length,settings:g('settings')?1:0};
+    var tot=stats.products+stats.orders+stats.users+stats.settings;if(tot===0){migrationDone=true;localStorage.setItem('ov-admin-d1-migrated','1');return;}
+    showMigrateWizard(stats);}
+  window.showMigrationWizard=showMigrateWizard;window.runLocalSeed=async function(){var p=document.getElementById('mw-progress'),t=document.getElementById('mw-progress-text');
+    if(p)p.style.display='block';if(t)t.textContent='打包本机 ov-admin-* 数据并上送...';var body={};
+    for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(!k||k.indexOf('ov-admin-')!==0)continue;var raw=localStorage.getItem(k);try{body[k]=JSON.parse(raw);}catch(e){body[k]=raw;}}
+    try{var r=await requestJSON('/api/admin/seed-from-local',{method:'POST',body:body});if(!r||!r.ok)throw new Error(r&&r.error||'seed rejected');
+      var m=r.migrated||{};if(t)t.innerHTML='<div style=\"font-weight:600;color:#5a7a5a;\">\u2713 同步完成</div>'+
+        '<div style=\"margin-top:6px;font-size:12px;color:#6B726F;\">商品 '+m.products+' / 分类 '+m.categories+' / 订单 '+m.orders+' / 用户 '+m.users+' / KV '+m.kv+'</div>'+
+        '<div style=\"margin-top:8px;font-size:12px;color:#8A948C;\">localStorage 已保留为只读缓存；清缓存不再丢失数据。</div>';
+      migrationDone=true;localStorage.setItem('ov-admin-d1-migrated','1');
+      var ft=document.getElementById('modal-footer');if(ft)ft.innerHTML='<button class=\"btn btn-primary\" onclick=\"closeModal();location.reload();\">完成并刷新</button>';}
+    catch(e){if(t)t.innerHTML='<div style=\"color:#C47B6B;\">失败：'+(e.message||e)+'</div><div style=\"font-size:12px;color:#8A948C;margin-top:4px;\">本机数据不受影响，稍后可重新启动向导。</div>';}};
+  function showMigrateWizard(stats){var body='<div style=\"margin-bottom:16px;\">'+
+      '<div style=\"font-size:15px;font-weight:600;color:#3A403D;margin-bottom:6px;\">\u2601 升级到云端持久化数据库</div>'+
+      '<div style=\"font-size:13px;color:#6B726F;line-height:1.6;\">新版本支持"多设备多人登录 + 清缓存不丢数据"。检测到本机已有历史数据，是否一次性同步到云端？</div></div>'+
+      '<div style=\"background:#FAFAF8;border:1px solid #E8E4DE;border-radius:10px;padding:14px;margin-bottom:16px;\">'+
+        '<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;\"><div>商品：<b>'+(stats.products||0)+'</b> 条</div><div>订单：<b>'+(stats.orders||0)+'</b> 条</div><div>用户：<b>'+(stats.users||0)+'</b> 条</div><div>设置/内容：已检测</div></div></div>'+
+      '<div id=\"mw-progress\" style=\"display:none;margin-bottom:12px;\"><div style=\"background:#FAFAF8;border:1px solid #E8E4DE;border-radius:8px;padding:10px 14px;font-size:13px;color:#6B726F;\" id=\"mw-progress-text\">准备同步...</div></div>'+
+      '<div class=\"form-hint\" style=\"color:#8A948C;\">冲突策略：以 slug / email / order_no 为唯一键；云端已有则保留云端（避免覆盖团队已编辑内容）。</div>';
+    var footer='<button class=\"btn btn-outline\" onclick=\"closeModal();localStorage.setItem(\\'ov-admin-d1-migrated\\',\\'1\\');\">暂不</button><button class=\"btn btn-primary\" onclick=\"runLocalSeed()\">\u2601 开始同步到云端</button>';
+    window.openModal&&window.openModal('数据云端同步向导',body,footer);}
+  function pinEntry(){var tb=document.querySelector('#page-dashboard .page-header-actions');if(!tb)return;if(document.getElementById('btn-d1-resync'))return;
+    var b=document.createElement('button');b.id='btn-d1-resync';b.className='btn btn-outline';b.innerHTML='\u2601 D1 同步';b.title='查看 / 重启 localStorage → D1 迁移向导';
+    b.onclick=function(){showMigrateWizard({});};tb.insertBefore(b,tb.firstChild);}
+  function esc(s){return String(s==null?'':s).replace(/[&<>\"']/g,function(x){return{'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":'&#39;'}[x];});}
+  window.cloudShowAdminProfile=function(){var a=currentAdmin||{};var rm={super_admin:'超级管理员',ops:'运营',support:'客服'};var init=(a.name||a.email||'A').charAt(0).toUpperCase();
+    window.openModal&&window.openModal('个人资料','<div style=\"text-align:center;margin-bottom:20px;\">'+
+      '<div style=\"width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#BFAF96,#8A948C);display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;font-weight:600;margin:0 auto 14px;\">'+init+'</div>'+
+      '<div style=\"font-size:16px;font-weight:600;color:#3A403D;\">'+esc(a.name||'未命名')+'</div>'+
+      '<div style=\"font-size:13px;color:#8A948C;margin-top:4px;\">'+(rm[a.role]||a.role||'')+'</div></div>'+
+      '<div class=\"form-group\"><label class=\"form-label\">ID</label><input class=\"form-input\" value=\"'+(a.id||'')+'\" readonly /></div>'+
+      '<div class=\"form-group\"><label class=\"form-label\">邮箱（登录账号）</label><input class=\"form-input\" value=\"'+esc(a.email||'')+'\" readonly /></div>'+
+      '<div class=\"form-group\"><label class=\"form-label\">昵称</label><input class=\"form-input\" id=\"admin-nickname\" value=\"'+esc(a.name||'')+'\" /></div>'+
+      '<div class=\"form-group\"><label class=\"form-label\">最后登录</label><input class=\"form-input\" value=\"'+(a.last_login_at?new Date(a.last_login_at*1000).toLocaleString():'\u2014')+'\" readonly /></div>',
+      '<button class=\"btn btn-outline\" onclick=\"closeModal()\">关闭</button><button class=\"btn btn-primary\" onclick=\"saveAdminProfile()\">保存</button>');};
+  function wireForgot(){var links=document.querySelectorAll('a');links.forEach(function(a){var t=(a.textContent||'').trim();
+    if(/忘记密码/.test(t)&&(!a.getAttribute('href')||a.getAttribute('href')==='#')){a.onclick=window.openForgotPassword;a.removeAttribute('href');a.style.cursor='pointer';a.style.color='#BFAF96';}});}
+  window.checkAuth=cloudCheckAuth;window.handleLogin=cloudLogin;window.logout=cloudLogout;if(oldLsSet)window.lsSet=cloudLsSet;
+  window.showAdminProfile=window.cloudShowAdminProfile;
+  var _origRenderDash=window.renderDashboard;window.renderDashboard=function(){if(_origRenderDash)_origRenderDash();setTimeout(pinEntry,30);};
+  var _of=window.fetch;window.fetch=function(url,opts){opts=opts||{};var u=(typeof url==='string')?url:(url&&url.url);
+    if(u&&/^\/api\/(admin|form|payment|auth\/logout)/.test(u)&&/^(POST|PUT|PATCH|DELETE)$/.test((opts.method||'GET').toUpperCase())){
+      opts.headers=Object.assign({},opts.headers||{});var t=readCookie('ov_csrf');if(t&&!opts.headers['X-CSRF-Token'])opts.headers['X-CSRF-Token']=t;opts.credentials=opts.credentials||'same-origin';}
+    return _of.apply(this,arguments);};
+  wireForgot();
+  try{window.__adminCloudPatched=true;}catch(e){}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){window.checkAuth();});else window.checkAuth();
+})();
+/* ADMIN-CLOUD-END */
+  </script>
 </body>
 </html>
