@@ -39,7 +39,7 @@ import { posts } from '../data/blog.js';
 
 <script is:inline>
   // Sync admin blog posts to frontend (live refresh)
-  function _admin_blog_changed(key) { return key == null || key === 'blog'; }
+  function _admin_blog_changed(key) { return key == null || key === 'blog' || key === '__all__'; }
   function syncAdminBlog() {
     let adminBlog;
     try { adminBlog = JSON.parse(localStorage.getItem('ov-admin-blog')); } catch(e) { adminBlog = null; }

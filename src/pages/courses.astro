@@ -126,7 +126,7 @@ import { courses } from '../data/courses.js';
 
 <script is:inline>
   // Sync admin courses to frontend (live refresh)
-  function _admin_courses_changed(key) { return key == null || key === 'courses'; }
+  function _admin_courses_changed(key) { return key == null || key === 'courses' || key === '__all__'; }
   function syncAdminCourses() {
     let adminCourses;
     try { adminCourses = JSON.parse(localStorage.getItem('ov-admin-courses')); } catch(e) { adminCourses = null; }

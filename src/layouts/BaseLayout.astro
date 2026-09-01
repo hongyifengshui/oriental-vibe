@@ -282,12 +282,18 @@ const { title = 'Oriental Vibe | Space Energy & Life Balance', description = 'An
           if (Array.isArray(snap.categories)) writeAndBroadcast('categories', snap.categories);
           if (snap.membershipLevels) writeAndBroadcast('membershipLevels', snap.membershipLevels);
           if (snap.benefits) writeAndBroadcast('benefits', snap.benefits);
+          // Content KVs stored under settings in D1
           if (snap.settings) {
             if (snap.settings.whatsappNumber != null) writeAndBroadcast('whatsappNumber', snap.settings.whatsappNumber);
             if (snap.settings.paymentInfo != null) writeAndBroadcast('paymentInfo', snap.settings.paymentInfo);
             if (snap.settings.contactInfo != null) writeAndBroadcast('contactInfo', snap.settings.contactInfo);
             if (snap.settings.aiConfig != null) writeAndBroadcast('aiConfig', snap.settings.aiConfig);
           }
+          // Admin content/editor KVs mirrored as JSON arrays — match ov-admin-blog/services/courses
+          if (Array.isArray(snap.blog)) writeAndBroadcast('blog', snap.blog);
+          if (Array.isArray(snap.services)) writeAndBroadcast('services', snap.services);
+          if (Array.isArray(snap.courses)) writeAndBroadcast('courses', snap.courses);
+          // Backwards-compat: snap.orders/users are optional on public snapshot; ignore missing
           // 合并一个 settings 对象（兼容 admin page 直接 lsGet('settings') 的用法）
           if (snap.settings) {
             try {

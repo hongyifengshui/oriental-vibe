@@ -37,6 +37,18 @@ export async function onRequest(ctx) {
       }
     }
 
+    // D1 does not define separate blog/services/courses tables — Admin stores them
+    // as JSON KV rows in the settings table (matching localStorage ov-admin-* keys
+    // already used by the sync layer). Pull them here so BaseLayout broadcasts
+    // exact same logical keys on every D1 bootstrap.
+    const [kvBlog, kvServices, kvCourses] = db
+      ? await Promise.all([
+          settingGet(db, 'blog', 'null'),
+          settingGet(db, 'services', 'null'),
+          settingGet(db, 'courses', 'null'),
+        ])
+      : ['null', 'null', 'null'];
+
     return cached({
       ok: true,
       snapshot: Date.now(),
@@ -44,8 +56,8 @@ export async function onRequest(ctx) {
       categories,
       membershipLevels: safeParse(membershipLevels, [
         { tier: 'starter', priceUsd: 49, discountPercent: 5 },
-        { tier: 'harmony', priceUsd: 199, discountPercent: 10 },
-        { tier: 'premium', priceUsd: 499, discountPercent: 15 },
+        { tier: 'harmony', priceUsd: 199, discountPercent: 12 },
+        { tier: 'premium', priceUsd: 499, discountPercent: 25 },
       ]),
       benefits: safeParse(benefits, []),
       settings: {
@@ -55,6 +67,10 @@ export async function onRequest(ctx) {
         aiConfig: safeParse(aiConfig, { enabled: true, engine: 'auto' }),
       },
       content,
+      // Admin content KVs mirrored to localStorage ov-admin-{blog,services,courses}
+      blog: safeParse(kvBlog, []),
+      services: safeParse(kvServices, []),
+      courses: safeParse(kvCourses, []),
     }, 60);
   });
 }

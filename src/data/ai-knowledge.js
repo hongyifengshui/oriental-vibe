@@ -614,7 +614,7 @@ export const intentionRecommendations = [
 // ======================== HUMAN ESCALATION CONTACT ========================
 export const kbContact = {
   email: "support@orientalvibe1314.com",
-  whatsapp: "+1-555-ORIENTAL",
+  whatsapp: "+1 (213) 555-0199",
   responseTime: "Within 24 hours (usually faster during US business hours 9am-6pm EST)",
   contactLink: "/contact",
   humanKeywords: ["talk to human", "human", "person", "agent", "real person", "speak to someone", "live chat", "客服", "人工", "投诉", "complaint", "problem", "not helpful", "bad answer", "wrong", "unacceptable"]

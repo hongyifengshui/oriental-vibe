@@ -618,77 +618,78 @@ const comparisonRows = [
     // Form submission
     var form = document.getElementById('membershipForm');
     if (form) {
-      form.addEventListener('submit', function(e) {
+      form.addEventListener('submit', async function(e) {
         e.preventDefault();
         var name = document.getElementById('memberName').value.trim();
         var email = document.getElementById('memberEmail').value.trim();
+        var phoneEl = document.getElementById('memberPhone');
+        var phone = phoneEl ? phoneEl.value.trim() : '';
         var tier = document.getElementById('memberTier').value;
         var payment = document.getElementById('memberPayment').value;
         var agree = document.getElementById('memberAgree').checked;
-
         if (!name || !email || !tier || !payment || !agree) return;
+        var submitBtn = form.querySelector('button[type="submit"]');
+        var origText = submitBtn ? (submitBtn.value || submitBtn.textContent || '') : '';
+        try { if (submitBtn) { submitBtn.disabled = true; if (submitBtn.tagName === 'BUTTON') submitBtn.textContent = 'Submitting…'; else submitBtn.value = 'Submitting…'; } } catch(_){}
 
-        var memberId = generateMemberId();
         var config = tierConfig[tier];
-        var validUntil = getValidityDate();
-
-        var membershipData = {
+        var payload = {
           name: name,
           email: email,
+          phone: phone,
           tier: tier,
-          tierName: config.name,
-          payment: payment,
-          memberId: memberId,
-          price: config.price,
-          benefits: config.benefits,
-          validUntil: validUntil,
-          registeredAt: new Date().toISOString(),
+          priceUsd: Number(config && config.price ? config.price : 0),
+          paymentPreference: payment,
         };
-
-        // Save to localStorage
+        var orderNo = null;
+        var memberId = generateMemberId();
         try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(membershipData));
-        } catch(err) {
-          // storage unavailable
+          var r = await fetch('/api/form/membership', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          }).catch(() => null);
+          var data = null; try { if (r) data = await r.json(); } catch(_){}
+          if (r && r.ok && data && data.ok && data.orderNo) {
+            orderNo = data.orderNo;
+            if (orderNo) memberId = orderNo; // use server orderNo for traceability
+          } else {
+            throw new Error((data && data.error) || 'membership backend unavailable');
+          }
+        } catch (err) {
+          // Offline fallback: keep writing to localStorage, do not break UX.
+          orderNo = orderNo || ('MS-' + Date.now());
+        } finally {
+          try { if (submitBtn) { submitBtn.disabled = false; if (submitBtn.tagName === 'BUTTON') submitBtn.textContent = origText; else submitBtn.value = origText; } } catch(_){}
         }
 
-        // Dispatch auth update event to sync with global auth system
+        var validUntil = getValidityDate();
+        var membershipData = {
+          name: name, email: email, phone: phone, tier: tier,
+          tierName: config.name, payment: payment,
+          memberId: memberId, orderNo: orderNo,
+          price: config.price, benefits: config.benefits,
+          validUntil: validUntil, registeredAt: new Date().toISOString(),
+        };
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(membershipData)); } catch(_){}
         document.dispatchEvent(new CustomEvent('ov-membership-updated', {
-          detail: { tier: tier, name: name, email: email }
+          detail: { tier: tier, name: name, email: email, memberId: memberId }
         }));
-
-        // Show modal
         var modal = document.getElementById('successModal');
         var modalMemberId = document.getElementById('modalMemberId');
         var modalTierBadge = document.getElementById('modalTierBadge');
         var modalBenefits = document.getElementById('modalBenefits');
         var modalValidity = document.getElementById('modalValidity');
-
-        if (modalMemberId) {
-          modalMemberId.textContent = 'Member ID: ' + memberId;
-        }
-        if (modalTierBadge) {
-          modalTierBadge.textContent = config.name;
-          modalTierBadge.style.backgroundColor = config.badgeColor;
-        }
+        if (modalMemberId) modalMemberId.textContent = 'Member ID: ' + memberId + (orderNo ? ' / Order ' + orderNo : '');
+        if (modalTierBadge) { modalTierBadge.textContent = config.name; modalTierBadge.style.backgroundColor = config.badgeColor; }
         if (modalBenefits) {
           var ul = document.createElement('ul');
-          config.benefits.forEach(function(b) {
-            var li = document.createElement('li');
-            li.textContent = b;
-            ul.appendChild(li);
-          });
-          modalBenefits.innerHTML = '';
-          modalBenefits.appendChild(ul);
+          config.benefits.forEach(function(b) { var li = document.createElement('li'); li.textContent = b; ul.appendChild(li); });
+          modalBenefits.innerHTML = ''; modalBenefits.appendChild(ul);
         }
-        if (modalValidity) {
-          modalValidity.textContent = 'Valid until ' + validUntil;
-        }
-
-        if (modal) {
-          modal.classList.add('active');
-          document.body.style.overflow = 'hidden';
-        }
+        if (modalValidity) modalValidity.textContent = 'Valid until ' + validUntil;
+        if (modal) { modal.classList.add('active'); document.body.style.overflow = 'hidden'; }
       });
     }
 

@@ -1311,7 +1311,7 @@ import '../styles/global.css';
   const randInt = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
   const randPick = arr => arr[Math.floor(Math.random() * arr.length)];
   const daysAgo = n => { const d = new Date(); d.setDate(d.getDate() - n); return d.toISOString().slice(0, 10); };
-  const formatMoney = n => '¥' + Number(n).toFixed(2);
+  const formatMoney = n => '$' + Number(n == null || isNaN(n) ? 0 : n).toFixed(2);
 
   const FIRST_NAMES = ['张','李','王','刘','陈','杨','赵','黄','周','吴','徐','孙','马','朱','胡','郭','何','高','林','罗'];
   const GIVEN_NAMES = ['伟','芳','娜','敏','静','丽','强','磊','军','洋','勇','艳','杰','娟','涛','明','超','秀英','霞','平'];
@@ -4307,6 +4307,12 @@ import '../styles/global.css';
     if (settings.gaId) document.getElementById('set-ga-id').value = settings.gaId;
     if (settings.paymentInfo) document.getElementById('set-payment-info').value = settings.paymentInfo;
     if (settings.paymentEnabled === false) document.getElementById('pay-enabled').classList.remove('active');
+    // WhatsApp 字段：兼容 whatsapp (旧) 与 whatsappNumber (D1 规范 KV)
+    const wa = settings.whatsappNumber || settings.whatsapp || '';
+    if (wa) {
+      const inp = document.getElementById('set-whatsapp');
+      if (inp) inp.value = wa;
+    }
   }
   function saveSettings() {
     const settings = lsGet('settings') || {};
@@ -4318,7 +4324,16 @@ import '../styles/global.css';
     settings.gaId = document.getElementById('set-ga-id').value.trim();
     settings.paymentInfo = document.getElementById('set-payment-info').value;
     settings.paymentEnabled = document.getElementById('pay-enabled').classList.contains('active');
+    // WhatsApp 双写：同时写入两个键，避免老/新代码漏读
+    const waEl = document.getElementById('set-whatsapp');
+    if (waEl) {
+      const wa = String(waEl.value || '').trim();
+      settings.whatsapp = wa;
+      settings.whatsappNumber = wa;
+    }
     lsSet('settings', settings);
+    // 独立 KV 同步：D1 snapshot 广播用 whatsappNumber，前台 WABA 按钮有兜底读独立 KV
+    if (waEl) lsSet('whatsappNumber', String(waEl.value || '').trim());
     showToast('设置已保存', 'success');
   }
   function testEmail() { showToast('测试邮件已发送，请查收', 'success'); }

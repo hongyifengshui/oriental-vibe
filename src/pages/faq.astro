@@ -677,7 +677,7 @@ const trustBadges = [
     // Listen to BOTH keys
     window.addEventListener('ov-admin-saved', function(e) {
       var k = e && e.detail && e.detail.key;
-      if (k == null || k === PAGE_ID || k === 'content') applyPage();
+      if (k == null || k === '__all__' || k === PAGE_ID || k === 'content') applyPage();
     });
     window.addEventListener('storage', function(e) {
       if (!e.key) return;

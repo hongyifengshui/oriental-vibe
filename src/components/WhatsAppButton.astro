@@ -18,7 +18,15 @@ const DEFAULT_NUM = '1234567890';
         var settings = raw ? JSON.parse(raw) : null;
         var btn = document.getElementById('ovWhatsAppBtn');
         if (!btn) return;
-        var num = settings && settings.whatsapp ? String(settings.whatsapp) : '';
+        // 兼容 3 种字段：settings.whatsapp (旧 Admin) / settings.whatsappNumber (D1 默认 KV) / 独立 KV whatsappNumber
+        var wa = '';
+        if (settings) {
+          wa = String(settings.whatsappNumber || settings.whatsapp || '').trim();
+        }
+        if (!wa) {
+          try { wa = JSON.parse(localStorage.getItem('ov-admin-whatsappNumber') || '""') || ''; } catch(_) {}
+        }
+        var num = wa ? String(wa) : '';
         if (!num) return;
         var cleaned = num.replace(/[^\d]/g, '').replace(/^00/, '');
         if (!cleaned) return;
@@ -27,7 +35,7 @@ const DEFAULT_NUM = '1234567890';
     }
     function runWhenReady(fn) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn, { once: true }); else fn(); }
     runWhenReady(apply);
-    window.addEventListener('ov-admin-saved', function(e) { var k = e && e.detail && e.detail.key; if (k == null || k === 'settings') apply(); });
+    window.addEventListener('ov-admin-saved', function(e) { var k = e && e.detail && e.detail.key; if (k == null || k === '__all__' || k === 'settings' || k === 'whatsapp' || k === 'whatsappNumber') apply(); });
     window.addEventListener('storage', function(e) { if (e.key === 'ov-admin-settings') apply(); });
   })();
 </script>
