@@ -3,7 +3,7 @@
 // 前端 Admin 会 POST 过来：{ "ov-admin-products": [...], "ov-admin-orders": [...], "ov-admin-users": [...], "ov-admin-settings": {...}, "ov-admin-content": {...}, "ov-admin-page-home": {...}, ... }
 // 权限：super_admin / ops 可执行（support 拒绝）
 import { withDb, json, err } from '../_shared/db.js';
-import { requireAuth, qRun as _qRunUnused } from '../_shared/auth.js';
+import { requireAuth } from '../_shared/auth.js';
 
 export async function onRequest(ctx) {
   return withDb(ctx, async (db, env) => {

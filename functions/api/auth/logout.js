@@ -1,5 +1,6 @@
 // functions/api/auth/logout.js
-import { withDb, json, err, buildClearCookieHeader } from '../_shared/db.js';
+import { withDb, json, err } from '../_shared/db.js';
+import { buildClearCookieHeader } from '../_shared/auth.js';
 
 export async function onRequest(ctx) {
   return withDb(ctx, async () => {
