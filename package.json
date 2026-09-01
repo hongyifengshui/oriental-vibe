@@ -3,6 +3,9 @@
   "type": "module",
   "version": "1.0.0",
   "scripts": {
+    "prebuild": "node src/i18n/sync_src_to_public.cjs && node scripts/inline_admin_cloud.cjs",
+    "prepreview": "node src/i18n/sync_src_to_public.cjs && node scripts/inline_admin_cloud.cjs",
+    "predev": "node src/i18n/sync_src_to_public.cjs && node scripts/inline_admin_cloud.cjs",
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
