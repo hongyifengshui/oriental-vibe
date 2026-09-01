@@ -23,6 +23,6 @@
     "drizzle-kit": "^0.31.10",
     "gh-pages": "^6.1.0",
     "opencc-js": "^1.4.1",
-    "wrangler": "^4.110.0"
+    "wrangler": "^4.128.0"
   }
 }
