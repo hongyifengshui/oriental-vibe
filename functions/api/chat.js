@@ -165,13 +165,17 @@ export async function onRequest(context) {
     return json({ error: "Invalid JSON body", ok: false }, 400);
   }
 
-  const message = (payload?.message || "").toString().trim().slice(0, 1500);
-  if (!message) {
-    return json({ error: "message is required", ok: false }, 400);
+  // ── Dual input contract: {message,history,lang}  OR  {messages[{role,content}], stream, lang}
+  //   The AIChatWidget uses the former. The OpenAI /messages[] style is also widely
+  //   understood by LLM clients, so support both transparently.
+  const norm = normalizeInput(payload);
+  if (!norm.ok) {
+    return json({ error: norm.error, ok: false }, 400);
   }
-  const history = Array.isArray(payload?.history) ? payload.history : [];
+  const message = norm.message;
+  const history = norm.history;
   const lang =
-    (payload?.lang && ["en", "zh"].includes(payload.lang)) ? payload.lang : detectLang(message);
+    (norm.lang && ["en", "zh"].includes(norm.lang)) ? norm.lang : detectLang(message);
 
   // Read env vars (Cloudflare Pages exposes them via `env`)
   const apiKey = (env?.OPENAI_API_KEY || globalThis?.process?.env?.OPENAI_API_KEY || "").toString();
@@ -233,4 +237,78 @@ export async function onRequest(context) {
 function detectLang(s) {
   // If any CJK char present, default to zh prompt; else en
   return /[\u4e00-\u9fff\u3400-\u4dbf]/.test(s || "") ? "zh" : "en";
+}
+
+/**
+ * Normalize two input contracts into a single {message, history, lang} shape.
+ *
+ *  Contract A — Widget-native:
+ *    { message: string, history: [{role:'user'|'assistant', text:string}], lang?: 'en'|'zh' }
+ *
+ *  Contract B — OpenAI-style (widely used by 3rd-party LLM clients):
+ *    { messages: [{role:'system'|'user'|'assistant'|'tool', content:string}], lang?: 'en'|'zh', stream?: bool }
+ *    → last user message becomes `message`; earlier non-system messages become `history`
+ *      (converted to A/B unified shape { role, text })
+ *
+ * @returns {{ok:true, message:string, history:Array, lang:string|undefined}}
+ *          | {{ok:false, error:string}}
+ */
+function normalizeInput(payload) {
+  const p = payload || {};
+  const lang = (typeof p.lang === "string" && p.lang) || undefined;
+
+  // ── Contract A takes precedence when both shapes are supplied.
+  if (typeof p.message === "string") {
+    const message = p.message.toString().trim().slice(0, 1500);
+    if (!message) return { ok: false, error: "message is required" };
+    const history = Array.isArray(p.history) ? p.history : [];
+    return { ok: true, message, history, lang };
+  }
+
+  // ── Contract B: OpenAI messages[]
+  if (Array.isArray(p.messages) && p.messages.length > 0) {
+    const normMessages = p.messages
+      .map((m) => {
+        if (!m || typeof m !== "object") return null;
+        const role = ["system", "user", "assistant", "tool"].includes(String(m.role))
+          ? String(m.role)
+          : "user";
+        let content = "";
+        if (typeof m.content === "string") content = m.content;
+        else if (Array.isArray(m.content)) {
+          content = m.content
+            .map((part) => (part && typeof part.text === "string" ? part.text : ""))
+            .join(" ");
+        }
+        if (!content) return null;
+        return { role, content: String(content) };
+      })
+      .filter(Boolean);
+
+    if (!normMessages.length) {
+      return { ok: false, error: "messages must contain at least one entry with content" };
+    }
+
+    // Extract the LAST message. If it's not from user → invalid (no pending query).
+    // If it IS user, take it as the effective message; earlier user/assistant pairs become history.
+    const last = normMessages[normMessages.length - 1];
+    if (last.role !== "user") {
+      return { ok: false, error: "the last message in 'messages' must be from the user" };
+    }
+    const message = last.content.toString().trim().slice(0, 1500);
+    if (!message) return { ok: false, error: "user message is empty" };
+
+    // Earlier messages (except system prompt, which RAG rebuilds) become history.
+    // Map to AIChatWidget history shape: { role: 'user'|'assistant', text: string }
+    const history = [];
+    for (let i = 0; i < normMessages.length - 1; i++) {
+      const m = normMessages[i];
+      if (m.role === "system") continue; // RAG provides its own system prompt
+      if (m.role !== "user" && m.role !== "assistant") continue;
+      history.push({ role: m.role, text: m.content });
+    }
+    return { ok: true, message, history, lang };
+  }
+
+  return { ok: false, error: "either 'message' string or non-empty 'messages' array is required" };
 }
