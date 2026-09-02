@@ -104,10 +104,10 @@ jobs:
           echo "ADMIN_EMAIL=$EMAIL"          >> "$GITHUB_OUTPUT"
           echo "EMAIL_MASKED=$(echo "$EMAIL" | sed -E 's/^(.).*(.@.*)$/\1***\2/')" >> "$GITHUB_OUTPUT"
 
-      - name: 2. 设置 Node 20 + 安装 wrangler@4.128.0 和 jq
+      - name: 2. 设置 Node 22 + 安装 wrangler@4.128.0 和 jq
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
       - name: 2b. 安装 wrangler + jq 命令行工具
         shell: bash
         run: |
