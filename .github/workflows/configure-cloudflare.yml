@@ -16,7 +16,15 @@ on:
         required: false
         type: string
       OPENAI_API_KEY:
-        description: '(可选) OpenAI API Key (sk-...) 启用 GPT-4o-mini 智能体'
+        description: '(可选) LLM API Key；OpenAI 填 sk-...；DeepSeek/Moonshort/Groq 等兼容格式同样填它们的 Key'
+        required: false
+        type: string
+      OPENAI_BASE_URL:
+        description: '(可选) LLM API Base URL。默认=OpenAI 官方；DeepSeek 填 https://api.deepseek.com/v1 ；Moonshot=https://api.moonshot.cn/v1 ；Groq=https://api.groq.com/openai/v1'
+        required: false
+        type: string
+      OPENAI_MODEL:
+        description: '(可选) LLM 模型名。默认=gpt-4o-mini；DeepSeek 推荐填 deepseek-chat ；Moonshot=moonshot-v1-8k ；Groq=llama-3.1-70b-versatile'
         required: false
         type: string
       STRIPE_SECRET_KEY:
@@ -165,6 +173,8 @@ jobs:
           V_EMAIL:   ${{ steps.gen.outputs.ADMIN_EMAIL }}
           V_PWD:     ${{ steps.gen.outputs.INIT_PWD }}
           V_OAI:     ${{ github.event.inputs.OPENAI_API_KEY }}
+          V_BASE:    ${{ github.event.inputs.OPENAI_BASE_URL }}
+          V_MODEL:   ${{ github.event.inputs.OPENAI_MODEL }}
           V_STRIPE:  ${{ github.event.inputs.STRIPE_SECRET_KEY }}
           V_NOTIFY:  ${{ github.event.inputs.ADMIN_NOTIFY_EMAIL }}
         shell: bash
@@ -204,6 +214,8 @@ jobs:
           upsert_secret "SUPER_ADMIN_EMAIL"           "$V_EMAIL"
           upsert_secret "SUPER_ADMIN_INIT_PASSWORD"   "$V_PWD"
           upsert_secret "OPENAI_API_KEY"              "$V_OAI"
+          upsert_secret "OPENAI_BASE_URL"             "$V_BASE"
+          upsert_secret "OPENAI_MODEL"                "$V_MODEL"
           upsert_secret "STRIPE_SECRET_KEY"           "$V_STRIPE"
           upsert_secret "ADMIN_NOTIFY_EMAIL"          "$V_NOTIFY"
 
@@ -294,11 +306,42 @@ jobs:
           set -e
           AUTH_TXT="${{ steps.gen.outputs.AUTH_SOURCE == 'auto' && '自动生成 64 字符 hex' || '用户提供' }}"
           PWD_TXT="${{ steps.gen.outputs.PWD_GENERATED == 'yes' && '自动生成 20 字符' || '用户提供' }}"
-          OAI_TXT="${{ github.event.inputs.OPENAI_API_KEY == '' && '⚠️ 未填写 (AI 智能体将使用本地规则引擎)' || '✅ 已设置 (GPT-4o-mini 可用)' }}"
+
+          # LLM 配置：根据填写推导 Base/Model 显示
+          LLM_KEY="${{ github.event.inputs.OPENAI_API_KEY }}"
+          LLM_BASE="${{ github.event.inputs.OPENAI_BASE_URL }}"
+          LLM_MODEL_IN="${{ github.event.inputs.OPENAI_MODEL }}"
+          if [ -z "$LLM_KEY" ]; then
+            LLM_KEY_TXT="⚠️ 未填写 (AI 智能体将使用本地规则引擎)"
+            LLM_BASE_TXT="— (未启用 LLM)"
+            LLM_MODEL_TXT="— (未启用 LLM)"
+          else
+            LLM_KEY_TXT="✅ 已设置 (兼容 OpenAI/DeepSeek/Moonshot/Groq)"
+            if [ -z "$LLM_BASE" ]; then
+              LLM_BASE_TXT="默认 OpenAI 官方 (https://api.openai.com/v1)"
+            else
+              LLM_BASE_TXT="✅ $LLM_BASE"
+            fi
+            if [ -z "$LLM_MODEL_IN" ]; then
+              LLM_MODEL_TXT="默认 gpt-4o-mini"
+            else
+              LLM_MODEL_TXT="✅ $LLM_MODEL_IN"
+            fi
+          fi
+
           SK_TXT="${{ github.event.inputs.STRIPE_SECRET_KEY == '' && '⚠️ 未填写 (结账走本地流程)' || '✅ 已设置' }}"
           NOTIFY_EMAIL="${{ github.event.inputs.ADMIN_NOTIFY_EMAIL }}"
           NOTIFY_TXT="${NOTIFY_EMAIL:='⚠️ 未填写'}"
           [ -n "${{ github.event.inputs.ADMIN_NOTIFY_EMAIL }}" ] && NOTIFY_TXT="✅ $NOTIFY_EMAIL"
+
+          # 下一步验证：推导 LLM engine 徽标显示名
+          if [ -n "$LLM_MODEL_IN" ]; then
+            ENGINE_BADGE="$LLM_MODEL_IN"
+          elif [ -n "$LLM_KEY" ]; then
+            ENGINE_BADGE="gpt-4o-mini"
+          else
+            ENGINE_BADGE="本地规则引擎"
+          fi
 
           {
             echo "## ✅ Cloudflare 配置完成"
@@ -314,7 +357,9 @@ jobs:
             echo "| AUTH_SECRET | ✅ 已设置 ($AUTH_TXT) |"
             echo "| SUPER_ADMIN_EMAIL | ✅ ${{ steps.gen.outputs.EMAIL_MASKED }} |"
             echo "| SUPER_ADMIN_INIT_PASSWORD | ✅ $PWD_TXT |"
-            echo "| OPENAI_API_KEY | $OAI_TXT |"
+            echo "| OPENAI_API_KEY      | $LLM_KEY_TXT |"
+            echo "| OPENAI_BASE_URL     | $LLM_BASE_TXT |"
+            echo "| OPENAI_MODEL        | $LLM_MODEL_TXT |"
             echo "| STRIPE_SECRET_KEY | $SK_TXT |"
             echo "| ADMIN_NOTIFY_EMAIL | $NOTIFY_TXT |"
             echo ""
@@ -329,7 +374,7 @@ jobs:
             echo "1. 打开 [/admin](https://orientalvibe1314.com/admin)，点右上「Cloud 登录」，用上面邮箱密码登录"
             echo "2. 登录后点「一键从 LocalStorage 迁移到 D1」（如果之前有本地管理数据）"
             echo "3. 前台各页面刷新，验证后台修改是否实时同步"
-            echo "4. 打开 AI 智能体发一句问候，验证是否显示 **GPT-4o-mini** 引擎徽标"
+            echo "4. 打开 AI 智能体发一句问候，验证是否显示 **$ENGINE_BADGE** 引擎徽标（或显示 LLM API Key 生效后由实际请求决定）"
             echo ""
             echo "### /api/auth/init 响应"
             echo '```json'
