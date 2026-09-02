@@ -539,22 +539,50 @@ const heroBg = `${imgBase}minimalist%20zen%20meditation%20room%20natural%20light
 <script is:inline>
   (function() {
     var PREFIX = 'ov-admin-';
-    try {
-      var data = JSON.parse(localStorage.getItem(PREFIX + 'page-contact'));
-      if (data) {
-        var pagePrefix = 'contact';
-        Object.keys(data).forEach(function(key) {
-          var val = data[key];
-          if (!val) return;
-          var sel = '[data-i18n="' + pagePrefix + '.' + key + '"]';
-          var els = document.querySelectorAll(sel);
-          els.forEach(function(el) { el.textContent = val; });
-          var selPlaceholder = '[data-i18n-placeholder="' + pagePrefix + '.' + key + '"]';
-          var placeholders = document.querySelectorAll(selPlaceholder);
-          placeholders.forEach(function(el) { el.setAttribute('placeholder', val); });
-        });
-      }
-    } catch(e) {}
+    var PAGE_ID = 'page-contact';
+    function applyPage() {
+      try {
+        var data = JSON.parse(localStorage.getItem(PREFIX + PAGE_ID));
+        if (data) {
+          var pagePrefix = 'contact';
+          Object.keys(data).forEach(function(key) {
+            var val = data[key];
+            if (!val) return;
+            var sel = '[data-i18n="' + pagePrefix + '.' + key + '"]';
+            var els = document.querySelectorAll(sel);
+            els.forEach(function(el) { el.textContent = val; });
+            var selPlaceholder = '[data-i18n-placeholder="' + pagePrefix + '.' + key + '"]';
+            var placeholders = document.querySelectorAll(selPlaceholder);
+            placeholders.forEach(function(el) { el.setAttribute('placeholder', val); });
+          });
+        }
+      } catch(e) {}
+      // contactInfo 读取（从 D1 settings.contactInfo 广播而来）
+      try {
+        var ci = JSON.parse(localStorage.getItem(PREFIX + 'contactInfo'));
+        if (ci && typeof ci === 'object') {
+          var infoEl = document.getElementById('contactInfoDisplay');
+          if (infoEl) {
+            var bits = [];
+            if (ci.email) bits.push('<div class="ci-item">📧 <a href="mailto:'+encodeURIComponent(ci.email)+'">'+ci.email+'</a></div>');
+            if (ci.phone) bits.push('<div class="ci-item">📞 <a href="tel:'+ci.phone.replace(/[^\d+]/g,'')+'">'+ci.phone+'</a></div>');
+            if (ci.address) bits.push('<div class="ci-item">📍 '+ci.address+'</div>');
+            if (ci.workingHours) bits.push('<div class="ci-item">🕐 '+ci.workingHours+'</div>');
+            if (bits.length) infoEl.innerHTML = bits.join('');
+          }
+        }
+      } catch(_) {}
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyPage, { once: true });
+    else applyPage();
+    window.addEventListener('ov-admin-saved', function(e) {
+      var k = e && e.detail && e.detail.key;
+      if (k == null || k === '__all__' || k === PAGE_ID || k === 'content' || k === 'contactInfo' || k === 'settings') applyPage();
+    });
+    window.addEventListener('storage', function(e) {
+      if (!e.key) return;
+      if (e.key === PREFIX + PAGE_ID || e.key === PREFIX + 'content' || e.key === PREFIX + 'contactInfo' || e.key === PREFIX + 'settings') applyPage();
+    });
   })();
 </script>
 </BaseLayout>
