@@ -1,74 +1,93 @@
 ---
 import '../styles/global.css';
+import { translations } from '../i18n/index.js';
 const year = new Date().getFullYear();
+
+// SSR locale: derive from current path so the static HTML ships already in the
+// correct language — no runtime-translation "placeholder flicker".  This is the
+// structural counterpart to the build-time language-isolation hard-guard.
+const __segs = Astro.url.pathname.split('/').filter(Boolean);
+const __L = __segs[0] === 'zh' ? 'zh' : 'en';
+const T = translations[__L] || translations.en;
+const t = (k, fb = '') => {
+  let v = T;
+  for (const p of k.split('.')) { v = v?.[p]; if (v === undefined || v === null) return fb || k; }
+  return typeof v === 'string' ? v : (fb || k);
+};
+
+const socialLinks = [
+  { href: 'https://instagram.com', aria: __L === 'zh' ? 'Instagram' : 'Instagram', label: 'IG' },
+  { href: 'https://facebook.com', aria: __L === 'zh' ? 'Facebook（臉書）' : 'Facebook', label: 'FB' },
+  { href: 'https://youtube.com', aria: __L === 'zh' ? 'YouTube（優兔）' : 'YouTube', label: 'YT' },
+  { href: 'https://pinterest.com', aria: __L === 'zh' ? 'Pinterest' : 'Pinterest', label: 'PIN' },
+];
+
+const paymentIcons = [
+  { aria: __L === 'zh' ? 'Visa' : 'Visa', label: 'VISA' },
+  { aria: __L === 'zh' ? 'Mastercard（萬事達）' : 'Mastercard', label: 'MC' },
+  { aria: 'PayPal', label: 'PayPal' },
+  { aria: __L === 'zh' ? 'Apple Pay' : 'Apple Pay', label: 'Apple Pay' },
+  { aria: __L === 'zh' ? 'Google Pay' : 'Google Pay', label: 'G Pay' },
+  { aria: 'Stripe', label: 'Stripe' },
+];
 ---
 <footer class="footer">
   <div class="container">
     <div class="footer-grid">
       <div class="footer-col">
-        <h3 class="footer-brand" data-i18n="brand.name">Oriental Vibe</h3>
-        <p class="footer-description" data-i18n="footer.desc">
-          Bridging ancient Eastern wisdom with modern Western living. We help you harmonize your space, balance your energy, and elevate your everyday life.
-        </p>
+        <h3 class="footer-brand" data-i18n="brand.name">{t('brand.name', 'Oriental Vibe')}</h3>
+        <p class="footer-description" data-i18n="footer.desc">{t('footer.desc')}</p>
         <div class="footer-social">
-          <a href="https://instagram.com" aria-label="Instagram" target="_blank" rel="noopener">IG</a>
-          <a href="https://facebook.com" aria-label="Facebook" target="_blank" rel="noopener">FB</a>
-          <a href="https://youtube.com" aria-label="YouTube" target="_blank" rel="noopener">YT</a>
-          <a href="https://pinterest.com" aria-label="Pinterest" target="_blank" rel="noopener">PIN</a>
+          {socialLinks.map(s => (
+            <a href={s.href} aria-label={s.aria} target="_blank" rel="noopener">{s.label}</a>
+          ))}
         </div>
       </div>
 
       <div class="footer-col">
-        <h4 data-i18n="footer.shop">Shop</h4>
+        <h4 data-i18n="footer.shop">{t('footer.shop', 'Shop')}</h4>
         <ul>
-          <li><a href="/shop" data-i18n="footer.shop_all">All Products</a></li>
-          <li><a href="/shop?category=crystals" data-i18n="footer.crystals">Crystals</a></li>
-          <li><a href="/shop?category=decor" data-i18n="footer.decor">Decor</a></li>
-          <li><a href="/shop?category=clearing" data-i18n="footer.clearing">Space Clearing</a></li>
-          <li><a href="/shop#bundles" data-i18n="footer.bundles">Bundles</a></li>
+          <li><a href={__L === 'zh' ? '/zh/shop' : '/en/shop'} data-i18n="footer.shop_all">{t('footer.shop_all')}</a></li>
+          <li><a href={(__L === 'zh' ? '/zh' : '/en') + '/shop?category=crystals'} data-i18n="footer.crystals">{t('footer.crystals')}</a></li>
+          <li><a href={(__L === 'zh' ? '/zh' : '/en') + '/shop?category=decor'} data-i18n="footer.decor">{t('footer.decor')}</a></li>
+          <li><a href={(__L === 'zh' ? '/zh' : '/en') + '/shop?category=clearing'} data-i18n="footer.clearing">{t('footer.clearing')}</a></li>
+          <li><a href={(__L === 'zh' ? '/zh' : '/en') + '/shop#bundles'} data-i18n="footer.bundles">{t('footer.bundles')}</a></li>
         </ul>
       </div>
 
       <div class="footer-col">
-        <h4 data-i18n="footer.services">Services</h4>
+        <h4 data-i18n="footer.services">{t('footer.services')}</h4>
         <ul>
-          <li><a href="/services" data-i18n="footer.consultation">Space Consultation</a></li>
-          <li><a href="/services" data-i18n="footer.bazi">BaZi Reading</a></li>
-          <li><a href="/services" data-i18n="footer.energy_audit">Energy Audit</a></li>
-          <li><a href="/courses" data-i18n="footer.courses">Courses</a></li>
-          <li><a href="/element-test" data-i18n="footer.element_test">Five Elements Test</a></li>
-          <li><a href="/membership" data-i18n="nav.membership">Membership</a></li>
+          <li><a href={__L === 'zh' ? '/zh/services' : '/en/services'} data-i18n="footer.consultation">{t('footer.consultation')}</a></li>
+          <li><a href={__L === 'zh' ? '/zh/services' : '/en/services'} data-i18n="footer.bazi">{t('footer.bazi')}</a></li>
+          <li><a href={__L === 'zh' ? '/zh/services' : '/en/services'} data-i18n="footer.energy_audit">{t('footer.energy_audit')}</a></li>
+          <li><a href={__L === 'zh' ? '/zh/courses' : '/en/courses'} data-i18n="footer.courses">{t('footer.courses')}</a></li>
+          <li><a href={__L === 'zh' ? '/zh/element-test' : '/en/element-test'} data-i18n="footer.element_test">{t('footer.element_test')}</a></li>
+          <li><a href={__L === 'zh' ? '/zh/membership' : '/en/membership'} data-i18n="nav.membership">{t('nav.membership')}</a></li>
         </ul>
       </div>
 
       <div class="footer-col">
-        <h4 data-i18n="footer.support">Support</h4>
+        <h4 data-i18n="footer.support">{t('footer.support')}</h4>
         <ul>
-          <li><a href="/about" data-i18n="footer.about">About Us</a></li>
-          <li><a href="/contact" data-i18n="footer.contact">Contact</a></li>
-          <li><a href="/faq" data-i18n="footer.faq">FAQ</a></li>
-          <li><a href="/shipping" data-i18n="footer.shipping">Shipping & Returns</a></li>
-          <li><a href="/privacy" data-i18n="footer.privacy">Privacy Policy</a></li>
+          <li><a href={__L === 'zh' ? '/zh/about' : '/en/about'} data-i18n="footer.about">{t('footer.about')}</a></li>
+          <li><a href={__L === 'zh' ? '/zh/contact' : '/en/contact'} data-i18n="footer.contact">{t('footer.contact')}</a></li>
+          <li><a href={__L === 'zh' ? '/zh/faq' : '/en/faq'} data-i18n="footer.faq">{t('footer.faq')}</a></li>
+          <li><a href={__L === 'zh' ? '/zh/shipping' : '/en/shipping'} data-i18n="footer.shipping">{t('footer.shipping')}</a></li>
+          <li><a href={__L === 'zh' ? '/zh/privacy' : '/en/privacy'} data-i18n="footer.privacy">{t('footer.privacy')}</a></li>
         </ul>
       </div>
     </div>
 
     <div class="footer-payments">
-      <span data-i18n="footer.we_accept">We Accept:</span>
+      <span data-i18n="footer.we_accept">{t('footer.we_accept', 'We Accept')}:</span>
       <div class="footer-payments-icons">
-        <span aria-label="Visa">VISA</span>
-        <span aria-label="Mastercard">MC</span>
-        <span aria-label="PayPal">PayPal</span>
-        <span aria-label="Apple Pay">Apple Pay</span>
-        <span aria-label="Google Pay">G Pay</span>
-        <span aria-label="Stripe">Stripe</span>
+        {paymentIcons.map(p => (<span aria-label={p.aria}>{p.label}</span>))}
       </div>
     </div>
 
     <div class="footer-bottom">
-      <p class="footer-disclaimer" data-i18n="footer.disclaimer">
-        All content is spiritual wellness & interior energy reference only. Not medical, legal or financial advice. No guaranteed results.
-      </p>
+      <p class="footer-disclaimer" data-i18n="footer.disclaimer">{t('footer.disclaimer')}</p>
     </div>
   </div>
 </footer>

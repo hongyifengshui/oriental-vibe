@@ -1,0 +1,31 @@
+---
+// Legacy route wrapper — redirects / → /en/ or /zh/...
+// This top-level page is kept for inbound historic links and as the
+// shared-rendering Astro component imported by locale wrappers.
+---
+
+<!-- Auto-extracted from src/pages/index.astro by scripts/extract_page_components.cjs — DO NOT edit by hand. -->
+
+<noscript>
+  <meta http-equiv="refresh" content="0; url=/en/" />
+</noscript>
+
+<script is:inline>
+  (function() {
+    try {
+      var saved = localStorage.getItem('ov-lang');
+      var accept = (navigator.language || 'en').toLowerCase();
+      var want = saved === 'zh' ? 'zh' : (saved === 'en' ? 'en' : (accept.indexOf('zh') >= 0 ? 'zh' : 'en'));
+      var current = window.location.pathname.replace(/\/+$/, '');
+      var target = '/' + want;
+      if ('/' !== '/') target += '/';
+      else target += '/';
+      if (window.location.pathname !== target) window.location.replace(target);
+    } catch(e) { window.location.replace('/en/'); }
+  })();
+</script>
+  <main style="padding:120px 24px;text-align:center;color:#555;">
+    <h1 style="font-size:18px;">Redirecting to localized site…</h1>
+    <p><a href="/en/">Continue to English site</a> · <a href="/zh/">前往繁體中文網站</a></p>
+  </main>
+

@@ -1,0 +1,13 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageElementTest from '../../components/pages/element-test.astro';
+---
+<BaseLayout title="五行元素測試 ｜ 免費能量測評" description="">
+<script is:inline>
+  // Lock locale at document start so SSR HTML matches the runtime locale.
+  // Fallback reads like localStorage will never override the SSR locale.
+  localStorage.setItem('ov-lang', 'zh');
+  document.documentElement.setAttribute('lang', "zh-Hant");
+</script>
+<PageElementTest />
+</BaseLayout>

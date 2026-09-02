@@ -1,0 +1,13 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PagePrivacy from '../../components/pages/privacy.astro';
+---
+<BaseLayout title="隱私權政策 ｜ 東方能量空間" description="">
+<script is:inline>
+  // Lock locale at document start so SSR HTML matches the runtime locale.
+  // Fallback reads like localStorage will never override the SSR locale.
+  localStorage.setItem('ov-lang', 'zh');
+  document.documentElement.setAttribute('lang', "zh-Hant");
+</script>
+<PagePrivacy />
+</BaseLayout>

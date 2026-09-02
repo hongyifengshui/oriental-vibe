@@ -17,3 +17,6 @@ npm-debug.log*
 
 # macOS
 .DS_Store
+
+.secrets_tmp/
+scripts/configure_cloudflare.sh

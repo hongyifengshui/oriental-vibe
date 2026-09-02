@@ -1,0 +1,13 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BrandFunnel from '../../components/about/BrandFunnel.astro';
+---
+<BaseLayout title="品牌故事 ｜ 東方能量空間" description="東方能量空間由徐偉老師（鬼谷子八十代、孫臏七十九代）創立，四十年法脈傳承，為全球住宅與企業提供正統的空間能量診斷。">
+<script is:inline>
+  // Lock locale at document start so SSR HTML matches the runtime locale.
+  // Fallback reads like localStorage will never override the SSR locale.
+  localStorage.setItem('ov-lang', 'zh');
+  document.documentElement.setAttribute('lang', "zh-Hant");
+</script>
+<BrandFunnel locale="zh" />
+</BaseLayout>

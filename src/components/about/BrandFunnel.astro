@@ -1,0 +1,352 @@
+---
+/**
+ * BrandFunnel.astro
+ *
+ * Shared by /en/about and /zh/about to render the "Our Story" page.
+ * STRUCTURE (10 sections, peer-site funnel layout):
+ *   1 Hero                         7 Client stories x3
+ *   2 Stats strip x4               8 Why clients choose us x4
+ *   3 Credentials strip x6         9 FAQ x4
+ *   4 Brand Story                  10 Final dual CTA
+ *   5 Method 6-step cards
+ *   6 Master-spotlight (jumps to /master)
+ *
+ * All copy is read from i18n at runtime via `data-i18n` attributes. Because
+ * /en/about and /zh/about are prefixed routes with SSR <html lang> set, the
+ * `applyTranslations` client patch only writes the matching locale — no
+ * cross-locale fallback per language-isolation rules in BaseLayout.astro.
+ */
+import { translations } from '../../i18n/index.js';
+const { locale = 'en' } = Astro.props;
+const L = locale === 'zh' ? 'zh' : 'en';
+const T = translations[L] || translations.en;
+const pick = (k, fb) => k.split('.').reduce((acc, p) => acc?.[p], T) ?? fb ?? k;
+
+const imgBase = 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=';
+const heroBg = `${imgBase}minimalist%20zen%20meditation%20space%20bamboo%20natural%20light%20japanese%20aesthetic%20peaceful&image_size=landscape_16_9`;
+const brandImg = `${imgBase}minimalist%20scandinavian%20living%20room%20with%20chinese%20decor%20crystals%20natural%20wood%20neutral%20tones&image_size=portrait_4_3`;
+const caseHero = `${imgBase}a%20well%20balanced%20classical%20chinese%20tea%20ceremony%20wooden%20table%20scrolls%20soft%20window%20light%20zen%20meditation%20room%20feng%20shui%20inspired&image_size=portrait_4_3`;
+const methodImg = `${imgBase}top%20down%20view%20of%20feng%20shui%20compass%20crystals%20and%20ruler%20on%20a%20dark%20wood%20desk%20warm%20light%20elegant&image_size=landscape_4_3`;
+const masterImg = `${imgBase}professional%20portrait%20middle%20aged%20chinese%20master%20xu%20wei%20shoulder%20length%20hair%20ponytail%20goatee%20burgundy%20polo%20shirt%20wooden%20prayer%20beads%20bracelet%20black%20studio%20background%20warm%20soft%20light%20wise%20authentic%20lineage%20teacher%20photorealistic&image_size=square_hd`;
+
+const statIcons = ['👥','⏳','💚','🌍'];
+const stats = [
+  { nKey:'about.funnel_stats_01_n', lKey:'about.funnel_stats_01_l', nFb:'10,000+', lFb:'Clients Worldwide' },
+  { nKey:'about.funnel_stats_02_n', lKey:'about.funnel_stats_02_l', nFb:'40+',   lFb:'Years Lineage Study' },
+  { nKey:'about.funnel_stats_03_n', lKey:'about.funnel_stats_03_l', nFb:'98%',   lFb:'30-Day Retention' },
+  { nKey:'about.funnel_stats_04_n', lKey:'about.funnel_stats_04_l', nFb:'12',    lFb:'Countries Served' },
+];
+
+const credLogos = ['🏛️','🎓','🌿','📜','🧭','🌐'];
+const creds = Array.from({length:6}, (_,i)=>({
+  tKey: `about.funnel_cred_0${i+1}_t`,
+  sKey: `about.funnel_cred_0${i+1}_s`,
+}));
+
+const methodIcons = ['📐','📝','💎','🌀','🔁','📅'];
+const methodSteps = Array.from({length:6}, (_,i)=>({
+  tKey: `about.funnel_method_0${i+1}_t`,
+  dKey: `about.funnel_method_0${i+1}_d`,
+}));
+
+const cases = [
+  { whoKey:'about.funnel_cases_01_who', roleKey:'about.funnel_cases_01_role', beforeKey:'about.funnel_cases_01_before', afterKey:'about.funnel_cases_01_after', accent:'#B08968', img:`${imgBase}calm%20san%20francisco%20japandi%20style%20bedroom%20with%20amathyst%20crystal%20warm%20lamp&image_size=portrait_4_3` },
+  { whoKey:'about.funnel_cases_02_who', roleKey:'about.funnel_cases_02_role', beforeKey:'about.funnel_cases_02_before', afterKey:'about.funnel_cases_02_after', accent:'#5B7B69', img:`${imgBase}modern%20singapore%20open%20office%20with%20plants%20wooden%20desks%20sunny&image_size=portrait_4_3` },
+  { whoKey:'about.funnel_cases_03_who', roleKey:'about.funnel_cases_03_role', beforeKey:'about.funnel_cases_03_before', afterKey:'about.funnel_cases_03_after', accent:'#8B5C7A', img:`${imgBase}warm%20malaysian%20heritage%20living%20room%20wooden%20screen%20plants%20lanterns&image_size=portrait_4_3` },
+];
+
+const whyIcons = ['🏅','📊','🌏','🤝'];
+const whys = Array.from({length:4}, (_,i)=>({
+  tKey: `about.funnel_why_0${i+1}_t`,
+  dKey: `about.funnel_why_0${i+1}_d`,
+}));
+
+const faqs = Array.from({length:4}, (_,i)=>({
+  qKey: `about.funnel_faq_0${i+1}_q`,
+  aKey: `about.funnel_faq_0${i+1}_a`,
+}));
+
+const localePrefix = '/' + L;
+const hrefLocalized = (p) => localePrefix + p;
+---
+<main class="funnel funnel--about">
+  <!-- 1 HERO -->
+  <section class="funnel-hero">
+    <div class="funnel-hero__bg" style={`background-image: url(${heroBg});`}></div>
+    <div class="funnel-wrap funnel-hero__inner">
+      <div class="funnel-hero__copy">
+        <p class="funnel-overline" data-i18n="about.funnel_overline">{pick('about.funnel_overline','SINCE 2018 · GLOBAL')}</p>
+        <p class="funnel-kicker" data-i18n="about.funnel_hero_kicker">{pick('about.funnel_hero_kicker','Ancient Lineage · Modern Application')}</p>
+        <h1 class="funnel-h1" data-i18n="about.funnel_hero_title">{pick('about.funnel_hero_title')}</h1>
+        <p class="funnel-sub" data-i18n="about.funnel_hero_subtitle">{pick('about.funnel_hero_subtitle')}</p>
+        <div class="funnel-cta-row">
+          <a class="btn btn-primary btn-lg" href={hrefLocalized('/services')} data-i18n="about.funnel_hero_cta_book">{pick('about.funnel_hero_cta_book')}</a>
+          <a class="btn btn-ghost btn-lg" href={hrefLocalized('/element-test')} data-i18n="about.funnel_hero_cta_test">{pick('about.funnel_hero_cta_test')}</a>
+        </div>
+      </div>
+      <div class="funnel-hero__art">
+        <img src={brandImg} alt="" loading="lazy" />
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 STATS -->
+  <section class="funnel-stats">
+    <div class="funnel-wrap funnel-stats__grid">
+      {stats.map((s,i)=>(
+        <div class="funnel-stat" key={i}>
+          <div class="funnel-stat__icon">{statIcons[i]}</div>
+          <div class="funnel-stat__n" data-i18n={s.nKey}>{pick(s.nKey, s.nFb)}</div>
+          <div class="funnel-stat__l" data-i18n={s.lKey}>{pick(s.lKey, s.lFb)}</div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- 3 CREDENTIAL STRIP (logos → icons) -->
+  <section class="funnel-section">
+    <div class="funnel-wrap">
+      <p class="funnel-overline center" data-i18n="about.funnel_cred_overline">{pick('about.funnel_cred_overline','TRUSTED AFFILIATIONS')}</p>
+      <h2 class="funnel-h2 center" data-i18n="about.funnel_cred_title">{pick('about.funnel_cred_title')}</h2>
+      <div class="funnel-cred-grid">
+        {creds.map((c,i)=>(
+          <div class="funnel-cred" key={i}>
+            <div class="funnel-cred__logo">{credLogos[i]}</div>
+            <div class="funnel-cred__t" data-i18n={c.tKey}>{pick(c.tKey)}</div>
+            <div class="funnel-cred__s" data-i18n={c.sKey}>{pick(c.sKey)}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 BRAND STORY -->
+  <section class="funnel-section funnel-section--paper">
+    <div class="funnel-wrap funnel-story">
+      <div class="funnel-story__copy">
+        <p class="funnel-overline" data-i18n="about.funnel_story_overline">{pick('about.funnel_story_overline','OUR STORY')}</p>
+        <h2 class="funnel-h2" data-i18n="about.funnel_story_title">{pick('about.funnel_story_title')}</h2>
+        <p class="funnel-p" data-i18n="about.funnel_story_p1">{pick('about.funnel_story_p1')}</p>
+        <p class="funnel-p" data-i18n="about.funnel_story_p2">{pick('about.funnel_story_p2')}</p>
+        <a class="btn btn-primary" href={hrefLocalized('/master')} data-i18n="about.funnel_story_cta">{pick('about.funnel_story_cta','Meet the Master')}</a>
+      </div>
+      <div class="funnel-story__img"><img src={caseHero} alt="" loading="lazy" /></div>
+    </div>
+  </section>
+
+  <!-- 5 METHOD 6-STEP -->
+  <section class="funnel-section">
+    <div class="funnel-wrap">
+      <p class="funnel-overline center" data-i18n="about.funnel_method_overline">{pick('about.funnel_method_overline','THE 6-STEP METHOD')}</p>
+      <h2 class="funnel-h2 center" data-i18n="about.funnel_method_title">{pick('about.funnel_method_title')}</h2>
+      <div class="funnel-method-grid">
+        {methodSteps.map((m,i)=>(
+          <div class={`funnel-step funnel-step--${i+1}`} key={i}>
+            <div class="funnel-step__icon">{methodIcons[i]}</div>
+            <div class="funnel-step__n">{String(i+1).padStart(2,'0')}</div>
+            <div class="funnel-step__t" data-i18n={m.tKey}>{pick(m.tKey)}</div>
+            <div class="funnel-step__d" data-i18n={m.dKey}>{pick(m.dKey)}</div>
+          </div>
+        ))}
+      </div>
+      <div class="funnel-method-art">
+        <img src={methodImg} alt="" loading="lazy" />
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 MASTER SPOTLIGHT (thin, deep link → /master) -->
+  <section class="funnel-section funnel-section--ink">
+    <div class="funnel-wrap funnel-spot">
+      <div class="funnel-spot__img"><img src={masterImg} alt="" loading="lazy" /></div>
+      <div class="funnel-spot__copy">
+        <p class="funnel-overline" data-i18n="about.funnel_spot_overline">{pick('about.funnel_spot_overline','MEET THE MASTER')}</p>
+        <h2 class="funnel-h2" data-i18n="about.funnel_spot_title">{pick('about.funnel_spot_title')}</h2>
+        <p class="funnel-p" data-i18n="about.funnel_spot_body">{pick('about.funnel_spot_body')}</p>
+        <a class="btn btn-primary btn-lg" href={hrefLocalized('/master')} data-i18n="about.funnel_spot_cta">{pick('about.funnel_spot_cta')}</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 CLIENT STORIES x3 -->
+  <section class="funnel-section">
+    <div class="funnel-wrap">
+      <p class="funnel-overline center" data-i18n="about.funnel_cases_overline">{pick('about.funnel_cases_overline','CLIENT STORIES')}</p>
+      <h2 class="funnel-h2 center" data-i18n="about.funnel_cases_title">{pick('about.funnel_cases_title')}</h2>
+      <div class="funnel-case-grid">
+        {cases.map((c,i)=>(
+          <article class="funnel-case" key={i}>
+            <div class="funnel-case__img" style={`border-top: 4px solid ${c.accent};`}>
+              <img src={c.img} alt="" loading="lazy" />
+            </div>
+            <div class="funnel-case__who">
+              <div><strong data-i18n={c.whoKey}>{pick(c.whoKey)}</strong></div>
+              <div class="funnel-case__role" data-i18n={c.roleKey}>{pick(c.roleKey)}</div>
+            </div>
+            <div class="funnel-case__row">
+              <div class="funnel-case__tag tag-before">Before</div>
+              <p data-i18n={c.beforeKey}>{pick(c.beforeKey)}</p>
+            </div>
+            <div class="funnel-case__row">
+              <div class="funnel-case__tag tag-after">After</div>
+              <p data-i18n={c.afterKey}>{pick(c.afterKey)}</p>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 WHY CHOOSE US x4 -->
+  <section class="funnel-section funnel-section--paper">
+    <div class="funnel-wrap">
+      <p class="funnel-overline center" data-i18n="about.funnel_why_overline">{pick('about.funnel_why_overline','WHY CLIENTS CHOOSE US')}</p>
+      <h2 class="funnel-h2 center" data-i18n="about.funnel_why_title">{pick('about.funnel_why_title')}</h2>
+      <div class="funnel-why-grid">
+        {whys.map((w,i)=>(
+          <div class="funnel-why" key={i}>
+            <div class="funnel-why__icon">{whyIcons[i]}</div>
+            <div class="funnel-why__t" data-i18n={w.tKey}>{pick(w.tKey)}</div>
+            <div class="funnel-why__d" data-i18n={w.dKey}>{pick(w.dKey)}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- 9 FAQ x4 -->
+  <section class="funnel-section">
+    <div class="funnel-wrap">
+      <p class="funnel-overline center" data-i18n="about.funnel_faq_overline">{pick('about.funnel_faq_overline','FAQ')}</p>
+      <h2 class="funnel-h2 center" data-i18n="about.funnel_faq_title">{pick('about.funnel_faq_title')}</h2>
+      <div class="funnel-faq">
+        {faqs.map((f,i)=>(
+          <details class="funnel-faq__item" open={i===0} key={i}>
+            <summary data-i18n={f.qKey}>{pick(f.qKey)}</summary>
+            <p data-i18n={f.aKey}>{pick(f.aKey)}</p>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 FINAL DUAL CTA -->
+  <section class="funnel-cta">
+    <div class="funnel-wrap funnel-cta__inner">
+      <div class="funnel-cta__copy">
+        <h2 class="funnel-h2" data-i18n="about.funnel_cta_title">{pick('about.funnel_cta_title')}</h2>
+        <p class="funnel-sub" data-i18n="about.funnel_cta_subtitle">{pick('about.funnel_cta_subtitle')}</p>
+      </div>
+      <div class="funnel-cta-row">
+        <a class="btn btn-primary btn-lg" href={hrefLocalized('/services')} data-i18n="about.funnel_cta_primary">{pick('about.funnel_cta_primary')}</a>
+        <a class="btn btn-ghost btn-lg" href={hrefLocalized('/element-test')} data-i18n="about.funnel_cta_secondary">{pick('about.funnel_cta_secondary')}</a>
+      </div>
+    </div>
+  </section>
+</main>
+<style is:global>
+/* funnel — about/master shared token layout */
+.funnel{width:100%;color:#2d2b29;}
+.funnel-wrap{width:min(1140px,92%);margin-inline:auto;}
+.funnel-section{padding: clamp(64px, 9vw, 108px) 0;}
+.funnel-section--paper{background: linear-gradient(180deg, #FDFBF6 0%, #F7F1E6 100%);}
+.funnel-section--ink{background: linear-gradient(180deg, #1A1715 0%, #22201E 100%); color:#F6EDDC;}
+.funnel-section--ink .funnel-p, .funnel-section--ink .funnel-sub{color:#E7DCC2;}
+.funnel-overline{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#9A7B4D;font-weight:600;margin:0 0 10px;}
+.funnel-overline.center{text-align:center;}
+.center{text-align:center;margin-inline:auto;}
+.funnel-kicker{font-size:13px;letter-spacing:.16em;color:#9A7B4D;text-transform:uppercase;margin:0 0 12px;font-weight:600;}
+.funnel-h1{font-family:'Playfair Display','STKaiti','KaiTi',Georgia,serif;font-size:clamp(32px,4.6vw,56px);line-height:1.1;color:#1A1715;margin:0 0 18px;white-space:pre-line;}
+.funnel-h2{font-family:'Playfair Display','STKaiti','KaiTi',Georgia,serif;font-size:clamp(24px,3vw,36px);line-height:1.2;color:#1A1715;margin:0 0 14px;white-space:pre-line;}
+.funnel-section--ink .funnel-h1, .funnel-section--ink .funnel-h2{color:#F6EDDC;}
+.funnel-sub{margin:0 0 22px;color:#56514B;font-size:16px;line-height:1.7;}
+.funnel-p{color:#3A3632;font-size:16px;line-height:1.8;margin:0 0 14px;}
+.funnel-cta-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;}
+
+/* 1 Hero */
+.funnel-hero{position:relative;overflow:hidden;background:#F3EBDB;}
+.funnel-hero__bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.14;filter:sepia(.25);}
+.funnel-hero__inner{position:relative;display:grid;grid-template-columns:1.1fr 0.9fr;gap:42px;padding: clamp(64px, 10vw, 132px) 0;align-items:center;}
+.funnel-hero__art img{width:100%;height:520px;object-fit:cover;border-radius:20px;box-shadow:0 30px 80px rgba(110,80,40,.25);}
+@media (max-width: 860px){
+  .funnel-hero__inner{grid-template-columns:1fr;padding: 64px 0 80px;}
+  .funnel-hero__art img{height:340px;}
+}
+
+/* 2 Stats */
+.funnel-stats{padding:44px 0;background:#fff;border-top:1px solid #EFE6D2;border-bottom:1px solid #EFE6D2;}
+.funnel-stats__grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;text-align:center;}
+.funnel-stat__icon{font-size:26px;}
+.funnel-stat__n{font-family:'Playfair Display',Georgia,serif;font-size:clamp(28px,3.2vw,40px);color:#8C5A2B;font-weight:600;}
+.funnel-stat__l{color:#56514B;font-size:13px;}
+@media (max-width: 780px){ .funnel-stats__grid{grid-template-columns:repeat(2,1fr);} }
+
+/* 3 Credentials */
+.funnel-cred-grid{margin-top:36px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;}
+.funnel-cred{background:#FFFBF2;border:1px solid #EFE6D2;border-radius:14px;padding:22px;text-align:center;}
+.funnel-cred__logo{font-size:32px;}
+.funnel-cred__t{font-weight:700;margin-top:8px;font-size:15px;}
+.funnel-cred__s{color:#625B51;font-size:13px;margin-top:4px;}
+@media (max-width: 780px){ .funnel-cred-grid{grid-template-columns:repeat(2,1fr);} }
+
+/* 4 Story */
+.funnel-story{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;}
+.funnel-story__img img{width:100%;height:460px;object-fit:cover;border-radius:18px;}
+@media (max-width: 860px){ .funnel-story{grid-template-columns:1fr;} .funnel-story__img img{height:320px;} }
+
+/* 5 Method */
+.funnel-method-grid{margin-top:36px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;position:relative;}
+.funnel-step{background:#fff;border:1px solid #EFE6D2;border-radius:14px;padding:22px 20px 22px;position:relative;}
+.funnel-step__icon{font-size:24px;}
+.funnel-step__n{position:absolute;right:14px;top:14px;font-family:'Playfair Display',serif;font-weight:700;color:#C79F60;opacity:.35;}
+.funnel-step__t{font-weight:700;margin-top:4px;}
+.funnel-step__d{margin-top:6px;color:#56514B;font-size:14px;line-height:1.6;}
+.funnel-method-art{margin-top:36px;text-align:center;}
+.funnel-method-art img{width:100%;max-height:360px;object-fit:cover;border-radius:14px;}
+@media (max-width: 780px){ .funnel-method-grid{grid-template-columns:1fr 1fr;} }
+@media (max-width: 540px){ .funnel-method-grid{grid-template-columns:1fr;} }
+
+/* 6 Spotlight */
+.funnel-spot{display:grid;grid-template-columns:320px 1fr;gap:36px;align-items:center;}
+.funnel-spot__img img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:50%;border:8px solid #3A3632;box-shadow:0 14px 40px rgba(0,0,0,.35);}
+@media (max-width: 860px){ .funnel-spot{grid-template-columns:1fr;text-align:center;} .funnel-spot__img{margin-inline:auto;max-width:260px;} }
+
+/* 7 Cases */
+.funnel-case-grid{margin-top:32px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;}
+.funnel-case{background:#fff;border:1px solid #EFE6D2;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;}
+.funnel-case__img img{width:100%;height:180px;object-fit:cover;display:block;}
+.funnel-case__who{padding:16px 18px 6px;}
+.funnel-case__role{color:#7C6D53;font-size:12px;margin-top:2px;}
+.funnel-case__row{padding:8px 18px 10px;}
+.funnel-case__row p{margin:4px 0 0;font-size:14px;color:#3A3632;line-height:1.6;}
+.funnel-case__tag{display:inline-block;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;letter-spacing:.05em;}
+.tag-before{background:#FCE7E4;color:#9B2B1C;}
+.tag-after{background:#E0EFE1;color:#1C6438;}
+@media (max-width: 860px){ .funnel-case-grid{grid-template-columns:1fr;} }
+
+/* 8 Why */
+.funnel-why-grid{margin-top:34px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;}
+.funnel-why{background:#FFFBF2;border:1px solid #EFE6D2;border-radius:14px;padding:22px;}
+.funnel-why__icon{font-size:26px;}
+.funnel-why__t{font-weight:700;margin-top:6px;}
+.funnel-why__d{margin-top:6px;font-size:14px;color:#56514B;line-height:1.6;}
+@media (max-width: 860px){ .funnel-why-grid{grid-template-columns:1fr 1fr;} }
+
+/* 9 FAQ */
+.funnel-faq{margin-top:30px;max-width:860px;margin-inline:auto;display:grid;gap:12px;}
+.funnel-faq__item{background:#fff;border:1px solid #EFE6D2;border-radius:12px;padding:12px 18px;}
+.funnel-faq__item summary{cursor:pointer;font-weight:600;color:#2D2B29;list-style:none;padding:6px 0;}
+.funnel-faq__item summary::before{content:'＋ ';color:#9A7B4D;font-weight:700;margin-right:6px;}
+.funnel-faq__item[open] summary::before{content:'− ';}
+.funnel-faq__item p{color:#56514B;line-height:1.75;margin:4px 0 0;}
+
+/* 10 Final CTA */
+.funnel-cta{background:linear-gradient(135deg,#6A461E 0%,#8C5A2B 60%,#4F3517 100%);color:#F7EED5;padding: clamp(60px,9vw,100px) 0;}
+.funnel-cta .funnel-h2{color:#FFF6DD;}
+.funnel-cta .funnel-sub{color:#E7D6AD;}
+.funnel-cta__inner{display:grid;grid-template-columns:1.2fr 1fr;gap:32px;align-items:center;}
+.funnel-cta-row{justify-content:flex-end;}
+.funnel-cta .btn-primary{background:#F7EED5;color:#3A250A !important;border-color:#F7EED5;}
+.funnel-cta .btn-ghost{color:#F7EED5;border-color:#F7EED5;background:transparent;}
+@media (max-width: 860px){ .funnel-cta__inner{grid-template-columns:1fr;text-align:center;} .funnel-cta-row{justify-content:center;} }
+</style>

@@ -1,65 +1,25 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+// Legacy route → redirect to /en/... or /zh/... based on saved language preference.
+// The actual page content now lives at src/components/pages/terms.astro.
 ---
-<BaseLayout title="Terms of Service | Oriental Vibe" description="Terms of Service for Oriental Vibe. Read the terms and conditions that govern your use of our website, products, and consultation services.">
-  <section class="section">
-    <div class="container">
-      <div style="max-width: 800px; margin: 0 auto;">
-        <h1 data-i18n="terms.title" style="margin-bottom: 2rem; text-align: center;">Terms of Service</h1>
-        <p data-i18n="terms.section_0_text" style="margin-bottom: 2rem;">Last updated: January 2025. These Terms of Service ("Terms") govern your access to and use of the Oriental Vibe website, products, and consultation services. By accessing or using our services, you agree to be bound by these Terms. If you do not agree with any part of these Terms, please do not use our services.</p>
-
-        <div class="fade-in">
-          <h2 data-i18n="terms.section_1_title" style="margin: 2.5rem 0 1rem;">Acceptance of Terms</h2>
-          <p data-i18n="terms.section_1_text">By accessing and using the Oriental Vibe website and services, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service and all applicable laws and regulations. If you are using our services on behalf of a company or organization, you represent that you have the authority to bind that entity to these Terms. We may revise these Terms at any time, and the most current version will always be posted on this page. Your continued use of our services after any changes constitutes acceptance of the updated Terms.</p>
-        </div>
-
-        <div class="fade-in">
-          <h2 data-i18n="terms.section_2_title" style="margin: 2.5rem 0 1rem;">Services Description</h2>
-          <p data-i18n="terms.section_2_text">Oriental Vibe provides space energy consultations, BaZi life readings, online courses, and energy-enhanced products including crystals, decor, and jewelry. Our services and products are intended for personal well-being, spiritual growth, and interior energy reference only. They are not a substitute for professional medical, legal, financial, or psychological advice. We do not guarantee specific outcomes, and results may vary from person to person based on individual circumstances and application of the principles shared.</p>
-        </div>
-
-        <div class="fade-in">
-          <h2 data-i18n="terms.section_3_title" style="margin: 2.5rem 0 1rem;">Intellectual Property</h2>
-          <p data-i18n="terms.section_3_text">All content on this website, including text, graphics, logos, images, course materials, consultation reports, and software, is the property of Oriental Vibe and is protected by international copyright and intellectual property laws. You may not reproduce, distribute, modify, transmit, reuse, or use any of our content for public or commercial purposes without our express written permission. Course materials purchased by you are licensed for your personal, non-commercial use only and may not be shared, resold, or redistributed.</p>
-        </div>
-
-        <div class="fade-in">
-          <h2 data-i18n="terms.section_4_title" style="margin: 2.5rem 0 1rem;">User Responsibilities</h2>
-          <p data-i18n="terms.section_4_text">You agree to use our website and services only for lawful purposes and in accordance with these Terms. You are responsible for maintaining the confidentiality of your account information and for all activities that occur under your account. You agree not to use our services to violate any laws, infringe on the rights of others, transmit harmful or offensive content, attempt to gain unauthorized access to our systems, or interfere with the proper functioning of the website. You must provide accurate and complete information when placing orders or booking consultations.</p>
-        </div>
-
-        <div class="fade-in">
-          <h2 data-i18n="terms.section_5_title" style="margin: 2.5rem 0 1rem;">Limitation of Liability</h2>
-          <p data-i18n="terms.section_5_text">To the fullest extent permitted by law, Oriental Vibe and its affiliates shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of profits, data, or goodwill, arising out of or related to your use of our services. Our total liability for any claim arising from these Terms or your use of our services shall not exceed the amount you have paid us for the specific product or service that gave rise to the claim. This limitation applies even if we have been advised of the possibility of such damages.</p>
-        </div>
-
-        <div class="fade-in">
-          <h2 data-i18n="terms.section_6_title" style="margin: 2.5rem 0 1rem;">Termination</h2>
-          <p data-i18n="terms.section_6_text">We reserve the right to suspend or terminate your access to our services at any time, without notice, for any reason, including violation of these Terms, fraudulent activity, or abusive behavior. Upon termination, all licenses and rights granted to you will immediately cease. You may stop using our services at any time. The provisions of these Terms that by their nature should survive termination shall continue in effect, including intellectual property, limitation of liability, and governing law clauses.</p>
-        </div>
-
-        <div class="fade-in">
-          <h2 data-i18n="terms.section_7_title" style="margin: 2.5rem 0 1rem;">Governing Law</h2>
-          <p data-i18n="terms.section_7_text">These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which Oriental Vibe is registered, without regard to its conflict of law provisions. Any disputes arising under or in connection with these Terms shall be subject to the exclusive jurisdiction of the competent courts in that jurisdiction. If any provision of these Terms is found to be unenforceable, the remaining provisions shall remain in full force and effect.</p>
-        </div>
-
-        <div class="fade-in">
-          <h2 data-i18n="terms.section_8_title" style="margin: 2.5rem 0 1rem;">Contact</h2>
-          <p data-i18n="terms.section_8_text">If you have any questions, concerns, or requests regarding these Terms of Service, please contact Oriental Vibe at legal@orientalvibe.com. Our team will respond to your inquiry promptly and assist you with any matters related to these Terms. We value your trust and are committed to maintaining a transparent and respectful relationship with all of our customers and website visitors.</p>
-        </div>
-      </div>
-    </div>
-  </section>
+<BaseLayout title="Redirecting…" description="Redirecting to localized site.">
+<noscript>
+  <meta http-equiv="refresh" content="0; url=/en/terms" />
+</noscript>
 <script is:inline>
-  (function() {
-    var PREFIX = 'ov-admin-';
-    try {
-      var data = JSON.parse(localStorage.getItem(PREFIX + 'page-terms'));
-      if (data && data.bodyHtml) {
-        var container = document.querySelector('section.section .container > div');
-        if (container) container.innerHTML = data.bodyHtml;
-      }
-    } catch(e) {}
-  })();
+(function() {
+  try {
+    var saved = localStorage.getItem('ov-lang');
+    var accept = (navigator.language || 'en').toLowerCase();
+    var want = (saved === 'zh') ? 'zh' : (saved === 'en' ? 'en' : (accept.indexOf('zh') >= 0 ? 'zh' : 'en'));
+    var target = want === 'zh' ? '/zh/terms' : '/en/terms';
+    if (window.location.pathname !== target) window.location.replace(target);
+  } catch(e) { window.location.replace('/en/terms'); }
+})();
 </script>
+<main style="padding:120px 24px;text-align:center;color:#4b5563;">
+  <h1 style="font-size:20px;margin:0 0 16px;">Redirecting to localized site…</h1>
+  <p style="margin:8px 0;"><a href="/en/terms">English site</a> · <a href="/zh/terms">繁體中文網站</a></p>
+</main>
 </BaseLayout>

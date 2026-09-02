@@ -1,75 +1,25 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { posts } from '../data/blog.js';
+// Legacy route → redirect to /en/... or /zh/... based on saved language preference.
+// The actual page content now lives at src/components/pages/blog.astro.
 ---
-<BaseLayout title="Blog & Articles | Oriental Vibe" description="Explore space energy principles, wellness tips, and client stories from Oriental Vibe.">
-  <!-- Hero -->
-  <section class="hero fade-in">
-    <div class="hero-content">
-      <p class="hero-subtitle" data-i18n="blog.hero_subtitle">Insights & Wisdom</p>
-      <h1 class="hero-title" data-i18n="blog.hero_title">Blog & Articles</h1>
-      <p class="hero-description" data-i18n="blog.hero_desc">Explore space energy principles, wellness tips, and client stories</p>
-    </div>
-  </section>
-
-  <!-- Articles Grid -->
-  <section class="section fade-in">
-    <div class="container">
-      <div class="grid grid-2">
-        {posts.map((post) => (
-          <article class="card fade-in" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
-            <div style="aspect-ratio: 16/9; overflow: hidden;">
-              <img src={post.image} alt="" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;" data-i18n-alt={post.titleKey} />
-            </div>
-            <div style="padding: 2rem; display: flex; flex-direction: column; flex: 1;">
-              <span class="badge badge-popular" style="align-self: flex-start; margin-bottom: 1rem;" data-i18n={post.categoryKey}>{post.categoryEn}</span>
-              <h3 style="margin-bottom: 1rem;" data-i18n={post.titleKey}>{post.titleEn}</h3>
-              <p style="margin-bottom: 1rem; flex: 1;" data-i18n={post.excerptKey}>{post.excerptEn}</p>
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--color-border-light);">
-                <small>{post.date}</small>
-                <a href={`/blog/${post.id}`} class="btn btn-secondary" data-i18n="common.read_more">Read More</a>
-              </div>
-            </div>
-          </article>
-        ))}
-      </div>
-    </div>
-  </section>
-</BaseLayout>
-
+<BaseLayout title="Redirecting…" description="Redirecting to localized site.">
+<noscript>
+  <meta http-equiv="refresh" content="0; url=/en/blog" />
+</noscript>
 <script is:inline>
-  // Sync admin blog posts to frontend (live refresh)
-  function _admin_blog_changed(key) { return key == null || key === 'blog' || key === '__all__'; }
-  function syncAdminBlog() {
-    let adminBlog;
-    try { adminBlog = JSON.parse(localStorage.getItem('ov-admin-blog')); } catch(e) { adminBlog = null; }
-    if (!adminBlog || adminBlog.length === 0) return;
-    const active = adminBlog.filter(b => b.status !== 'inactive');
-    if (active.length === 0) return;
-    const grid = document.querySelector('.grid-2');
-    if (!grid) return;
-    const imgBase = 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=';
-    grid.innerHTML = active.map(b => {
-      const img = b.image || imgBase + encodeURIComponent(b.name + ' blog article') + '&image_size=landscape_16_9';
-      const linkId = b.id || String(b.name).toLowerCase().replace(/[^a-z0-9]+/g, '-');
-      return `<article class="card fade-in" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
-        <div style="aspect-ratio: 16/9; overflow: hidden;">
-          <img src="${img}" alt="${b.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;" />
-        </div>
-        <div style="padding: 2rem; display: flex; flex-direction: column; flex: 1;">
-          <span class="badge badge-popular" style="align-self: flex-start; margin-bottom: 1rem;">${b.category || 'General'}</span>
-          <h3 style="margin-bottom: 1rem;">${b.name}</h3>
-          <p style="margin-bottom: 1rem; flex: 1;">${b.description || ''}</p>
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--color-border-light);">
-            <small>${b.date || ''}</small>
-            <a href="/blog/${linkId}" class="btn btn-secondary" data-i18n="common.read_more">Read More</a>
-          </div>
-        </div>
-      </article>`;
-    }).join('');
-  }
-  function _runWhenReady(fn) { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn, { once: true }); else fn(); }
-  _runWhenReady(syncAdminBlog);
-  window.addEventListener('ov-admin-saved', e => { if (_admin_blog_changed(e && e.detail && e.detail.key)) syncAdminBlog(); });
-  window.addEventListener('storage', e => { if (e.key && e.key.indexOf('ov-admin-blog') === 0) syncAdminBlog(); });
+(function() {
+  try {
+    var saved = localStorage.getItem('ov-lang');
+    var accept = (navigator.language || 'en').toLowerCase();
+    var want = (saved === 'zh') ? 'zh' : (saved === 'en' ? 'en' : (accept.indexOf('zh') >= 0 ? 'zh' : 'en'));
+    var target = want === 'zh' ? '/zh/blog' : '/en/blog';
+    if (window.location.pathname !== target) window.location.replace(target);
+  } catch(e) { window.location.replace('/en/blog'); }
+})();
 </script>
+<main style="padding:120px 24px;text-align:center;color:#4b5563;">
+  <h1 style="font-size:20px;margin:0 0 16px;">Redirecting to localized site…</h1>
+  <p style="margin:8px 0;"><a href="/en/blog">English site</a> · <a href="/zh/blog">繁體中文網站</a></p>
+</main>
+</BaseLayout>

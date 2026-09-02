@@ -1,5 +1,61 @@
 ---
 import '../styles/global.css';
+import { translations } from '../i18n/index.js';
+const __segs = Astro.url.pathname.split('/').filter(Boolean);
+const __L = __segs[0] === 'zh' ? 'zh' : 'en';
+const T = translations[__L] || translations.en;
+const t = (k, fb = '') => {
+  let v = T;
+  for (const p of k.split('.')) { v = v?.[p]; if (v === undefined || v === null) return fb || k; }
+  return typeof v === 'string' ? v : (fb || k);
+};
+// ZH/EN defaults for UX placeholders that have structured keys
+const FREE_SHIP_88 = __L === 'zh'
+  ? '再消費 <strong id="freeShipGap">$88</strong> 即可解鎖全球免運 ✨'
+  : 'You\'re <strong id="freeShipGap">$88</strong> away from FREE worldwide shipping ✨';
+const FREE_SHIP_DONE = __L === 'zh'
+  ? '🎁 恭喜 — 已達到全球<strong>免運</strong>門檻！'
+  : '🎁 Congrats — you qualify for <strong>FREE worldwide shipping</strong>!';
+const GUARANTEE = __L === 'zh' ? '🛡️ 45 天保障' : '🛡️ 45-Day Guarantee';
+const SHIP_TRUST = __L === 'zh' ? '🚚 訂單 $188+ 免運' : '🚚 Order $188+ Ships FREE';
+const CHECKOUT_TRUST = __L === 'zh' ? '🔒 SSL 加密 · 安全結帳' : '🔒 SSL + Private Checkout';
+const CO_HEADER = __L === 'zh' ? '1. 你的聯絡資訊' : '1. Your Info';
+const CO_SHIP = __L === 'zh'
+  ? '2. 運送地址 <span style="font-weight:400;color:var(--color-text-tertiary);font-size:0.85rem;">（數位商品可留白）</span>'
+  : '2. Shipping Address <span style="font-weight:400;color:var(--color-text-tertiary);font-size:0.85rem;">(Digital orders can leave blank)</span>';
+const CO_PAY = __L === 'zh' ? '3. 付款方式' : '3. Payment Method';
+const CO_SUMMARY = __L === 'zh' ? '4. 訂單摘要' : '4. Order Summary';
+const NAME_LABEL = __L === 'zh' ? '姓名 *' : 'Full Name *';
+const NAME_PH = __L === 'zh' ? '陳小明' : 'Jane Doe';
+const EMAIL_LABEL = __L === 'zh' ? '電子郵件 *' : 'Email *';
+const EMAIL_PH = __L === 'zh' ? 'you@example.com' : 'you@example.com';
+const PHONE_LABEL = __L === 'zh' ? '聯絡電話（選填，出貨通知使用）' : 'Phone (optional, for shipping updates)';
+const PHONE_PH = __L === 'zh' ? '+886 912 345 678' : '+1 555 0100';
+const ADDR_LABEL = __L === 'zh' ? '街道地址' : 'Street Address';
+const ADDR_PH = __L === 'zh' ? '仁愛路四段 100 號' : '123 Palm Ave';
+const CITY_LABEL = __L === 'zh' ? '城市' : 'City';
+const CITY_PH = __L === 'zh' ? '台北市' : 'Beverly Hills';
+const REGION_LABEL = __L === 'zh' ? '州/省' : 'State / Province';
+const REGION_PH = __L === 'zh' ? '大安區' : 'CA';
+const POSTAL_LABEL = __L === 'zh' ? '郵遞區號' : 'ZIP / Postal Code';
+const POSTAL_PH = __L === 'zh' ? '106' : '90210';
+const COUNTRY_LABEL = __L === 'zh' ? '國家' : 'Country';
+const COUNTRY_PH = __L === 'zh' ? '台灣' : 'United States';
+const CARD_LABEL = __L === 'zh' ? '卡號' : 'Card Number';
+const CARD_PH = __L === 'zh' ? '4242 4242 4242 4242' : '4242 4242 4242 4242';
+const EXP_LABEL = __L === 'zh' ? '有效期限 (MM/YY)' : 'Expiry (MM/YY)';
+const EXP_PH = __L === 'zh' ? '12/28' : '12/28';
+const CVC_LABEL = __L === 'zh' ? '安全碼 (CVC)' : 'CVC';
+const CVC_PH = __L === 'zh' ? '123' : '123';
+const CARDHOLDER_LABEL = __L === 'zh' ? '持卡人姓名' : 'Cardholder Name';
+const CARDHOLDER_PH = __L === 'zh' ? '陳小明' : 'Jane Doe';
+const SUBMIT = __L === 'zh' ? '確認並付款' : 'Confirm & Pay';
+const PROMO_LABEL = __L === 'zh' ? '折扣碼（選填）' : 'Promo Code (optional)';
+const PROMO_APPLY = __L === 'zh' ? '套用' : 'Apply';
+const PROMO_PH = __L === 'zh' ? '輸入折扣碼' : 'Enter promo code';
+const REASSURANCE_1 = __L === 'zh' ? '🔒 Stripe 加密 · PCI-DSS 認證' : '🔒 Encrypted by Stripe · PCI-DSS';
+const REASSURANCE_2 = __L === 'zh' ? '📧 結帳後即刻收電子郵件確認' : '📧 Instant email confirmation';
+const REASSURANCE_3 = __L === 'zh' ? '🔁 45 天內可退還差額' : '🔁 45-day refund window';
 ---
 <!-- CRO B3.4: Social Proof Strip (global) — 插入在页面底部，其它页面通过 BaseLayout 同 ID 复用；重复注入安全 -->
 <div class="ov-social-proof" id="ovSocialProof" role="status" aria-live="polite" style="display:none;"></div>

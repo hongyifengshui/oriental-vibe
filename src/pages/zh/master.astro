@@ -1,0 +1,13 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import MasterProfile from '../../components/about/MasterProfile.astro';
+---
+<BaseLayout title="徐偉老師 ｜ 法脈掌門人 · 東方能量空間" description="徐偉老師——鬼谷子八十代嫡傳、北京大學篆刻研究所特聘研究員、河北美術學院特聘教授。完整故事、八大頭銜、法脈、著作與客戶親述。">
+<script is:inline>
+  // Lock locale at document start so SSR HTML matches the runtime locale.
+  // Fallback reads like localStorage will never override the SSR locale.
+  localStorage.setItem('ov-lang', 'zh');
+  document.documentElement.setAttribute('lang', "zh-Hant");
+</script>
+<MasterProfile locale="zh" />
+</BaseLayout>

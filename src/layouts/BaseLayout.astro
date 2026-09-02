@@ -9,10 +9,30 @@ import Analytics from '../components/Analytics.astro';
 import AIChatWidget from '../components/AIChatWidget.astro';
 
 const { title = 'Oriental Vibe | Space Energy & Life Balance', description = 'Ancient Eastern Energy for Modern Western Living. Balance Your Home, Calm Your Mind, Upgrade Your Life Vibe.' } = Astro.props;
+
+// SSR locale routing (Plan A: only EN / Traditional Chinese).
+// Prefix-matched pages (e.g. /zh/about) lock the whole response to that language;
+// legacy unprefixed top-level pages act as redirects (see pages/*.astro wrappers).
+const pathSegs = Astro.url.pathname.split('/').filter(Boolean);
+const rawPrefix = pathSegs[0];
+const ssrLocale = rawPrefix === 'zh' ? 'zh' : 'en';
+const htmlLang = ssrLocale === 'zh' ? 'zh-Hant' : 'en';
+const ogLocale = ssrLocale === 'zh' ? 'zh_HANT' : 'en_US';
+// Page path without the language prefix, always starting with '/'.
+const pagePath = (() => {
+  if (rawPrefix === 'en' || rawPrefix === 'zh') {
+    const rest = '/' + pathSegs.slice(1).join('/');
+    return rest === '/' ? '/' : rest;
+  }
+  return Astro.url.pathname === '/' ? '/' : Astro.url.pathname.replace(/\/+$/, '') || '/';
+})();
+// Ensure canonical points at locale-absolute URL (keeps SEO clean).
+const canonicalOrigin = Astro.site ? String(Astro.site).replace(/\/$/, '') : '';
+const canonical = canonicalOrigin ? `${canonicalOrigin}/${ssrLocale}${pagePath === '/' ? '/' : pagePath}` : Astro.url.href;
 ---
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang={htmlLang}>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -23,6 +43,13 @@ const { title = 'Oriental Vibe | Space Energy & Life Balance', description = 'An
   <meta property="og:title" content={title} />
   <meta property="og:description" content={description} />
   <meta property="og:type" content="website" />
+  <meta property="og:locale" content={ogLocale} />
+  <meta property="og:locale:alternate" content={ssrLocale === 'zh' ? 'en_US' : 'zh_HANT'} />
+
+  <!-- Hreflang alternates (en / zh-Hant / x-default) -->
+  <link rel="alternate" hreflang="en" href={`/en${pagePath}`} />
+  <link rel="alternate" hreflang="zh-Hant" href={`/zh${pagePath}`} />
+  <link rel="alternate" hreflang="x-default" href={`/en${pagePath}`} />
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
@@ -30,7 +57,7 @@ const { title = 'Oriental Vibe | Space Energy & Life Balance', description = 'An
   <meta name="twitter:description" content={description} />
 
   <!-- Canonical -->
-  <link rel="canonical" href={Astro.url.href} />
+  <link rel="canonical" href={canonical} />
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -120,10 +147,13 @@ const { title = 'Oriental Vibe | Space Energy & Life Balance', description = 'An
   <script is:inline>
     (async function() {
       const translations = {};
-      const supportedLangs = ['en', 'zh', 'de', 'fr', 'es'];
+      // Plan A: Strictly 2 languages. DE/FR/ES sources still exist on disk but
+      // are never registered nor mirrored → accessing /i18n/de.json returns 404.
+      const supportedLangs = ['en', 'zh'];
 
       async function loadTranslations(lang) {
         if (translations[lang]) return translations[lang];
+        if (supportedLangs.indexOf(lang) === -1) return {};
         try {
           const res = await fetch(`/i18n/${lang}.json`);
           translations[lang] = await res.json();
@@ -138,58 +168,59 @@ const { title = 'Oriental Vibe | Space Energy & Life Balance', description = 'An
         return path.split('.').reduce((acc, key) => acc?.[key], obj);
       }
 
+      // Plan A · Language isolation: NO cross-language fallbacks.
+      // Missing keys are left at their SSR default for the locale and reported
+      // loudly to the console so content owners fix them before deploy.
+      // (Whitelist: brand English loanwords & proper nouns tolerated on 繁體 pages.)
+      const WHITELIST_EN_LOANWORDS_ZH = new Set([
+        'Oriental Vibe','WhatsApp','Five Elements Test','Master Xu Wei',
+        'Santa Monica','CTA','SEO','SVG','URL','HTML','CSS','D1','AI','DEEPSEEK-CHAT',
+        'USD','PDF','Stripe','PayPal','BaZi','Qi Men Dun Jia','Feng Shui','BaGua',
+      ]);
+      function looksLikeEnglish(text) {
+        if (typeof text !== 'string') return false;
+        // Any run of 10+ ASCII letters = suspicious loan-sentence on 繁體 page.
+        return /[A-Za-z]{10,}/.test(text);
+      }
+
       function applyTranslations(lang) {
+        if (supportedLangs.indexOf(lang) === -1) lang = 'en';
         const t = translations[lang] || {};
-        // If translation is missing for this lang, try falling back to English
-        const enFallback = (lang !== 'en') ? (translations['en'] || {}) : {};
+
+        function write(key, setter) {
+          const value = getNested(t, key);
+          if (value === undefined || value === null) {
+            // Silence expected: SSR rendered this locale already. Missing a
+            // client-side override is fine. Do NOT fall back to the other locale
+            // (that's the #1 source of "cross-language mixing" bugs).
+            if (window.__OV_I18N_VERBOSE__) {
+              console.error('[i18n] missing translation key (fallback disabled):', key);
+            }
+            return;
+          }
+          if (lang === 'zh' && looksLikeEnglish(value) && !WHITELIST_EN_LOANWORDS_ZH.has(String(value).trim())) {
+            console.error('[lang-isolation] likely EN leak into zh-Hant page. key=', key, ' sample=', String(value).slice(0,80));
+          }
+          setter(value);
+        }
 
         document.querySelectorAll('[data-i18n]').forEach(el => {
-          const key = el.getAttribute('data-i18n');
-          let value = getNested(t, key);
-          // Fall back to English if translation is missing in current language
-          if (value === undefined && lang !== 'en') {
-            value = getNested(enFallback, key);
-          }
-          if (value !== undefined && value !== null) el.textContent = value;
+          write(el.getAttribute('data-i18n'), (v) => { el.textContent = v; });
         });
-
         document.querySelectorAll('[data-i18n-title]').forEach(el => {
-          const key = el.getAttribute('data-i18n-title');
-          let value = getNested(t, key);
-          if (value === undefined && lang !== 'en') {
-            value = getNested(enFallback, key);
-          }
-          if (value !== undefined && value !== null) el.setAttribute('title', value);
+          write(el.getAttribute('data-i18n-title'), (v) => { el.setAttribute('title', v); });
         });
-
         document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-          const key = el.getAttribute('data-i18n-placeholder');
-          let value = getNested(t, key);
-          if (value === undefined && lang !== 'en') {
-            value = getNested(enFallback, key);
-          }
-          if (value !== undefined && value !== null) el.setAttribute('placeholder', value);
+          write(el.getAttribute('data-i18n-placeholder'), (v) => { el.setAttribute('placeholder', v); });
         });
-
         document.querySelectorAll('[data-i18n-alt]').forEach(el => {
-          const key = el.getAttribute('data-i18n-alt');
-          let value = getNested(t, key);
-          if (value === undefined && lang !== 'en') {
-            value = getNested(enFallback, key);
-          }
-          if (value !== undefined && value !== null) el.setAttribute('alt', value);
+          write(el.getAttribute('data-i18n-alt'), (v) => { el.setAttribute('alt', v); });
         });
-
         document.querySelectorAll('[data-i18n-value]').forEach(el => {
-          const key = el.getAttribute('data-i18n-value');
-          let value = getNested(t, key);
-          if (value === undefined && lang !== 'en') {
-            value = getNested(enFallback, key);
-          }
-          if (value !== undefined && value !== null) el.setAttribute('value', value);
+          write(el.getAttribute('data-i18n-value'), (v) => { el.setAttribute('value', v); });
         });
 
-        document.documentElement.lang = lang;
+        document.documentElement.lang = lang === 'zh' ? 'zh-Hant' : 'en';
 
         const pathToTitleMap = {
           '/': 'home.hero_title',
@@ -222,17 +253,11 @@ const { title = 'Oriental Vibe | Space Energy & Life Balance', description = 'An
       // Rate hardcoded to 1, symbol always $ regardless of language.
       const currencyRates = {
         USD: { symbol: '$', rate: 1 },
-        EUR: { symbol: '$', rate: 1 },
-        GBP: { symbol: '$', rate: 1 },
-        CNY: { symbol: '$', rate: 1 }
       };
 
       const langToCurrency = {
         en: 'USD',
         zh: 'USD',
-        de: 'USD',
-        fr: 'USD',
-        es: 'USD'
       };
 
       function applyCurrency(currency) {
@@ -332,8 +357,18 @@ const { title = 'Oriental Vibe | Space Energy & Life Balance', description = 'An
         }
       }
 
+      // Resolve start language: SSR path beats localStorage for strict isolation.
+      function resolveStartLang() {
+        const segs = window.location.pathname.split('/').filter(Boolean);
+        if (segs[0] === 'zh') return 'zh';
+        if (segs[0] === 'en') return 'en';
+        const saved = localStorage.getItem('ov-lang');
+        if (saved === 'zh' || saved === 'en') return saved;
+        return 'en';
+      }
+
       async function init() {
-        const currentLang = localStorage.getItem('ov-lang') || 'en';
+        const currentLang = resolveStartLang();
         const hasManualCurrency = localStorage.getItem('ov-currency-manual') === 'true';
         let currentCurrency = localStorage.getItem('ov-currency');
         
@@ -342,11 +377,8 @@ const { title = 'Oriental Vibe | Space Energy & Life Balance', description = 'An
           localStorage.setItem('ov-currency', currentCurrency);
         }
 
-        // Always preload English as fallback baseline
-        await loadTranslations('en');
-        if (currentLang !== 'en') {
-          await loadTranslations(currentLang);
-        }
+        // Plan A · No fallback preload. Only the target locale ever touches the DOM.
+        await loadTranslations(currentLang);
         applyTranslations(currentLang);
         applyCurrency(currentCurrency);
 
@@ -374,17 +406,12 @@ const { title = 'Oriental Vibe | Space Energy & Life Balance', description = 'An
 
       window.addEventListener('lang-change', async (e) => {
         const lang = e.detail;
-        // Ensure English is loaded as fallback
-        if (lang !== 'en') {
-          await loadTranslations('en');
-        }
         await loadTranslations(lang);
         applyTranslations(lang);
         // FIX: Always USD (no longer switch currency on language change — matches settlement 1:1)
         localStorage.setItem('ov-currency', 'USD');
         localStorage.removeItem('ov-currency-manual');
         applyCurrency('USD');
-        // Notify pages that i18n + currency baseline have been refreshed
         document.dispatchEvent(new CustomEvent('ov-i18n-ready', { detail: { lang: lang, translations: translations } }));
       });
 

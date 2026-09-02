@@ -1,0 +1,13 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageMembership from '../../components/pages/membership.astro';
+---
+<BaseLayout title="會員中心 ｜ 長期跟隨老師學習" description="">
+<script is:inline>
+  // Lock locale at document start so SSR HTML matches the runtime locale.
+  // Fallback reads like localStorage will never override the SSR locale.
+  localStorage.setItem('ov-lang', 'zh');
+  document.documentElement.setAttribute('lang', "zh-Hant");
+</script>
+<PageMembership />
+</BaseLayout>

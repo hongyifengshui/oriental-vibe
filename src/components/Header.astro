@@ -1,57 +1,86 @@
 ---
 import '../styles/global.css';
+import { translations } from '../i18n/index.js';
+
 const pathname = Astro.url.pathname;
-const isActive = (path) => pathname === path ? 'active' : '';
+// Normalise active check to ignore language prefix.
+const stripLang = (p) => {
+  const m = p.match(/^\/(en|zh)(\/.*)$/);
+  return m ? m[2] : (p === '/' ? '/' : p);
+};
+const isActive = (path) => stripLang(pathname) === stripLang(path) ? 'active' : '';
+
+// SSR locale: derive from first path segment; fall back to EN.
+const ssrSegments = pathname.split('/').filter(Boolean);
+const ssrLocale = ssrSegments[0] === 'zh' ? 'zh' : 'en';
+const T = translations[ssrLocale] || translations.en;
+const t = (k, fb = '') => {
+  let v = T;
+  for (const p of k.split('.')) { v = v?.[p]; if (v === undefined || v === null) return fb || k; }
+  return typeof v === 'string' ? v : (fb || k);
+};
+
+const prefix = '/' + ssrLocale;
+const localized = (p) => {
+  if (!p || typeof p !== 'string') return p;
+  if (p === '/') return prefix + '/';
+  if (p.startsWith('/')) return prefix + p;
+  return prefix + '/' + p;
+};
 ---
 <header class="navbar">
   <div class="navbar-container">
-    <a href="/" class="navbar-brand" data-i18n="brand.name">Oriental Vibe</a>
+    <a href={localized('/')} class="navbar-brand" data-i18n="brand.name">{t('brand.name', 'Oriental Vibe')}</a>
     <nav class="navbar-links" id="navLinks">
-      <a href="/" class={isActive('/')} data-i18n="nav.home">Home</a>
-      <a href="/shop" class={isActive('/shop')} data-i18n="nav.shop">Shop</a>
-      <a href="/services" class={isActive('/services')} data-i18n="nav.services">Services</a>
-      <a href="/courses" class={isActive('/courses')} data-i18n="nav.courses">Courses</a>
-      <a href="/blog" class={isActive('/blog')} data-i18n="nav.blog">Blog</a>
-      <a href="/membership" class={isActive('/membership')} data-i18n="nav.membership">Membership</a>
+      <a href={localized('/')} class={isActive('/')} data-i18n="nav.home">{t('nav.home', 'Home')}</a>
+      <a href={localized('/shop')} class={isActive('/shop')} data-i18n="nav.shop">{t('nav.shop', 'Shop')}</a>
+      <a href={localized('/services')} class={isActive('/services')} data-i18n="nav.services">{t('nav.services', 'Services')}</a>
+      <a href={localized('/courses')} class={isActive('/courses')} data-i18n="nav.courses">{t('nav.courses', 'Courses')}</a>
+      <a href={localized('/blog')} class={isActive('/blog')} data-i18n="nav.blog">{t('nav.blog', 'Blog')}</a>
+      <a href={localized('/membership')} class={isActive('/membership')} data-i18n="nav.membership">{t('nav.membership', 'Membership')}</a>
+      <div class="nav-about-dropdown">
+        <a href={localized('/about')} class={`nav-about-toggle ${isActive('/about') || isActive('/master') ? 'active' : ''}`} data-i18n="nav.about">{t('nav.about', 'About')} ▾</a>
+        <div class="nav-about-menu">
+          <a href={localized('/about')} class={isActive('/about') ? 'active' : ''} data-i18n="nav.about_brand">{t('nav.about_brand', 'Our Story')}</a>
+          <a href={localized('/master')} class={isActive('/master') ? 'active' : ''} data-i18n="nav.about_master">{t('nav.about_master', 'Meet Master Xu Wei')}</a>
+        </div>
+      </div>
     </nav>
     <div class="navbar-actions">
       <div class="lang-switcher">
-        <select id="langSelect" aria-label="Language">
+        <select id="langSelect" aria-label="Language" data-ssr-locale={ssrLocale}>
           <option value="en">EN</option>
-          <option value="zh">繁體中文</option>
-          <option value="de">DE</option>
-          <option value="fr">FR</option>
-          <option value="es">ES</option>
+          <option value="zh">{ssrLocale === 'zh' ? '繁體中文' : 'Traditional Chinese'}</option>
         </select>
       </div>
 
       <!-- Auth: Logged-out CTA -->
       <button class="ov-login-cta" id="ovLoginCta" data-i18n="auth.login_prompt">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        Login / Register
+        {t('auth.login_prompt', 'Login / Register')}
       </button>
 
       <!-- Auth: Logged-in User Dropdown -->
       <div class="ov-user-area" id="ovUserArea" style="display:none;">
         <button class="ov-user-btn" id="ovUserBtn">
-          <span class="ov-user-avatar">U</span>
-          <span class="ov-user-name">User</span>
-          <span class="ov-user-tier-badge free" style="display:none;">Free</span>
+          <span class="ov-user-avatar" data-i18n-short="auth.avatar_initial">U</span>
+          <span class="ov-user-name" data-i18n-short="auth.user_label">{t('auth.user_label', ssrLocale === 'zh' ? '使用者' : 'User')}</span>
+          <span class="ov-user-tier-badge free" style="display:none;" data-i18n="auth.tier_free">{t('auth.tier_free', ssrLocale === 'zh' ? '免費' : 'Free')}</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div class="ov-user-dropdown" id="ovUserDropdown">
-          <a href="/element-test" class="ov-user-dropdown-item">
+          <a href={localized('/element-test')} class="ov-user-dropdown-item">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-            <span data-i18n="nav.cta">Five Elements Test</span>
+            <span data-i18n="nav.cta">{t('nav.cta', 'Five Elements Test')}</span>
           </a>
-          <a href="/membership" class="ov-user-dropdown-item">
+          <a href={localized('/membership')} class="ov-user-dropdown-item">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <span data-i18n="nav.membership">Membership</span>
+            <span data-i18n="nav.membership">{t('nav.membership', 'Membership')}</span>
           </a>
           <div class="ov-user-dropdown-divider"></div>
           <button class="ov-user-dropdown-item logout" id="ovLogoutBtn">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-            <span data-i18n="auth.logout">Sign Out</span>
+            <span data-i18n="auth.logout">{t('auth.logout', 'Sign Out')}</span>
           </button>
         </div>
       </div>
@@ -65,15 +94,26 @@ const isActive = (path) => pathname === path ? 'active' : '';
   document.getElementById('menuToggle')?.addEventListener('click', () => {
     document.getElementById('navLinks')?.classList.toggle('open');
   });
-  // 语言切换
+  // 语言切换：单一路径 /about 切语言后会跳前缀路由；/en/about 切繁体会跳 /zh/about。
   const langSelect = document.getElementById('langSelect');
+  function applyLangSwitch(newLang) {
+    if (!newLang || (newLang !== 'en' && newLang !== 'zh')) newLang = 'en';
+    localStorage.setItem('ov-lang', newLang);
+    const segs = window.location.pathname.split('/').filter(Boolean);
+    const hadPrefix = segs[0] === 'en' || segs[0] === 'zh';
+    const rest = hadPrefix ? segs.slice(1) : segs;
+    const target = '/' + newLang + (rest.length ? ('/' + rest.join('/')) : '/');
+    // Same-page prefix-only change → reload so SSR serves correct static language HTML.
+    if (target !== window.location.pathname) {
+      window.location.href = target;
+      return;
+    }
+    window.dispatchEvent(new CustomEvent('lang-change', { detail: newLang }));
+  }
   if (langSelect) {
-    const savedLang = localStorage.getItem('ov-lang') || 'en';
-    langSelect.value = savedLang;
-    langSelect.addEventListener('change', (e) => {
-      localStorage.setItem('ov-lang', e.target.value);
-      window.dispatchEvent(new CustomEvent('lang-change', { detail: e.target.value }));
-    });
+    const savedLang = localStorage.getItem('ov-lang') || (langSelect.getAttribute('data-ssr-locale') || 'en');
+    langSelect.value = (savedLang === 'zh' || savedLang === 'en') ? savedLang : 'en';
+    langSelect.addEventListener('change', (e) => applyLangSwitch(e.target.value));
   }
 
   // Sync site name from admin settings (live refresh + survives i18n re-render)

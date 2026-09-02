@@ -1,0 +1,13 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageIndex from '../../components/pages/index.astro';
+---
+<BaseLayout title="Oriental Vibe | Ancient Eastern Energy for Modern Living" description="Ancient Eastern Energy for Modern Western Living. Balance Your Home, Calm Your Mind, Upgrade Your Life Vibe.">
+<script is:inline>
+  // Lock locale at document start so SSR HTML matches the runtime locale.
+  // Fallback reads like localStorage will never override the SSR locale.
+  localStorage.setItem('ov-lang', 'en');
+  document.documentElement.setAttribute('lang', "en");
+</script>
+<PageIndex />
+</BaseLayout>

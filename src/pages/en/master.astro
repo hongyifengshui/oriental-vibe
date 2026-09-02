@@ -1,0 +1,13 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import MasterProfile from '../../components/about/MasterProfile.astro';
+---
+<BaseLayout title="Master Xu Wei · Lineage Holder | Oriental Vibe" description="Master Xu Wei — 40+ years lineage discipline, Visiting Professor at Peking University & Hebei Academy of Fine Arts. Read his story, titles, lineage, books & client testimonials.">
+<script is:inline>
+  // Lock locale at document start so SSR HTML matches the runtime locale.
+  // Fallback reads like localStorage will never override the SSR locale.
+  localStorage.setItem('ov-lang', 'en');
+  document.documentElement.setAttribute('lang', "en");
+</script>
+<MasterProfile locale="en" />
+</BaseLayout>

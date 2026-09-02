@@ -1,0 +1,352 @@
+---
+/**
+ * MasterProfile.astro
+ *
+ * Shared by /en/master & /zh/master · 11-section deep-dive.
+ *   1 Hero                7 Media x6
+ *   2 8 Title badges      8 Students counters
+ *   3 Lineage tree        9 Ethics promise x3
+ *   4 40-Yr timeline      10 Testimonials x6
+ *   5 6 Seals + 4 books   11 Final dual CTA
+ *   6 Signature method · Qi-Mai-Sanyuan
+ *
+ * Pure SSR: content pulled from i18n `master.*` keys at build time.
+ */
+import { translations } from '../../i18n/index.js';
+import SealBadges from './SealBadges.astro';
+import LineageTree from './LineageTree.astro';
+import TimelineStory from './TimelineStory.astro';
+
+const props = Astro.props || {};
+let locale = (typeof props.locale === 'string') ? props.locale : 'en';
+if (locale !== 'zh' && locale !== 'en') locale = 'en';
+const L = locale;
+const T = translations[L] || translations.en;
+const pick = (k, fb) => k.split('.').reduce((acc, p) => acc?.[p], T) ?? fb ?? k;
+
+const imgBase = 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=';
+const masterPortrait = `${imgBase}professional%20portrait%20middle%20aged%20chinese%20master%20xu%20wei%20shoulder%20length%20hair%20ponytail%20goatee%20burgundy%20polo%20shirt%20wooden%20prayer%20beads%20bracelet%20black%20studio%20background%20warm%20soft%20light%20wise%20authentic%20lineage%20teacher%20photorealistic&image_size=square_hd`;
+
+// Book covers — text-free aesthetics per plan
+const bookPrompts = [
+  'scholarly textbook cover in earthy ink-wash tones, no readable text, taoist aesthetic',
+  'ancient chinese scroll book cover with gold silk stitching aesthetic, no text',
+  'academic monograph hardcover in navy blue, no readable text, elegant composition',
+  'warm terracotta popular-science book cover, no readable text, subtle feng shui motif',
+];
+const books = Array.from({length:4}, (_,i) => ({
+  img: `${imgBase}${encodeURIComponent(bookPrompts[i])}&image_size=portrait_4_3`,
+  tKey: `master.seals_books_0${i+1}_t`,
+  sKey: `master.seals_books_0${i+1}_s`,
+}));
+
+const titleIcons = ['🏛️','🎓','🌿','📜','🧭','☯️','🌿','📍'];
+const titles = Array.from({length:8}, (_,i)=>({
+  tKey: `master.titles_0${i+1}_t`,
+  sKey: `master.titles_0${i+1}_s`,
+}));
+
+const mediaIcons = ['📺','📰','📰','📰','🎤','📡'];
+const media = Array.from({length:6}, (_,i)=>({
+  tKey: `master.media_0${i+1}_t`,
+  sKey: `master.media_0${i+1}_s`,
+  icon: mediaIcons[i],
+}));
+
+const studentBars = [
+  { k: 'master.students_global_n', l: 'master.students_global_l', icon: '🧭', pct: 84 },
+  { k: 'master.students_lecture_n', l: 'master.students_lecture_l', icon: '🎙️', pct: 48 },
+  { k: 'master.students_alumni_n', l: 'master.students_alumni_l', icon: '🌍', pct: 98 },
+];
+
+const ethics = Array.from({length:3}, (_,i)=>({
+  tKey: `master.ethics_0${i+1}_t`,
+  dKey: `master.ethics_0${i+1}_d`,
+}));
+
+const methodIcons = ['☁️','🌲','🤝'];
+const method = Array.from({length:3}, (_,i)=>({
+  tKey: `master.method_0${i+1}_t`,
+  dKey: `master.method_0${i+1}_d`,
+  icon: methodIcons[i],
+}));
+
+const tms = Array.from({length:6}, (_,i)=>({
+  q: `master.tm_0${i+1}_q`,
+  who: `master.tm_0${i+1}_who`,
+  role: `master.tm_0${i+1}_role`,
+}));
+
+const prefix = '/' + L;
+const href = (p) => prefix + p;
+---
+<main class="master">
+  <!-- 1 HERO -->
+  <section class="master-hero">
+    <div class="funnel-wrap master-hero__inner">
+      <div class="master-hero__portrait">
+        <img src={masterPortrait} alt="" loading="lazy" />
+      </div>
+      <div class="master-hero__copy">
+        <p class="funnel-overline" data-i18n="master.hero_overline">{pick('master.hero_overline')}</p>
+        <h1 class="master-hero__title" data-i18n="master.hero_title">{pick('master.hero_title')}</h1>
+        <p class="funnel-sub master-hero__sub" data-i18n="master.hero_subtitle">{pick('master.hero_subtitle')}</p>
+        <div class="funnel-cta-row">
+          <a class="btn btn-primary btn-lg" href={href('/services')} data-i18n="master.hero_cta_book">{pick('master.hero_cta_book')}</a>
+          <a class="btn btn-ghost btn-lg" href={href('/element-test')} data-i18n="master.hero_cta_test">{pick('master.hero_cta_test')}</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 8 TITLES -->
+  <section class="funnel-section">
+    <div class="funnel-wrap">
+      <p class="funnel-overline center" data-i18n="master.titles_overline">{pick('master.titles_overline')}</p>
+      <h2 class="funnel-h2 center" data-i18n="master.titles_title">{pick('master.titles_title')}</h2>
+      <div class="master-titles">
+        {titles.map((c,i)=>(
+          <div class="master-title-card" key={i}>
+            <div class="master-title-card__icon">{titleIcons[i]}</div>
+            <div class="master-title-card__t" data-i18n={c.tKey}>{pick(c.tKey)}</div>
+            <div class="master-title-card__s" data-i18n={c.sKey}>{pick(c.sKey)}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 LINEAGE -->
+  <section class="funnel-section funnel-section--paper">
+    <div class="funnel-wrap">
+      <p class="funnel-overline center" data-i18n="master.lineage_overline">{pick('master.lineage_overline')}</p>
+      <h2 class="funnel-h2 center" data-i18n="master.lineage_title">{pick('master.lineage_title')}</h2>
+      <p class="funnel-p center funnel-sub" style="max-width: 760px; margin: 8px auto 28px;" data-i18n="master.lineage_intro">{pick('master.lineage_intro')}</p>
+      <LineageTree lang={L} />
+    </div>
+  </section>
+
+  <!-- 4 40 YEAR TIMELINE -->
+  <section class="funnel-section">
+    <div class="funnel-wrap">
+      <p class="funnel-overline center" data-i18n="master.timeline_overline">{pick('master.timeline_overline')}</p>
+      <h2 class="funnel-h2 center" data-i18n="master.timeline_title">{pick('master.timeline_title')}</h2>
+    </div>
+    <div style="margin-top: 24px;">
+      <TimelineStory lang={L} />
+    </div>
+  </section>
+
+  <!-- 5 SEALS + BOOKS -->
+  <section class="funnel-section funnel-section--ink">
+    <div class="funnel-wrap">
+      <p class="funnel-overline center" style="color:#C79F60;" data-i18n="master.seals_overline">{pick('master.seals_overline')}</p>
+      <h2 class="funnel-h2 center" data-i18n="master.seals_title">{pick('master.seals_title')}</h2>
+      <p class="funnel-p center" style="max-width: 760px; margin: 6px auto 28px;" data-i18n="master.seals_intro">{pick('master.seals_intro')}</p>
+      <div style="display:flex;justify-content:center;margin-block:24px;">
+        <SealBadges lang={L} size="96px" />
+      </div>
+      <h3 class="funnel-h2 center" style="font-size: clamp(20px,2.2vw,26px);margin-top:28px;" data-i18n="master.seals_books_title">{pick('master.seals_books_title')}</h3>
+      <div class="master-books">
+        {books.map((b,i)=>(
+          <figure class="master-book" key={i}>
+            <img src={b.img} alt="" loading="lazy" />
+            <figcaption>
+              <strong data-i18n={b.tKey}>{pick(b.tKey)}</strong>
+              <span data-i18n={b.sKey}>{pick(b.sKey)}</span>
+            </figcaption>
+          </figure>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 SIGNATURE METHOD -->
+  <section class="funnel-section">
+    <div class="funnel-wrap">
+      <p class="funnel-overline center" data-i18n="master.method_overline">{pick('master.method_overline')}</p>
+      <h2 class="funnel-h2 center" data-i18n="master.method_title">{pick('master.method_title')}</h2>
+      <p class="funnel-sub center" style="max-width:760px;margin:4px auto 28px;" data-i18n="master.method_intro">{pick('master.method_intro')}</p>
+      <div class="master-method-grid">
+        {method.map((m,i)=>(
+          <div class="master-method" key={i}>
+            <div class="master-method__icon">{m.icon}</div>
+            <h4 data-i18n={m.tKey}>{pick(m.tKey)}</h4>
+            <p data-i18n={m.dKey}>{pick(m.dKey)}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 MEDIA -->
+  <section class="funnel-section funnel-section--paper">
+    <div class="funnel-wrap">
+      <p class="funnel-overline center" data-i18n="master.media_overline">{pick('master.media_overline')}</p>
+      <h2 class="funnel-h2 center" data-i18n="master.media_title">{pick('master.media_title')}</h2>
+      <div class="master-media-grid">
+        {media.map((m,i)=>(
+          <div class="master-media" key={i}>
+            <div class="master-media__i">{m.icon}</div>
+            <div class="master-media__t" data-i18n={m.tKey}>{pick(m.tKey)}</div>
+            <div class="master-media__s" data-i18n={m.sKey}>{pick(m.sKey)}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 STUDENTS -->
+  <section class="funnel-section">
+    <div class="funnel-wrap">
+      <p class="funnel-overline center" data-i18n="master.students_overline">{pick('master.students_overline')}</p>
+      <h2 class="funnel-h2 center" data-i18n="master.students_title">{pick('master.students_title')}</h2>
+      <div class="master-students">
+        {studentBars.map((row,i)=>(
+          <div class="master-srow" key={i}>
+            <div class="master-srow__head">
+              <div style="display:flex;gap:8px;align-items:center;">
+                <span>{row.icon}</span>
+                <div class="master-srow__n" data-i18n={row.k}>{pick(row.k)}</div>
+              </div>
+              <div class="master-srow__l" data-i18n={row.l}>{pick(row.l)}</div>
+            </div>
+            <div class="master-srow__bar"><div style={`width:${row.pct}%;`}></div></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- 9 ETHICS -->
+  <section class="funnel-section master-ethics">
+    <div class="funnel-wrap">
+      <p class="funnel-overline center" data-i18n="master.ethics_overline">{pick('master.ethics_overline')}</p>
+      <h2 class="funnel-h2 center" data-i18n="master.ethics_title">{pick('master.ethics_title')}</h2>
+      <div class="master-ethics-grid">
+        {ethics.map((e,i)=>(
+          <div class="master-eth" key={i}>
+            <div class="master-eth__n">0{i+1}</div>
+            <div class="master-eth__t" data-i18n={e.tKey}>{pick(e.tKey)}</div>
+            <div class="master-eth__d" data-i18n={e.dKey}>{pick(e.dKey)}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 TESTIMONIALS x6 -->
+  <section class="funnel-section">
+    <div class="funnel-wrap">
+      <p class="funnel-overline center" data-i18n="master.testimonials_overline">{pick('master.testimonials_overline')}</p>
+      <h2 class="funnel-h2 center" data-i18n="master.testimonials_title">{pick('master.testimonials_title')}</h2>
+      <div class="master-tm-grid">
+        {tms.map((t,i)=>(
+          <figure class="master-tm" key={i}>
+            <blockquote data-i18n={t.q}>{pick(t.q)}</blockquote>
+            <figcaption>
+              <strong data-i18n={t.who}>{pick(t.who)}</strong>
+              <span data-i18n={t.role}>{pick(t.role)}</span>
+            </figcaption>
+          </figure>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 FINAL CTA -->
+  <section class="funnel-cta master-final-cta">
+    <div class="funnel-wrap funnel-cta__inner">
+      <div class="funnel-cta__copy">
+        <h2 class="funnel-h2" data-i18n="master.cta_title">{pick('master.cta_title')}</h2>
+        <p class="funnel-sub" data-i18n="master.cta_subtitle">{pick('master.cta_subtitle')}</p>
+        <p class="master-compliance" data-i18n="master.compliance">{pick('master.compliance')}</p>
+      </div>
+      <div class="funnel-cta-row">
+        <a class="btn btn-primary btn-lg" href={href('/services')} data-i18n="master.cta_primary">{pick('master.cta_primary')}</a>
+        <a class="btn btn-ghost btn-lg" href={href('/contact')} data-i18n="master.cta_secondary">{pick('master.cta_secondary')}</a>
+      </div>
+    </div>
+  </section>
+</main>
+<style is:global>
+/* ---------- master page ---------- */
+.master{color:#2d2b29;}
+/* 1 Hero */
+.master-hero{background:linear-gradient(180deg,#F7EED5 0%, #FBF5E6 100%);padding: clamp(64px,10vw,128px) 0;}
+.master-hero__inner{display:grid;grid-template-columns: 360px 1fr;gap: 48px;align-items:center;}
+.master-hero__portrait img{width:100%;aspect-ratio: 1/1; object-fit: cover;border-radius: 220px;box-shadow: 0 30px 80px rgba(110,80,40,.22);border:10px solid #FFFFFF;}
+.master-hero__title{font-family:'Playfair Display','STKaiti','KaiTi',Georgia,serif;font-size:clamp(30px,4.2vw,52px);line-height:1.15;margin:4px 0 14px;white-space:pre-line;color:#1A1715;}
+.master-hero__sub{max-width: 680px;}
+@media (max-width: 860px){
+  .master-hero__inner{grid-template-columns:1fr;gap:28px;}
+  .master-hero__portrait{max-width: 280px;margin-inline:auto;}
+}
+
+/* 2 titles */
+.master-titles{margin-top:28px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;}
+.master-title-card{background:#FFFBF2;border:1px solid #EFE6D2;border-radius:14px;padding:18px;}
+.master-title-card__icon{font-size:26px;margin-bottom:6px;}
+.master-title-card__t{font-weight:700;color:#3A250A;font-size:15px;}
+.master-title-card__s{color:#6B6357;font-size:13px;margin-top:4px;line-height:1.55;}
+@media (max-width: 960px){ .master-titles{grid-template-columns:repeat(2,1fr);} }
+@media (max-width: 520px){ .master-titles{grid-template-columns:1fr;} }
+
+/* 5 books */
+.master-books{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;margin-top:24px;}
+.master-book{margin:0;}
+.master-book img{width:100%;aspect-ratio: 3/4;object-fit: cover;border-radius:12px;border:1px solid #6A461E33;}
+.master-book figcaption{margin-top: 10px;color:#F7EED5;display:flex;flex-direction:column;gap:4px;font-size:14px;line-height:1.5;}
+.master-book figcaption strong{color:#FFF5D8;font-size:15px;}
+.master-book figcaption span{color:#E7D6AD;font-size:13px;}
+@media (max-width: 860px){ .master-books{grid-template-columns:repeat(2,1fr);} }
+
+/* 6 method */
+.master-method-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;}
+.master-method{background:#FFFBF2;border:1px solid #EFE6D2;border-radius:14px;padding:22px;}
+.master-method__icon{font-size:28px;}
+.master-method h4{margin:8px 0 6px;font-size:17px;color:#3A250A;}
+.master-method p{margin:0;color:#56514B;font-size:14px;line-height:1.7;}
+@media (max-width: 860px){ .master-method-grid{grid-template-columns:1fr;} }
+
+/* 7 media */
+.master-media-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;}
+.master-media{background:#fff;border:1px solid #EFE6D2;border-radius:14px;padding:18px;}
+.master-media__i{font-size:26px;}
+.master-media__t{font-weight:700;margin-top:4px;}
+.master-media__s{color:#625B51;font-size:13px;margin-top:3px;line-height:1.55;}
+@media (max-width: 860px){ .master-media-grid{grid-template-columns:repeat(2,1fr);} }
+@media (max-width: 520px){ .master-media-grid{grid-template-columns:1fr;} }
+
+/* 8 students bars */
+.master-students{margin-top:28px;display:grid;gap:18px;max-width: 860px;margin-inline:auto;}
+.master-srow{background:#FFFBF2;border:1px solid #EFE6D2;border-radius:12px;padding:14px 16px;}
+.master-srow__head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;}
+.master-srow__n{font-weight:700;font-family:'Playfair Display',Georgia,serif;font-size:19px;color:#6A461E;}
+.master-srow__l{color:#625B51;font-size:13px;}
+.master-srow__bar{margin-top:8px;height:8px;background:#F0E6D0;border-radius:999px;overflow:hidden;}
+.master-srow__bar > div{height:100%;background: linear-gradient(90deg,#C79F60,#8C5A2B);}
+
+/* 9 ethics */
+.master-ethics{background: linear-gradient(180deg,#FFFBF2 0%, #F6ECDA 100%);}
+.master-ethics-grid{margin-top:26px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;}
+.master-eth{background:#fff;border-top: 4px solid #9A7B4D;border-radius: 0 0 14px 14px;padding:20px 20px 22px;box-shadow: 0 16px 40px rgba(154,123,77,.08);}
+.master-eth__n{font-family:'Playfair Display',serif;font-size:34px;color:#C79F60;font-weight:700;line-height:1;}
+.master-eth__t{margin-top:6px;font-weight:700;font-size:16px;color:#3A250A;}
+.master-eth__d{margin-top:6px;color:#56514B;line-height:1.7;font-size:14px;}
+@media (max-width: 860px){ .master-ethics-grid{grid-template-columns:1fr;} }
+
+/* 10 testimonials */
+.master-tm-grid{margin-top:28px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;}
+.master-tm{margin:0;background:#fff;border:1px solid #EFE6D2;border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:14px;}
+.master-tm blockquote{margin:0;font-size:15px;line-height:1.8;color:#3A3632;quotes:"\201C""\201D";}
+.master-tm blockquote::before{content:"❝";font-size:28px;color:#C79F60;display:block;line-height:.8;margin-bottom:6px;}
+.master-tm figcaption{display:flex;flex-direction:column;gap:2px;border-top:1px dashed #EFE6D2;padding-top:12px;color:#625B51;font-size:13px;}
+.master-tm figcaption strong{color:#3A250A;font-size:14px;}
+@media (max-width: 860px){ .master-tm-grid{grid-template-columns:1fr;} }
+@media (min-width: 861px) and (max-width: 1100px){ .master-tm-grid{grid-template-columns:1fr 1fr;} }
+
+/* 11 final CTA */
+.master-final-cta{background:linear-gradient(135deg,#2A1710,#5B2C1B 60%,#8C5A2B);}
+.master-compliance{margin:0;color:#D6BE8B;font-size:13px;line-height:1.7;max-width:640px;}
+</style>

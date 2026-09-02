@@ -17,8 +17,19 @@ const ROOT = path.resolve(__dirname, '..', '..');
 (function syncI18n() {
   const SRC = path.join(ROOT, 'src', 'i18n');
   const PUB = path.join(ROOT, 'public', 'i18n');
-  const LANGS = ['en', 'zh', 'es', 'fr', 'de'];
+  // Plan A: only EN + Traditional Chinese are shipped. DE/FR/ES sources kept
+  // on disk for future re-enable but are NOT mirrored → /i18n/de.json 404.
+  const LANGS = ['en', 'zh'];
   if (!fs.existsSync(PUB)) fs.mkdirSync(PUB, { recursive: true });
+
+  // Cleanup legacy mirrored files so we never accidentally serve them.
+  ['de', 'fr', 'es'].forEach((drop) => {
+    const f = path.join(PUB, drop + '.json');
+    if (fs.existsSync(f)) {
+      fs.unlinkSync(f);
+      console.log(`  🗑 [i18n] removed stale public/i18n/${drop}.json`);
+    }
+  });
 
   let copied = 0;
   LANGS.forEach(lang => {

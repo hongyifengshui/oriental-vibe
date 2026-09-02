@@ -1,13 +1,20 @@
 ---
 import '../styles/global.css';
+import { translations } from '../i18n/index.js';
+const __segs = Astro.url.pathname.split('/').filter(Boolean);
+const __L = __segs[0] === 'zh' ? 'zh' : 'en';
+const T = translations[__L] || translations.en;
+const t = (k, fb = '') => {
+  let v = T;
+  for (const p of k.split('.')) { v = v?.[p]; if (v === undefined || v === null) return fb || k; }
+  return typeof v === 'string' ? v : (fb || k);
+};
 ---
-<div class="cookie-banner" id="cookieBanner" role="dialog" aria-label="Cookie consent">
-  <p class="cookie-text" data-i18n="cookie.text">
-    We use cookies to enhance your browsing experience, personalize content, and analyze our traffic. By clicking "Accept", you consent to our use of cookies in accordance with our Privacy Policy and GDPR guidelines.
-  </p>
+<div class="cookie-banner" id="cookieBanner" role="dialog" aria-label={__L === 'zh' ? 'Cookie 同意' : 'Cookie consent'}>
+  <p class="cookie-text" data-i18n="cookie.text">{t('cookie.text')}</p>
   <div class="cookie-buttons">
-    <button class="btn cookie-decline" id="cookieDecline" data-i18n="cookie.decline">Decline</button>
-    <button class="btn cookie-accept" id="cookieAccept" data-i18n="cookie.accept">Accept</button>
+    <button class="btn cookie-decline" id="cookieDecline" data-i18n="cookie.decline">{t('cookie.decline', 'Decline')}</button>
+    <button class="btn cookie-accept" id="cookieAccept" data-i18n="cookie.accept">{t('cookie.accept', 'Accept')}</button>
   </div>
 </div>
 <script is:inline>

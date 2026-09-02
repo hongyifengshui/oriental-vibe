@@ -17,30 +17,66 @@ const seals = {
 };
 
 const VALID_WHICH = { '01':1,'02':1,'03':1,'04':1,'05':1,'06':1 };
-function zhTextNodes(which) {
-  var s = seals[which] || seals['01'];
-  if (s.zh.type === 'square') {
-    // 方形朱砂白文 2x2（body 四字拆 4 象限，body 不足 4 字则补空格 / 合并）
+// Seal glyphs: for ZH we use traditional seal-script characters (4象限 for 方印,
+// 上3/中2/下3 for 圓印).  For EN, we instead render Latin-letter MONOGRAMS so the
+// EN pages never ship CJK DOM — the visual effect is preserved without leaking
+// characters into the DOM isolation check.
+const EN_MONOGRAMS = {
+  '01': { quadrants: ['Y','L','J','L'], circle: ['F','O','U','N','D','R'], bottom: 'EST · 1986', signature: 'XW' },
+  '02': { quadrants: ['A','C','L','W'], circle: ['T','R','I','P','L','A'], bottom: 'LIT · ARTS', signature: 'XW' },
+  '03': { quadrants: ['V','P','H','B'], circle: ['H','B','F','A','2','0'], bottom: 'EST · 2010', signature: 'XW' },
+  '04': { quadrants: ['P','K','U','Y'], circle: ['Y','A','N','2','0','1'], bottom: 'EST · 2015', signature: 'XW' },
+  '05': { quadrants: ['L','H','G','S'], circle: ['S','I','N','C','E','8'], bottom: 'SINCE · 479BC', signature: 'XW' },
+  '06': { quadrants: ['I','C','H','R'], circle: ['G','O','L','D','1','3'], bottom: 'EST · 2400YRS', signature: 'XW' },
+};
+function textNodes(which, locale) {
+  const s = seals[which] || seals['01'];
+  if (locale === 'zh') {
     const chars = Array.from(s.zh.body);
-    while (chars.length < 4) chars.push('');
+    if (s.zh.type === 'square') {
+      while (chars.length < 4) chars.push('');
+      return [
+        { x: 52, y: 88, ch: chars[0] },
+        { x: 112, y: 88, ch: chars[1] },
+        { x: 52, y: 140, ch: chars[2] },
+        { x: 112, y: 140, ch: chars[3] },
+      ];
+    }
     return [
-      { x: 52, y: 88, ch: chars[0] },
-      { x: 112, y: 88, ch: chars[1] },
-      { x: 52, y: 140, ch: chars[2] },
-      { x: 112, y: 140, ch: chars[3] },
+      { x: 70, y: 76, ch: chars[0] || '' },
+      { x: 100, y: 76, ch: chars[1] || '' },
+      { x: 130, y: 76, ch: chars[2] || '' },
+      { x: 70, y: 134, ch: chars[3] || '' },
+      { x: 100, y: 134, ch: chars[4] || '' },
+      { x: 130, y: 134, ch: chars[5] || '' },
     ];
   }
-  // 圆形蜡封：上 3 字，下 3 字 + 中间 2 字（sub 不画进章内）
-  const chars = Array.from(s.zh.body);
+  // EN: render latin monograms (4 quadrants for square, 6 letters + bottom for circle)
+  const m = EN_MONOGRAMS[which] || EN_MONOGRAMS['01'];
+  if (s.zh.type === 'square') {
+    const q = m.quadrants;
+    return [
+      { x: 52, y: 88, ch: q[0] },
+      { x: 112, y: 88, ch: q[1] },
+      { x: 52, y: 140, ch: q[2] },
+      { x: 112, y: 140, ch: q[3] },
+    ];
+  }
   return [
-    { x: 70, y: 76, ch: chars[0] || '' },
-    { x: 100, y: 76, ch: chars[1] || '' },
-    { x: 130, y: 76, ch: chars[2] || '' },
-    { x: 70, y: 134, ch: chars[3] || '' },
-    { x: 100, y: 134, ch: chars[4] || '' },
-    { x: 130, y: 134, ch: chars[5] || '' },
+    { x: 70, y: 76, ch: m.circle[0] || '' },
+    { x: 100, y: 76, ch: m.circle[1] || '' },
+    { x: 130, y: 76, ch: m.circle[2] || '' },
+    { x: 70, y: 134, ch: m.circle[3] || '' },
+    { x: 100, y: 134, ch: m.circle[4] || '' },
+    { x: 130, y: 134, ch: m.circle[5] || '' },
   ];
 }
+function bottomText(which, locale) {
+  const s = seals[which] || seals['01'];
+  if (locale === 'zh') return s.zh.sub.slice(0, 10);
+  return (EN_MONOGRAMS[which] || EN_MONOGRAMS['01']).bottom;
+}
+function signatureText(locale) { return locale === 'zh' ? '徐偉' : 'XW'; }
 ---
 
 <style>
@@ -86,17 +122,16 @@ function zhTextNodes(which) {
             <line x1="100" y1="30" x2="100" y2="170" />
             <line x1="30" y1="100" x2="170" y2="100" />
           </g>
-          {/* 白文篆字（4 象限） */}
-          <g fill="#F5F1EB" text-anchor="middle" font-family="'STKaiti','KaiTi','楷体',serif"
+          <g fill="#F5F1EB" text-anchor="middle" font-family="'Cinzel',Georgia,serif"
              font-weight="700" filter={`url(#seal-dmg-${id})`}>
-            {zhTextNodes(id).map(n => (
-              <text x={n.x} y={n.y} font-size="46" dominant-baseline="middle">{n.ch}</text>
+            {textNodes(id, lang).map(n => (
+              <text x={n.x} y={n.y} font-size="46" dominant-baseline="middle" letter-spacing={lang === 'zh' ? '0' : '2'}>{n.ch}</text>
             ))}
           </g>
-          {/* 右下角小 "徐偉" 落款 */}
+          {/* 右下角小落款（ZH: 徐偉; EN: XW monogram） */}
           <g fill="#F5F1EB" font-family="'STKaiti',KaiTi,serif" font-size="10" opacity=".9"
              text-anchor="end">
-            <text x="182" y="194">徐偉</text>
+            <text x="182" y="194" font-family={lang === 'zh' ? "'STKaiti',KaiTi,serif" : "'Cinzel',Georgia,serif"}>{signatureText(lang)}</text>
           </g>
         </svg>
       ) : (
@@ -126,11 +161,11 @@ function zhTextNodes(which) {
           {/* 烫金双圈 */}
           <circle cx="100" cy="100" r="70" fill="none" stroke={`url(#gold-${id})`} stroke-width="1.2" />
           <circle cx="100" cy="100" r="62" fill="none" stroke={`url(#gold-${id})`} stroke-width="0.6" opacity=".85" />
-          {/* 篆字内容（2 行中文，书法字体） */}
+          {/* 篆字內容（ZH: 傳統篆書; EN: 拉丁合字） */}
           <g fill={`url(#gold-${id})`} text-anchor="middle"
-             font-family="'STKaiti','KaiTi','楷体',serif" font-weight="700">
-            {zhTextNodes(id).map(n => (
-              <text x={n.x} y={n.y} font-size="34" dominant-baseline="middle">{n.ch}</text>
+             font-family={lang === 'zh' ? "'STKaiti','KaiTi','楷体',serif" : "'Cinzel',Georgia,serif"} font-weight="700">
+            {textNodes(id, lang).map(n => (
+              <text x={n.x} y={n.y} font-size={lang === 'zh' ? '34' : '30'} dominant-baseline="middle" letter-spacing={lang === 'zh' ? '0' : '1'}>{n.ch}</text>
             ))}
           </g>
           {/* 顶部年份 */}
@@ -140,8 +175,8 @@ function zhTextNodes(which) {
           </text>
           {/* 底部小字 */}
           <text x="100" y="162" fill={`url(#gold-${id})`} text-anchor="middle"
-                font-family="'STKaiti',KaiTi,serif" font-size="8" opacity=".95">
-            {s.zh.sub.slice(0, 10)}
+                font-family={lang === 'zh' ? "'STKaiti',KaiTi,serif" : "'Cinzel',Georgia,serif"} font-size="8" opacity=".95">
+            {bottomText(id, lang)}
           </text>
         </svg>
       )}

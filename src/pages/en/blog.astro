@@ -1,0 +1,12 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageBlog from '../../components/pages/blog.astro';
+import { posts } from '../../data/blog.js';
+---
+<BaseLayout title="Blog · Energy Wisdom & Case Studies" description="Space energy principles, wellness tips and lineage-method case studies curated for a global audience.">
+<script is:inline>
+  localStorage.setItem('ov-lang', 'en');
+  document.documentElement.setAttribute('lang', "en");
+</script>
+<PageBlog posts={posts} />
+</BaseLayout>

@@ -1,0 +1,13 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BrandFunnel from '../../components/about/BrandFunnel.astro';
+---
+<BaseLayout title="Our Story · Oriental Vibe" description="40-year lineage practice. Founded by Master Xu Wei — 80th-gen Guiguzi, 79th-gen Sun Bin — Oriental Vibe brings authentic lineage diagnostics to homes & offices worldwide.">
+<script is:inline>
+  // Lock locale at document start so SSR HTML matches the runtime locale.
+  // Fallback reads like localStorage will never override the SSR locale.
+  localStorage.setItem('ov-lang', 'en');
+  document.documentElement.setAttribute('lang', "en");
+</script>
+<BrandFunnel locale="en" />
+</BaseLayout>

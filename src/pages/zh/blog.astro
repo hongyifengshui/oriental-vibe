@@ -1,0 +1,12 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageBlog from '../../components/pages/blog.astro';
+import { posts } from '../../data/blog.js';
+---
+<BaseLayout title="部落格 ｜ 能量觀念與案例" description="為全球讀者精選的空間能量原則、養生建議與法脈案例解析。">
+<script is:inline>
+  localStorage.setItem('ov-lang', 'zh');
+  document.documentElement.setAttribute('lang', "zh-Hant");
+</script>
+<PageBlog posts={posts} />
+</BaseLayout>

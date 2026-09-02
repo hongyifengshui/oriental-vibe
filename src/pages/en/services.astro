@@ -1,0 +1,13 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageServices from '../../components/pages/services.astro';
+---
+<BaseLayout title="Services · Master-led Consultations" description="">
+<script is:inline>
+  // Lock locale at document start so SSR HTML matches the runtime locale.
+  // Fallback reads like localStorage will never override the SSR locale.
+  localStorage.setItem('ov-lang', 'en');
+  document.documentElement.setAttribute('lang', "en");
+</script>
+<PageServices />
+</BaseLayout>

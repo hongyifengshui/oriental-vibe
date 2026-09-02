@@ -1,11 +1,8 @@
 import en from './en.json';
 import zh from './zh.json';
-import de from './de.json';
-import fr from './fr.json';
-import es from './es.json';
 
-export const translations = { en, zh, de, fr, es };
-export const supportedLangs = ['en', 'zh', 'de', 'fr', 'es'];
+export const translations = { en, zh };
+export const supportedLangs = ['en', 'zh'];
 export const defaultLang = 'en';
 
 export function getLangFromUrl(url) {
@@ -22,5 +19,5 @@ export function useTranslations(lang) {
       value = value?.[k];
     }
     return value || key;
-  }
+  };
 }

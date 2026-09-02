@@ -1,0 +1,13 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageIndex from '../../components/pages/index.astro';
+---
+<BaseLayout title="東方能量空間 ｜ 正統東方智慧，現代生活應用" description="正統東方能量智慧，為現代生活應用。安定你的空間，梳理你的能量，提升你的生活氣場。">
+<script is:inline>
+  // Lock locale at document start so SSR HTML matches the runtime locale.
+  // Fallback reads like localStorage will never override the SSR locale.
+  localStorage.setItem('ov-lang', 'zh');
+  document.documentElement.setAttribute('lang', "zh-Hant");
+</script>
+<PageIndex />
+</BaseLayout>
