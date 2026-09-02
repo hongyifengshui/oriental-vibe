@@ -1282,6 +1282,10 @@ import '../styles/global.css';
   // ========== DATA LAYER ==========
   const LS_PREFIX = 'ov-admin-';
   const lsGet = k => { try { return JSON.parse(localStorage.getItem(LS_PREFIX + k)); } catch { return null; } };
+  // NOTE: admin-cloud.js (D1 云端补丁) 需要通过 window.lsGet/window.lsSet 读取&覆盖原函数。
+  //       若不挂到 window，云 patch 会在登录时报 "window.lsSet is not a function"。
+  if (!window.lsGet) window.lsGet = lsGet;
+  if (!window.lsSet) window.lsSet = (k, v) => lsSet(k, v);
   /** Broadcast a save event so:
     *   (a) same-tab listeners on frontend pages re-render immediately
     *   (b) other browser tabs still get native "storage" event after setItem
@@ -1308,6 +1312,11 @@ import '../styles/global.css';
       return false;
     }
   };
+  // 暴露到 window，供 D1 云端补丁 (admin-cloud.js) 读取&覆盖 —
+  // 否则 cloudLogin 在执行 window.lsSet('token', ...) 时会报
+  // "window.lsSet is not a function"，导致登录后无法进入仪表盘。
+  if (!window.lsGet) window.lsGet = lsGet;
+  if (!window.lsSet) window.lsSet = lsSet;
   const randInt = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
   const randPick = arr => arr[Math.floor(Math.random() * arr.length)];
   const daysAgo = n => { const d = new Date(); d.setDate(d.getDate() - n); return d.toISOString().slice(0, 10); };

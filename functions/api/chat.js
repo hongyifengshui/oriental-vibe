@@ -52,8 +52,29 @@ function getClientIp(request) {
 }
 
 /* ---------- HTTP helpers ---------- */
+function sanitizeForJson(val) {
+  // Some LLM outputs contain raw control characters (e.g. C1 control bytes) that
+  // cause RFC 8259 JSON parsers (Chrome strict / Python json.loads) to choke.
+  // JSON.stringify preserves \n\t\r correctly but strips only U+0000-U+001F except
+  // \n \r \t. Forbid raw C0 controls (except common whitespace) and C1 DEL, to
+  // ensure browser resp.json() never chokes on AI text.
+  if (typeof val !== "string") return val;
+  return val.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "");
+}
 function json(data, status = 200, extraHeaders = {}) {
-  return new Response(JSON.stringify(data), {
+  // Lightweight recursive sanitize: only touch string leaves, preserve structure.
+  const clean = (v) => {
+    if (v == null) return v;
+    if (typeof v === "string") return sanitizeForJson(v);
+    if (Array.isArray(v)) return v.map(clean);
+    if (typeof v === "object") {
+      const o = {};
+      for (const k of Object.keys(v)) o[k] = clean(v[k]);
+      return o;
+    }
+    return v;
+  };
+  return new Response(JSON.stringify(clean(data)), {
     status,
     headers: {
       "Content-Type": "application/json; charset=utf-8",
