@@ -724,5 +724,52 @@ const comparisonRows = [
     } catch(err) {
       // ignore
     }
+
+    // Live sync: when admin updates benefits/membershipLevels, re-render tier cards
+    function _admin_membership_changed(key) {
+      return key == null || key === '__all__' || key === 'benefits' || key === 'membershipLevels' || key === 'settings';
+    }
+    function _reloadMembershipTiers() {
+      // Read from admin localStorage and override hardcoded tierConfig if present
+      try {
+        var rawLevels = localStorage.getItem('ov-admin-membershipLevels');
+        if (rawLevels) {
+          var levels = JSON.parse(rawLevels);
+          if (Array.isArray(levels) && levels.length) {
+            levels.forEach(function(l) {
+              var t = tierConfig[l.tier];
+              if (t) {
+                if (l.priceUsd) t.price = l.priceUsd;
+                if (l.discountPercent) t.benefits[0] = l.discountPercent + '% off all services, products & courses';
+                if (l.benefits && Array.isArray(l.benefits) && l.benefits.length) t.benefits = l.benefits;
+              }
+            });
+          }
+        }
+        var rawBenefits = localStorage.getItem('ov-admin-benefits');
+        if (rawBenefits) {
+          var benefits = JSON.parse(rawBenefits);
+          if (Array.isArray(benefits) && benefits.length) {
+            benefits.forEach(function(b) {
+              var t = tierConfig[b.tier || b.level];
+              if (t && b.benefits && Array.isArray(b.benefits)) t.benefits = b.benefits;
+            });
+          }
+        }
+      } catch(_) {}
+      // Re-render price labels
+      Object.keys(tierConfig).forEach(function(tier) {
+        var priceEl = document.querySelector('[data-tier="' + tier + '"] .tier-price');
+        if (priceEl) priceEl.textContent = '$' + tierConfig[tier].price;
+      });
+    }
+    _reloadMembershipTiers();
+    window.addEventListener('ov-admin-saved', function(e) {
+      if (_admin_membership_changed(e && e.detail && e.detail.key)) _reloadMembershipTiers();
+    });
+    window.addEventListener('storage', function(e) {
+      var k = e ? e.key : null;
+      if (_admin_membership_changed(k ? k.replace('ov-admin-', '') : null)) _reloadMembershipTiers();
+    });
   })();
 </script>

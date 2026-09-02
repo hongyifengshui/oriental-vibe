@@ -930,7 +930,7 @@ import '../styles/global.css';
 
     // Live refresh: if checkout modal open + settings changed → rerender summary / pay radios
     function settingsKeyChanged(k) {
-      return k == null || k === 'settings' || (typeof k === 'string' && k.indexOf('ov-admin-settings') === 0);
+      return k == null || k === '__all__' || k === 'settings' || k === 'whatsappNumber' || k === 'paymentInfo' || (typeof k === 'string' && k.indexOf('ov-admin-settings') === 0);
     }
     function rerenderCheckoutIfOpen() {
       if (checkoutModal && checkoutModal.classList.contains('open') && coForm && coForm.style.display !== 'none') {
