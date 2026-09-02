@@ -139,9 +139,9 @@ jobs:
           echo "🔍 通过 D1 REST API 检查数据库: $NAME"
 
           # ---------- 3a. List D1 databases (按名称过滤，最多 100) ----------
-          # Cloudflare D1 API: GET accounts/:id/d1/databases
+          # Cloudflare D1 API: GET accounts/:id/d1/database（单数！databases/s 会 404）
           # 响应结构: { success: true, result: [ { uuid, name, created_at, ... } ] }
-          LIST=$(curl -sS -H "$H_AUTH" "$API/d1/databases?per_page=100")
+          LIST=$(curl -sS -H "$H_AUTH" "$API/d1/database?per_page=100")
           OK=$(echo "$LIST" | jq -r '.success // false')
           if [ "$OK" != "true" ]; then
             echo "::error::D1 List API 失败。Cloudflare 错误: $(echo "$LIST" | jq -c '.errors')"
@@ -159,13 +159,13 @@ jobs:
             # 若该账号不支持 location hint，会收到错误再降级重试
             echo "🚀 D1 未找到，开始创建 $NAME (优先 location=apac)..."
             PAYLOAD=$(jq -cn --arg n "$NAME" '{name: $n}')
-            RESP=$(curl -sS -X POST -H "$H_AUTH" -H "$H_CT" --data "$PAYLOAD" "$API/d1/databases")
+            RESP=$(curl -sS -X POST -H "$H_AUTH" -H "$H_CT" --data "$PAYLOAD" "$API/d1/database")
             OK=$(echo "$RESP" | jq -r '.success // false')
             if [ "$OK" != "true" ]; then
               echo "ℹ️ 首次创建失败 (可能 location 限制或参数要求)，尝试降级方式再查一次 list 兜底..."
               # 有些版本 wrangler / API 创建是异步的，sleep 后查 list 兜底
               sleep 5
-              LIST2=$(curl -sS -H "$H_AUTH" "$API/d1/databases?per_page=100")
+              LIST2=$(curl -sS -H "$H_AUTH" "$API/d1/database?per_page=100")
               DB_ID=$(echo "$LIST2" | jq -r --arg n "$NAME" '.result[] | select(.name==$n) | .uuid // empty' 2>/dev/null || true)
             else
               DB_ID=$(echo "$RESP" | jq -r '.result.uuid // empty' 2>/dev/null || true)
