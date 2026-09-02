@@ -693,6 +693,7 @@ const { title = "AI Assistant" } = Astro.props;
   // We start "unknown" and probe once on first message. Once proven, stay ON.
   // States: "unknown" | "available" | "fallback"
   let remoteEngineState = "unknown";
+  let _remoteHardFail = false; // set to true ONLY on explicit missingKey / upstream 5xx / network layer error
 
   function setEngineBadge(state, modelLabel) {
     if (state === "available") {
@@ -765,7 +766,7 @@ const { title = "AI Assistant" } = Astro.props;
         } : null };
       }
 
-      if (!payload) return { ok: false };
+      if (!payload) return { ok: false, parseError: true };
 
       // The server explicitly signals a fallback (no OPENAI_API_KEY set, or upstream 502)
       if (payload._fallback || payload.missingKey) {
@@ -1108,7 +1109,15 @@ const { title = "AI Assistant" } = Astro.props;
     let usedFallback = false;
     let modelLabel = null;
 
-    if (remoteEngineState !== "fallback") {
+    // Try remote engine first (if state NOT hard-failed). A transient failure (e.g. LLM
+    // JSON control chars, network blip) will NOT lock the user into local AI forever —
+    // every new message re-attempts remote until the FIRST explicit missingKey / 5xx error
+    // is observed (then we stop hammering until reload).
+    const shouldTryRemote =
+      remoteEngineState === "unknown" ||
+      remoteEngineState === "available" ||
+      (remoteEngineState === "fallback" && !_remoteHardFail);
+    if (shouldTryRemote) {
       const lang = detectLanguage(msg);
       const history = currentHistoryForRemote();
       // Small UI delay to avoid flicker when API is fast
@@ -1128,7 +1137,12 @@ const { title = "AI Assistant" } = Astro.props;
         finalResult = remote.result;
         usedRemote = true;
       } else {
-        // missingKey / upstreamError / network / 502 → fallback
+        // missingKey / upstreamError (HTTP 5xx) / network layer error → hard-fail,
+        // don't retry remote for the rest of this tab session.
+        if (remote.missingKey || remote.upstreamError || remote.network) {
+          _remoteHardFail = true;
+        }
+        // Transient parse / rate-limit style failures: do NOT lock into fallback.
         remoteEngineState = "fallback";
         usedFallback = true;
       }
