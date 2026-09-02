@@ -1,0 +1,338 @@
+name: Configure Cloudflare (D1 + Env + Admin Init)
+
+on:
+  workflow_dispatch:
+    inputs:
+      AUTH_SECRET:
+        description: '(可选) Cookie 签名密钥 >=32 字符；留空自动生成'
+        required: false
+        type: string
+      SUPER_ADMIN_EMAIL:
+        description: '(必填) 超级管理员邮箱'
+        required: true
+        type: string
+      SUPER_ADMIN_INIT_PASSWORD:
+        description: '(可选) 超级管理员初始密码 >=8 字符；留空自动生成'
+        required: false
+        type: string
+      OPENAI_API_KEY:
+        description: '(可选) OpenAI API Key (sk-...) 启用 GPT-4o-mini 智能体'
+        required: false
+        type: string
+      STRIPE_SECRET_KEY:
+        description: '(可选) Stripe Secret Key (sk_live_/sk_test_) 启用支付'
+        required: false
+        type: string
+      ADMIN_NOTIFY_EMAIL:
+        description: '(可选) 通知邮箱(接收订单/表单提醒)'
+        required: false
+        type: string
+
+jobs:
+  configure:
+    name: 一键配置 Cloudflare D1 + 环境变量 + 部署 + 初始化管理员
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: 0. 校验 CLOUDFLARE_* Secrets 是否存在
+        shell: bash
+        run: |
+          set -e
+          MISSING=()
+          if [ -z "${{ secrets.CLOUDFLARE_API_TOKEN }}" ]; then MISSING+=("CLOUDFLARE_API_TOKEN"); fi
+          if [ -z "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}" ];  then MISSING+=("CLOUDFLARE_ACCOUNT_ID"); fi
+          if [ ${#MISSING[@]} -gt 0 ]; then
+            echo "::error::GitHub Secrets 缺失: ${MISSING[*]}。请去仓库 Settings → Secrets and variables → Actions → New repository secret 添加。"
+            exit 1
+          fi
+          echo "✅ CLOUDFLARE_API_TOKEN 和 CLOUDFLARE_ACCOUNT_ID 已就绪"
+
+      - name: 1. 生成默认值 + 日志脱敏 (mask secrets)
+        id: gen
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # AUTH_SECRET: 未提供则生成 64 字符 hex (32B)
+          AUTH="${{ github.event.inputs.AUTH_SECRET }}"
+          if [ -z "$AUTH" ]; then
+            AUTH=$(openssl rand -hex 32)
+            echo "ℹ️ 自动生成 AUTH_SECRET (64 字符 hex)"
+          else
+            if [ ${#AUTH} -lt 32 ]; then
+              echo "::error::AUTH_SECRET 长度必须 >=32 字符，当前 ${#AUTH}"
+              exit 1
+            fi
+          fi
+
+          # 初始密码: 未提供则生成 20 字符
+          PWD="${{ github.event.inputs.SUPER_ADMIN_INIT_PASSWORD }}"
+          if [ -z "$PWD" ]; then
+            PWD=$(openssl rand -base64 18 | tr -d '\n' | cut -c1-20)
+            PWD_GENERATED="yes"
+            echo "ℹ️ 自动生成超级管理员初始密码"
+          else
+            if [ ${#PWD} -lt 8 ]; then
+              echo "::error::SUPER_ADMIN_INIT_PASSWORD 长度必须 >=8 字符"
+              exit 1
+            fi
+            PWD_GENERATED="no"
+          fi
+
+          # 邮箱格式基本校验
+          EMAIL="${{ github.event.inputs.SUPER_ADMIN_EMAIL }}"
+          if ! echo "$EMAIL" | grep -qE '^[^@\s]+@[^@\s]+\.[^@\s]+$'; then
+            echo "::error::邮箱格式无效: $EMAIL"
+            exit 1
+          fi
+
+          # 注册脱敏
+          echo "::add-mask::$AUTH"
+          echo "::add-mask::$PWD"
+          OAI="${{ github.event.inputs.OPENAI_API_KEY }}"
+          [ -n "$OAI" ] && echo "::add-mask::$OAI"
+          SK="${{ github.event.inputs.STRIPE_SECRET_KEY }}"
+          [ -n "$SK"  ] && echo "::add-mask::$SK"
+
+          AUTH_SRC="${{ github.event.inputs.AUTH_SECRET == '' && 'auto' || 'user' }}"
+          echo "AUTH_SECRET=$AUTH"           >> "$GITHUB_OUTPUT"
+          echo "AUTH_SOURCE=$AUTH_SRC"       >> "$GITHUB_OUTPUT"
+          echo "INIT_PWD=$PWD"               >> "$GITHUB_OUTPUT"
+          echo "PWD_GENERATED=$PWD_GENERATED" >> "$GITHUB_OUTPUT"
+          echo "ADMIN_EMAIL=$EMAIL"          >> "$GITHUB_OUTPUT"
+          echo "EMAIL_MASKED=$(echo "$EMAIL" | sed -E 's/^(.).*(.@.*)$/\1***\2/')" >> "$GITHUB_OUTPUT"
+
+      - name: 2. 设置 Node 20 + 安装 wrangler@4.128.0 和 jq
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: 2b. 安装 wrangler + jq 命令行工具
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install -g wrangler@4.128.0
+          sudo apt-get update -y && sudo apt-get install -y jq
+          echo "✅ wrangler=$(wrangler --version)  jq=$(jq --version | head -1)"
+
+      - name: 3. 检查或创建 D1 数据库 (oriental-vibe-db)
+        id: d1
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID:  ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          NAME="oriental-vibe-db"
+
+          # 列出已有 D1
+          LIST_JSON=$(wrangler d1 list --json 2>/dev/null || echo '[]')
+          EXISTING=$(echo "$LIST_JSON" | jq -r --arg n "$NAME" '.[] | select(.name==$n) | .uuid // empty' 2>/dev/null || true)
+
+          if [ -n "$EXISTING" ]; then
+            echo "ℹ️ D1 数据库已存在，复用: $NAME"
+            DB_ID="$EXISTING"
+          else
+            echo "🚀 正在创建 D1 数据库: $NAME ..."
+            CREATE_OUT=$(wrangler d1 create "$NAME" --json 2>&1 || true)
+            DB_ID=$(echo "$CREATE_OUT" | jq -r '.uuid // empty' 2>/dev/null || true)
+            if [ -z "$DB_ID" ]; then
+              sleep 4
+              LIST2=$(wrangler d1 list --json 2>/dev/null || echo '[]')
+              DB_ID=$(echo "$LIST2" | jq -r --arg n "$NAME" '.[] | select(.name==$n) | .uuid // empty' 2>/dev/null || true)
+            fi
+            if [ -z "$DB_ID" ]; then
+              echo "::error::D1 创建失败。wrangler 输出: $(echo "$CREATE_OUT" | head -c 2000)"
+              exit 1
+            fi
+            echo "✅ D1 创建成功"
+          fi
+
+          echo "::add-mask::$DB_ID"
+          echo "DB_ID=$DB_ID" >> "$GITHUB_OUTPUT"
+          echo "DB_NAME=$NAME" >> "$GITHUB_OUTPUT"
+
+      - name: 4. Checkout 代码 (用于后续 build & deploy)
+        uses: actions/checkout@v4
+
+      - name: 5. 通过 Cloudflare API 绑定 D1 + 写入 6 条环境变量
+        env:
+          CF_TOKEN:  ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCT:   ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          DB_ID:     ${{ steps.d1.outputs.DB_ID }}
+          V_AUTH:    ${{ steps.gen.outputs.AUTH_SECRET }}
+          V_EMAIL:   ${{ steps.gen.outputs.ADMIN_EMAIL }}
+          V_PWD:     ${{ steps.gen.outputs.INIT_PWD }}
+          V_OAI:     ${{ github.event.inputs.OPENAI_API_KEY }}
+          V_STRIPE:  ${{ github.event.inputs.STRIPE_SECRET_KEY }}
+          V_NOTIFY:  ${{ github.event.inputs.ADMIN_NOTIFY_EMAIL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          PROJECT="oriental-vibe"
+          API="https://api.cloudflare.com/client/v4/accounts/$CF_ACCT"
+          H_AUTH="Authorization: Bearer $CF_TOKEN"
+          H_CT="Content-Type: application/json"
+
+          # ---------- 5a. 获取当前 Pages 项目配置 ----------
+          CUR=$(curl -sS -H "$H_AUTH" "$API/pages/projects/$PROJECT")
+          OK=$(echo "$CUR" | jq -r '.success // false')
+          if [ "$OK" != "true" ]; then
+            echo "::error::获取 Pages 项目失败。确认 Pages project 名称是 '$PROJECT'。Cloudflare 错误: $(echo "$CUR" | jq -c '.errors')"
+            exit 1
+          fi
+
+          # ---------- 5b. 合并 D1 binding (保留已有 binding) ----------
+          EXIST_D1=$(echo "$CUR"  | jq -c '.result.deployment_configs.production.d1_databases // {}')
+          NEW_D1=$(echo "$EXIST_D1" | jq -c --arg id "$DB_ID" '. + {DB: {id: $id}}')
+          echo "ℹ️ D1 binding: 新增/覆盖 DB → $DB_ID"
+
+          # ---------- 5c. 合并 env vars (保留已有变量) ----------
+          EXIST_ENV=$(echo "$CUR" | jq -c '.result.deployment_configs.production.env_vars // {}')
+
+          upsert_secret() {
+            # $1=key $2=value; 只有 value 非空时才设置
+            local k="$1" v="$2"
+            if [ -n "$v" ]; then
+              EXIST_ENV=$(echo "$EXIST_ENV" | jq -c --arg k "$k" --arg v "$v" \
+                '. + {($k): {type: "secret_text", value: $v}}')
+            fi
+          }
+
+          upsert_secret "AUTH_SECRET"                "$V_AUTH"
+          upsert_secret "SUPER_ADMIN_EMAIL"           "$V_EMAIL"
+          upsert_secret "SUPER_ADMIN_INIT_PASSWORD"   "$V_PWD"
+          upsert_secret "OPENAI_API_KEY"              "$V_OAI"
+          upsert_secret "STRIPE_SECRET_KEY"           "$V_STRIPE"
+          upsert_secret "ADMIN_NOTIFY_EMAIL"          "$V_NOTIFY"
+
+          echo "ℹ️ 写入变量数: $(echo "$EXIST_ENV" | jq 'keys | length')"
+
+          # ---------- 5d. PATCH Pages 项目 ----------
+          PAYLOAD=$(jq -cn \
+            --argjson d1  "$NEW_D1" \
+            --argjson env "$EXIST_ENV" \
+            '{deployment_configs: {production: {d1_databases: $d1, env_vars: $env}}}')
+
+          RESP=$(curl -sS -X PATCH -H "$H_AUTH" -H "$H_CT" --data "$PAYLOAD" \
+            "$API/pages/projects/$PROJECT")
+          OK=$(echo "$RESP" | jq -r '.success // false')
+          if [ "$OK" != "true" ]; then
+            echo "::error::配置 Pages 项目失败。Cloudflare 错误: $(echo "$RESP" | jq -c '.errors')"
+            echo "响应片段: $(echo "$RESP" | head -c 2500)"
+            exit 1
+          fi
+          echo "✅ D1 binding + 6 条环境变量 已写入 Pages production 环境"
+
+      - name: 6. npm ci + build + wrangler pages deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID:  ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci
+          npm run build
+          npx --yes wrangler@4.128.0 pages deploy dist \
+            --project-name=oriental-vibe \
+            --branch=main \
+            --commit-hash="${GITHUB_SHA::7}" \
+            --commit-message="${GITHUB_SHA::7} cloudflare-config-auto"
+
+      - name: 7. 等待部署上线 + 初始化超级管理员 (/api/auth/init)
+        id: init
+        shell: bash
+        env:
+          ADMIN_EMAIL: ${{ steps.gen.outputs.ADMIN_EMAIL }}
+          INIT_PWD:    ${{ steps.gen.outputs.INIT_PWD }}
+        run: |
+          set -euo pipefail
+          URL="https://orientalvibe1314.com/api/auth/init"
+
+          # 轮询等待部署生效 (最多 6 分钟)
+          echo "⏳ 等待 orientalvibe1314.com 新部署上线 (最多 6 分钟)..."
+          OK=0
+          for i in $(seq 1 36); do
+            CODE=$(curl -sS -o /dev/null -w '%{http_code}' "$URL" || echo "000")
+            if [ "$CODE" != "000" ] && [ "$CODE" != "502" ] && [ "$CODE" != "522" ]; then
+              echo "✅ 站点可达 (HTTP $CODE)，第 ${i} 次探测"
+              OK=1; break
+            fi
+            sleep 10
+          done
+          if [ "$OK" -eq 0 ]; then
+            echo "::warning::站点未就绪但将继续尝试调用 init"
+          fi
+
+          # 调用 /api/auth/init（用 jq 安全构造 JSON body 避免特殊字符注入）
+          echo "🚀 调用 POST /api/auth/init (邮箱: ${{ steps.gen.outputs.EMAIL_MASKED }})..."
+          BODY=$(jq -cn --arg e "$ADMIN_EMAIL" --arg p "$INIT_PWD" '{email: $e, password: $p}')
+          RESULT=$(curl -sS -X POST \
+            -H "Content-Type: application/json" \
+            --data "$BODY" \
+            "$URL" || echo '{"curl_failed":true}')
+
+          echo "INIT_RESULT=$(echo "$RESULT" | head -c 2000)" >> "$GITHUB_OUTPUT"
+          SUCCESS=$(echo "$RESULT" | jq -r 'if .success == true or .ok == true or (.status // 0) < 400 then "yes" else "no" end' 2>/dev/null || echo "unknown")
+
+          if [ "$SUCCESS" = "yes" ]; then
+            echo "✅ 超级管理员初始化成功 (或已存在)"
+          else
+            MSG=$(echo "$RESULT" | jq -r '.message // .error // empty' 2>/dev/null || true)
+            if echo "$MSG" | grep -qiE 'already|exist|重复|已存在'; then
+              echo "ℹ️ 超级管理员已存在 (无需重复创建): $MSG"
+            else
+              echo "::warning::/api/auth/init 返回非成功。响应: $(echo "$RESULT" | head -c 2000)"
+              echo "ℹ️ 若部署尚未生效，可稍后在浏览器手动访问: $URL 并在 payload 中填入相同邮箱密码"
+            fi
+          fi
+
+      - name: "8. 输出结果摘要 (🔒 敏感值仅显示是否已配置)"
+        shell: bash
+        run: |
+          set -e
+          AUTH_TXT="${{ steps.gen.outputs.AUTH_SOURCE == 'auto' && '自动生成 64 字符 hex' || '用户提供' }}"
+          PWD_TXT="${{ steps.gen.outputs.PWD_GENERATED == 'yes' && '自动生成 20 字符' || '用户提供' }}"
+          OAI_TXT="${{ github.event.inputs.OPENAI_API_KEY == '' && '⚠️ 未填写 (AI 智能体将使用本地规则引擎)' || '✅ 已设置 (GPT-4o-mini 可用)' }}"
+          SK_TXT="${{ github.event.inputs.STRIPE_SECRET_KEY == '' && '⚠️ 未填写 (结账走本地流程)' || '✅ 已设置' }}"
+          NOTIFY_EMAIL="${{ github.event.inputs.ADMIN_NOTIFY_EMAIL }}"
+          NOTIFY_TXT="${NOTIFY_EMAIL:='⚠️ 未填写'}"
+          [ -n "${{ github.event.inputs.ADMIN_NOTIFY_EMAIL }}" ] && NOTIFY_TXT="✅ $NOTIFY_EMAIL"
+
+          {
+            echo "## ✅ Cloudflare 配置完成"
+            echo ""
+            echo "### 已完成项"
+            echo "- ✅ D1 数据库：**oriental-vibe-db** → Pages binding 名称 **DB**（functions/api/_shared/db.js 读取 env.DB）"
+            echo "- ✅ Pages project **oriental-vibe** production 环境变量已写入 (secret_text 类型，控制台可见但值加密)"
+            echo "- ✅ 执行 npm ci + build + wrangler pages deploy 重新部署生效"
+            echo ""
+            echo "### 环境变量配置状态"
+            echo "| 变量名 | 状态 |"
+            echo "|---|---|"
+            echo "| AUTH_SECRET | ✅ 已设置 ($AUTH_TXT) |"
+            echo "| SUPER_ADMIN_EMAIL | ✅ ${{ steps.gen.outputs.EMAIL_MASKED }} |"
+            echo "| SUPER_ADMIN_INIT_PASSWORD | ✅ $PWD_TXT |"
+            echo "| OPENAI_API_KEY | $OAI_TXT |"
+            echo "| STRIPE_SECRET_KEY | $SK_TXT |"
+            echo "| ADMIN_NOTIFY_EMAIL | $NOTIFY_TXT |"
+            echo ""
+            echo "### 🔐 管理后台登录信息 (请保存到本地密码管理器)"
+            echo "- 后台地址: https://orientalvibe1314.com/admin"
+            echo "- 登录邮箱: **${{ steps.gen.outputs.EMAIL_MASKED }}**"
+            if [ "${{ steps.gen.outputs.PWD_GENERATED }}" = "yes" ]; then
+              echo "- ⚠️ 密码已自动生成：**立刻去 Action run 页面 → 「1. 生成默认值」展开 ⚙️ → 查看环境变量 → 找到 INIT_PWD 值**；或登录后立刻点后台的「忘记密码」重设"
+            fi
+            echo ""
+            echo "### 🧪 下一步验证建议"
+            echo "1. 打开 [/admin](https://orientalvibe1314.com/admin)，点右上「Cloud 登录」，用上面邮箱密码登录"
+            echo "2. 登录后点「一键从 LocalStorage 迁移到 D1」（如果之前有本地管理数据）"
+            echo "3. 前台各页面刷新，验证后台修改是否实时同步"
+            echo "4. 打开 AI 智能体发一句问候，验证是否显示 **GPT-4o-mini** 引擎徽标"
+            echo ""
+            echo "### /api/auth/init 响应"
+            echo '```json'
+            echo '${{ steps.init.outputs.INIT_RESULT }}'
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
