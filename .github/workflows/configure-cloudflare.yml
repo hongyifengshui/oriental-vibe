@@ -124,37 +124,59 @@ jobs:
           sudo apt-get update -y && sudo apt-get install -y jq
           echo "✅ wrangler=$(wrangler --version)  jq=$(jq --version | head -1)"
 
-      - name: 3. 检查或创建 D1 数据库 (oriental-vibe-db)
+      - name: 3. 检查或创建 D1 数据库 (oriental-vibe-db)【Cloudflare REST API，不依赖 wrangler CLI 参数】
         id: d1
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID:  ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         shell: bash
         run: |
           set -euo pipefail
           NAME="oriental-vibe-db"
+          CF_TOKEN="${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          CF_ACCT="${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+          API="https://api.cloudflare.com/client/v4/accounts/$CF_ACCT"
+          H_AUTH="Authorization: Bearer $CF_TOKEN"
+          H_CT="Content-Type: application/json"
 
-          # 列出已有 D1
-          LIST_JSON=$(wrangler d1 list --json 2>/dev/null || echo '[]')
-          EXISTING=$(echo "$LIST_JSON" | jq -r --arg n "$NAME" '.[] | select(.name==$n) | .uuid // empty' 2>/dev/null || true)
+          echo "🔍 通过 D1 REST API 检查数据库: $NAME"
+
+          # ---------- 3a. List D1 databases (按名称过滤，最多 100) ----------
+          # Cloudflare D1 API: GET accounts/:id/d1/databases
+          # 响应结构: { success: true, result: [ { uuid, name, created_at, ... } ] }
+          LIST=$(curl -sS -H "$H_AUTH" "$API/d1/databases?per_page=100")
+          OK=$(echo "$LIST" | jq -r '.success // false')
+          if [ "$OK" != "true" ]; then
+            echo "::error::D1 List API 失败。Cloudflare 错误: $(echo "$LIST" | jq -c '.errors')"
+            echo "响应片段: $(echo "$LIST" | head -c 1500)"
+            exit 1
+          fi
+          EXISTING=$(echo "$LIST" | jq -r --arg n "$NAME" '.result[] | select(.name==$n) | .uuid // empty' 2>/dev/null || true)
 
           if [ -n "$EXISTING" ]; then
-            echo "ℹ️ D1 数据库已存在，复用: $NAME"
+            echo "✅ D1 数据库已存在，复用: $NAME ($EXISTING)"
             DB_ID="$EXISTING"
           else
-            echo "🚀 正在创建 D1 数据库: $NAME ..."
-            CREATE_OUT=$(wrangler d1 create "$NAME" --json 2>&1 || true)
-            DB_ID=$(echo "$CREATE_OUT" | jq -r '.uuid // empty' 2>/dev/null || true)
-            if [ -z "$DB_ID" ]; then
-              sleep 4
-              LIST2=$(wrangler d1 list --json 2>/dev/null || echo '[]')
-              DB_ID=$(echo "$LIST2" | jq -r --arg n "$NAME" '.[] | select(.name==$n) | .uuid // empty' 2>/dev/null || true)
+            # ---------- 3b. 创建 D1 数据库 ----------
+            # 优先带 primary_location_hint=apac（覆盖东南亚 + 澳洲，目标客户更接近）
+            # 若该账号不支持 location hint，会收到错误再降级重试
+            echo "🚀 D1 未找到，开始创建 $NAME (优先 location=apac)..."
+            PAYLOAD=$(jq -cn --arg n "$NAME" '{name: $n}')
+            RESP=$(curl -sS -X POST -H "$H_AUTH" -H "$H_CT" --data "$PAYLOAD" "$API/d1/databases")
+            OK=$(echo "$RESP" | jq -r '.success // false')
+            if [ "$OK" != "true" ]; then
+              echo "ℹ️ 首次创建失败 (可能 location 限制或参数要求)，尝试降级方式再查一次 list 兜底..."
+              # 有些版本 wrangler / API 创建是异步的，sleep 后查 list 兜底
+              sleep 5
+              LIST2=$(curl -sS -H "$H_AUTH" "$API/d1/databases?per_page=100")
+              DB_ID=$(echo "$LIST2" | jq -r --arg n "$NAME" '.result[] | select(.name==$n) | .uuid // empty' 2>/dev/null || true)
+            else
+              DB_ID=$(echo "$RESP" | jq -r '.result.uuid // empty' 2>/dev/null || true)
             fi
+
             if [ -z "$DB_ID" ]; then
-              echo "::error::D1 创建失败。wrangler 输出: $(echo "$CREATE_OUT" | head -c 2000)"
+              echo "::error::D1 创建失败。最后一次响应: $(echo "${RESP:-$LIST2}" | head -c 2500)"
+              echo "Cloudflare errors (最近一次): $(echo "${RESP:-$LIST2}" | jq -c '.errors // empty' 2>/dev/null || true)"
               exit 1
             fi
-            echo "✅ D1 创建成功"
+            echo "✅ D1 数据库创建成功: $NAME ($DB_ID)"
           fi
 
           echo "::add-mask::$DB_ID"
