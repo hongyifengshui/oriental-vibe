@@ -47,13 +47,23 @@ function genTempPassword() {
 }
 
 async function createSuper(db, email, plainPwd, name, opts) {
-  const hash = await hashPassword(plainPwd, 10);
-  await qRun(
-    db,
-    `INSERT INTO admins (email, password_hash, role, name, created_at, updated_at)
-     VALUES (?, ?, 'super_admin', ?, strftime('%s','now'), strftime('%s','now'))`,
-    [email, hash, name]
-  );
+  let hash;
+  try {
+    hash = await hashPassword(plainPwd, 10);
+  } catch (e) {
+    return err('Failed to hash password: ' + (e && e.message ? e.message : String(e)), 500);
+  }
+  if (!hash) return err('Empty password hash (bcrypt module not available)', 500);
+  try {
+    await qRun(
+      db,
+      `INSERT INTO admins (email, password_hash, role, name, created_at, updated_at)
+       VALUES (?, ?, 'super_admin', ?, strftime('%s','now'), strftime('%s','now'))`,
+      [email, hash, name]
+    );
+  } catch (e) {
+    return err('Insert admin failed: ' + (e && e.message ? e.message : String(e)), 500);
+  }
   const created = await qFirst(db, 'SELECT id, email, role, name FROM admins WHERE email = ?', [email]);
   return json({
     ok: true,
