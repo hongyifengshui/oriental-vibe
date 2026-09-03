@@ -71,7 +71,7 @@ const categories = [
           return (
             <article class="blog-card">
               <a href={href(`/blog/${post.id}`)} class="blog-card__img">
-                <img src={post.image} alt="" loading="lazy" decoding="async" width="400" height="225" />
+                <img src={post.image} alt={pick(post.titleKey, post.titleEn)} loading="lazy" decoding="async" width="400" height="225" />
               </a>
               <div class="blog-card__body">
                 <div class="blog-card__meta">

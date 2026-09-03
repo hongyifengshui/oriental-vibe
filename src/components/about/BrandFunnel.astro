@@ -85,7 +85,7 @@ const hrefLocalized = (p) => localePrefix + p;
         </div>
       </div>
       <div class="funnel-hero__art">
-        <img src={brandImg} alt="" loading="lazy" />
+        <img src={brandImg} alt={pick('about.funnel_stats_04_l','Oriental wisdom meets modern living')} width="360" height="480" loading="lazy" decoding="async" />
       </div>
     </div>
   </section>
@@ -130,7 +130,7 @@ const hrefLocalized = (p) => localePrefix + p;
         <p class="funnel-p" data-i18n="about.funnel_story_p2">{pick('about.funnel_story_p2')}</p>
         <a class="btn btn-primary" href={hrefLocalized('/master')} data-i18n="about.funnel_story_cta">{pick('about.funnel_story_cta','Meet the Master')}</a>
       </div>
-      <div class="funnel-story__img"><img src={caseHero} alt="" loading="lazy" /></div>
+      <div class="funnel-story__img"><img src={caseHero} alt={pick('about.funnel_hero_title','A well-balanced tea ceremony space')} width="480" height="640" loading="lazy" decoding="async" /></div>
     </div>
   </section>
 
@@ -150,7 +150,7 @@ const hrefLocalized = (p) => localePrefix + p;
         ))}
       </div>
       <div class="funnel-method-art">
-        <img src={methodImg} alt="" loading="lazy" />
+        <img src={methodImg} alt={pick('about.funnel_method_01_t','Feng Shui tools on a desk')} width="460" height="345" loading="lazy" decoding="async" />
       </div>
     </div>
   </section>
@@ -158,7 +158,7 @@ const hrefLocalized = (p) => localePrefix + p;
   <!-- 6 MASTER SPOTLIGHT (thin, deep link → /master) -->
   <section class="funnel-section funnel-section--ink">
     <div class="funnel-wrap funnel-spot">
-      <div class="funnel-spot__img"><img src={masterImg} alt="" loading="lazy" /></div>
+      <div class="funnel-spot__img"><img src={masterImg} alt={pick('about.funnel_master_name','Master Xu Wei')} width="400" height="400" loading="lazy" decoding="async" /></div>
       <div class="funnel-spot__copy">
         <p class="funnel-overline" data-i18n="about.funnel_spot_overline">{pick('about.funnel_spot_overline','MEET THE MASTER')}</p>
         <h2 class="funnel-h2" data-i18n="about.funnel_spot_title">{pick('about.funnel_spot_title')}</h2>
@@ -177,7 +177,7 @@ const hrefLocalized = (p) => localePrefix + p;
         {cases.map((c,i)=>(
           <article class="funnel-case" key={i}>
             <div class="funnel-case__img" style={`border-top: 4px solid ${c.accent};`}>
-              <img src={c.img} alt="" loading="lazy" />
+              <img src={c.img} alt={pick(c.whoKey,'Client case study')} width="360" height="480" loading="lazy" decoding="async" />
             </div>
             <div class="funnel-case__who">
               <div><strong data-i18n={c.whoKey}>{pick(c.whoKey)}</strong></div>

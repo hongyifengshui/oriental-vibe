@@ -85,7 +85,7 @@ const href = (p) => prefix + p;
   <section class="master-hero">
     <div class="funnel-wrap master-hero__inner">
       <div class="master-hero__portrait">
-        <img src={masterPortrait} alt="" loading="lazy" />
+        <img src={masterPortrait} alt={pick('master.hero_title','Master Xu Wei portrait')} width="400" height="400" loading="lazy" decoding="async" />
       </div>
       <div class="master-hero__copy">
         <p class="funnel-overline" data-i18n="master.hero_overline">{pick('master.hero_overline')}</p>
@@ -150,7 +150,7 @@ const href = (p) => prefix + p;
       <div class="master-books">
         {books.map((b,i)=>(
           <figure class="master-book" key={i}>
-            <img src={b.img} alt="" loading="lazy" />
+            <img src={b.img} alt={pick(b.tKey,'Academic publication')} width="200" height="280" loading="lazy" decoding="async" />
             <figcaption>
               <strong data-i18n={b.tKey}>{pick(b.tKey)}</strong>
               <span data-i18n={b.sKey}>{pick(b.sKey)}</span>
