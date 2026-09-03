@@ -70,7 +70,7 @@ const href = (p) => prefix + p;
         </div>
       </div>
       <div class="funnel-hero__art">
-        <img src={curriculumArt} alt="" loading="lazy" />
+        <img src={curriculumArt} alt="Ancient Chinese study manuals on a wooden desk" width="520" height="390" loading="lazy" decoding="async" />
       </div>
     </div>
   </section>
@@ -79,7 +79,7 @@ const href = (p) => prefix + p;
   <section class="funnel-stats">
     <div class="funnel-wrap funnel-stats__grid">
       {stats.map((s,i)=>(
-        <div class="funnel-stat" key={i}>
+        <div class="funnel-stat">
           <div class="funnel-stat__icon">{statIcons[i]}</div>
           <div class="funnel-stat__n" data-i18n={s.nKey}>{pick(s.nKey, s.nFb)}</div>
           <div class="funnel-stat__l" data-i18n={s.lKey}>{pick(s.lKey, s.lFb)}</div>
@@ -95,7 +95,7 @@ const href = (p) => prefix + p;
       <div class="courses-nav__pills" role="tablist">
         <button class="courses-pill is-active" data-target="all" role="tab" aria-selected="true" data-i18n="courses.page_filter_all">{pick('courses.page_filter_all')}</button>
         {courseCategories.map((c)=>(
-          <button class="courses-pill" data-target={c.id} role="tab" aria-selected="false" key={c.id}>
+          <button class="courses-pill" data-target={c.id} role="tab" aria-selected="false">
             <span class="courses-pill__icon">{c.icon}</span>
             <span data-i18n={c.titleKey}>{pick(c.titleKey, c.titleText)}</span>
           </button>
@@ -112,7 +112,7 @@ const href = (p) => prefix + p;
       <p class="funnel-sub center" style="max-width:760px;margin:4px auto 32px;" data-i18n="courses.page_curr_intro">{pick('courses.page_curr_intro')}</p>
 
       {courseCategories.map((cat, ci)=>(
-        <div class="courses-system" data-cat={cat.id} key={cat.id}>
+        <div class="courses-system" data-cat={cat.id}>
           <header class="courses-system__head">
             <div class="courses-system__icon">{cat.icon}</div>
             <div class="courses-system__txt">
@@ -123,9 +123,9 @@ const href = (p) => prefix + p;
           </header>
           <div class={`courses-grid courses-grid--${ci === courseCategories.length - 1 ? 'mastery' : 'levels'}`}>
             {byCat(cat.id).map((co)=>(
-              <article class={`course-card ${co.level === 'Mastery' ? 'course-card--mastery' : ''}`} key={co.id}>
+              <article class={`course-card${co.level === 'Mastery' ? ' course-card--mastery' : ''}`}>
                 <div class="course-card__img">
-                  <img src={co.image} alt="" loading="lazy" />
+                  <img src={co.image} alt={pick(co.titleKey, co.titleText)} width="400" height="300" loading="lazy" decoding="async" />
                   <span class={`course-card__level course-card__level--${co.level.toLowerCase()}`} data-i18n={co.levelKey}>{pick(co.levelKey, co.level)}</span>
                 </div>
                 <div class="course-card__body">
@@ -158,7 +158,7 @@ const href = (p) => prefix + p;
       <h2 class="funnel-h2 center" data-i18n="courses.page_adv_title">{pick('courses.page_adv_title')}</h2>
       <div class="funnel-why-grid">
         {advs.map((a,i)=>(
-          <div class="funnel-why" key={i}>
+          <div class="funnel-why">
             <div class="funnel-why__icon">{advIcons[i]}</div>
             <div class="funnel-why__t" data-i18n={a.tKey}>{pick(a.tKey)}</div>
             <div class="funnel-why__d" data-i18n={a.dKey}>{pick(a.dKey)}</div>
@@ -175,7 +175,7 @@ const href = (p) => prefix + p;
       <h2 class="funnel-h2 center" data-i18n="courses.page_faq_title">{pick('courses.page_faq_title')}</h2>
       <div class="funnel-faq">
         {faqs.map((f,i)=>(
-          <details class="funnel-faq__item" open={i===0} key={i}>
+          <details class="funnel-faq__item" open={i===0}>
             <summary data-i18n={f.qKey}>{pick(f.qKey)}</summary>
             <p data-i18n={f.aKey}>{pick(f.aKey)}</p>
           </details>
@@ -232,6 +232,7 @@ const href = (p) => prefix + p;
 <style is:global>
 /* ---------- courses page ---------- */
 .funnel--courses{color:#2d2b29;}
+.funnel-hero__art img{max-width:100%;height:auto;}
 
 /* 3 Curriculum nav */
 .courses-nav{
@@ -351,9 +352,11 @@ const href = (p) => prefix + p;
   background:#F3EBDB;
 }
 .course-card__img img{
-  width:100%;height:100%;
+  width:100%;height:auto;
   object-fit:cover;
+  aspect-ratio:4/3;
   transition:transform .5s ease;
+  background:#F3EBDB;
 }
 .course-card:hover .course-card__img img{transform:scale(1.05);}
 .course-card__level{
