@@ -1,31 +1,68 @@
 ---
-// Legacy route wrapper — redirects /faq → /en/faq or /zh/...
-// This top-level page is kept for inbound historic links and as the
-// shared-rendering Astro component imported by locale wrappers.
+/**
+ * PageFaq.astro — FAQ accordion page
+ *
+ * Layout: Hero → 10 FAQ items in alternating sections
+ * Design tokens match BrandFunnel.astro earthy palette.
+ * All copy via i18n `faq.*` keys. Locale from Astro.props.locale.
+ */
+import { translations } from '../../i18n/index.js';
+
+const props = Astro.props || {};
+let locale = (typeof props.locale === 'string') ? props.locale : 'en';
+if (locale !== 'zh' && locale !== 'en') locale = 'en';
+const L = locale;
+const T = translations[L] || translations.en;
+const pick = (k, fb) => k.split('.').reduce((acc, p) => acc?.[p], T) ?? fb ?? k;
+
+const imgBase = 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=';
+const heroBg = `${imgBase}minimalist%20zen%20study%20with%20scrolls%20crystals%20tea%20warm%20light%20peaceful&image_size=landscape_16_9`;
+
+const prefix = '/' + L;
+const href = (p) => prefix + p;
+
+const faqs = Array.from({ length: 10 }, (_, i) => ({
+  qKey: `faq.q_${i + 1}`,
+  aKey: `faq.a_${i + 1}`,
+}));
 ---
+<main class="funnel funnel--faq">
+  {/* 1 HERO */}
+  <section class="funnel-hero">
+    <div class="funnel-hero__bg" style={`background-image: url(${heroBg});`}></div>
+    <div class="funnel-wrap funnel-hero__inner" style="grid-template-columns:1fr;text-align:center;">
+      <div class="funnel-hero__copy" style="max-width:700px;margin-inline:auto;">
+        <p class="funnel-overline center" data-i18n="faq.hero_subtitle">{pick('faq.hero_subtitle', 'Help Center')}</p>
+        <h1 class="funnel-h1" data-i18n="faq.hero_title">{pick('faq.hero_title', 'Frequently Asked Questions')}</h1>
+        <p class="funnel-sub" data-i18n="faq.hero_description">{pick('faq.hero_description', 'Find answers to common questions about our products, services, and consultations.')}</p>
+      </div>
+    </div>
+  </section>
 
-<!-- Auto-extracted from src/pages/faq.astro by scripts/extract_page_components.cjs — DO NOT edit by hand. -->
+  {/* 2 FAQ ACCORDION */}
+  <section class="funnel-section">
+    <div class="funnel-wrap">
+      <div class="funnel-faq">
+        {faqs.map((f, i) => (
+          <details class="funnel-faq__item" open={i === 0}>
+            <summary data-i18n={f.qKey}>{pick(f.qKey, `Question ${i + 1}`)}</summary>
+            <p data-i18n={f.aKey}>{pick(f.aKey, `Answer ${i + 1}`)}</p>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
 
-<noscript>
-  <meta http-equiv="refresh" content="0; url=/en/faq" />
-</noscript>
-
-<script is:inline>
-  (function() {
-    try {
-      var saved = localStorage.getItem('ov-lang');
-      var accept = (navigator.language || 'en').toLowerCase();
-      var want = saved === 'zh' ? 'zh' : (saved === 'en' ? 'en' : (accept.indexOf('zh') >= 0 ? 'zh' : 'en'));
-      var current = window.location.pathname.replace(/\/+$/, '');
-      var target = '/' + want;
-      if ('/faq' !== '/') target += '/faq';
-      else target += '/';
-      if (window.location.pathname !== target) window.location.replace(target);
-    } catch(e) { window.location.replace('/en/'); }
-  })();
-</script>
-  <main style="padding:120px 24px;text-align:center;color:#555;">
-    <h1 style="font-size:18px;">Redirecting to localized site…</h1>
-    <p><a href="/en/faq">Continue to English site</a> · <a href="/zh/faq">前往繁體中文網站</a></p>
-  </main>
-
+  {/* 3 CTA */}
+  <section class="funnel-cta">
+    <div class="funnel-wrap funnel-cta__inner">
+      <div class="funnel-cta__copy">
+        <h2 class="funnel-h2" data-i18n="faq.cta_title">{pick('faq.cta_title', 'Still have questions?')}</h2>
+        <p class="funnel-sub" data-i18n="faq.cta_description">{pick('faq.cta_description', 'We are here to help. Reach out and we will get back to you within 24 hours.')}</p>
+      </div>
+      <div class="funnel-cta-row">
+        <a class="btn btn-primary btn-lg" href={href('/contact')} data-i18n="faq.cta_button">{pick('faq.cta_button', 'Contact Us')}</a>
+      </div>
+    </div>
+  </section>
+</main>

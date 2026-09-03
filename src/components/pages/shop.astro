@@ -1,31 +1,175 @@
 ---
-// Legacy route wrapper — redirects /shop → /en/shop or /zh/...
-// This top-level page is kept for inbound historic links and as the
-// shared-rendering Astro component imported by locale wrappers.
+/**
+ * PageShop.astro — Shop / Products
+ *
+ * 6-section funnel: Hero → Filter Pills → Product Grid → Bundles → FAQ → CTA
+ * Reads from i18n `shop.*` keys + data/products.js for product cards.
+ */
+import { translations } from '../../i18n/index.js';
+import { products } from '../../data/products.js';
+
+const props = Astro.props || {};
+let locale = (typeof props.locale === 'string') ? props.locale : 'en';
+if (locale !== 'zh' && locale !== 'en') locale = 'en';
+const L = locale;
+const T = translations[L] || translations.en;
+const pick = (k, fb) => k.split('.').reduce((acc, p) => acc?.[p], T) ?? fb ?? k;
+
+const imgBase = 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=';
+const heroBg = `${imgBase}minimalist%20crystal%20shop%20display%20nordic%20wooden%20shelves%20warm%20lighting%20japandi%20interior&image_size=landscape_16_9`;
+
+const prefix = '/' + L;
+const href = (p) => prefix + p;
+
+const filters = [
+  { id: 'all', labelKey: 'shop.filter_all', label: 'All' },
+  { id: 'crystals', labelKey: 'shop.filter_crystals', label: 'Crystals' },
+  { id: 'decor', labelKey: 'shop.filter_decor', label: 'Decor' },
+  { id: 'clearing', labelKey: 'shop.filter_clearing', label: 'Space Clearing' },
+];
+
+const bundles = [
+  { nameKey: 'shop.bundle_1_name', tagKey: 'shop.bundle_1_tag', cat: 'clearing,crystals' },
+  { nameKey: 'shop.bundle_2_name', tagKey: 'shop.bundle_2_tag', cat: 'crystals' },
+  { nameKey: 'shop.bundle_3_name', tagKey: 'shop.bundle_3_tag', cat: 'crystals,decor' },
+];
 ---
+<main class="funnel funnel--shop">
+  {/* 1 HERO */}
+  <section class="funnel-hero">
+    <div class="funnel-hero__bg" style={`background-image: url(${heroBg});`}></div>
+    <div class="funnel-wrap funnel-hero__inner">
+      <div class="funnel-hero__copy">
+        <p class="funnel-overline" data-i18n="shop.hero_subtitle">{pick('shop.hero_subtitle')}</p>
+        <h1 class="funnel-h1" data-i18n="shop.hero_title">{pick('shop.hero_title')}</h1>
+        <p class="funnel-sub" data-i18n="shop.hero_desc">{pick('shop.hero_desc')}</p>
+        <a class="btn btn-primary btn-lg" href="#products" data-i18n="shop.featured_title">{pick('shop.featured_title')}</a>
+      </div>
+    </div>
+  </section>
 
-<!-- Auto-extracted from src/pages/shop.astro by scripts/extract_page_components.cjs — DO NOT edit by hand. -->
+  {/* 2 FILTER PILLS */}
+  <nav class="courses-nav" id="products">
+    <div class="funnel-wrap courses-nav__inner">
+      <span class="courses-nav__label">{pick('shop.filter_all','Filter')}</span>
+      <div class="courses-nav__pills">
+        {filters.map(f=>(
+          <button class="courses-pill is-active" data-filter={f.id} data-i18n={f.labelKey}>{pick(f.labelKey, f.label)}</button>
+        ))}
+      </div>
+    </div>
+  </nav>
 
-<noscript>
-  <meta http-equiv="refresh" content="0; url=/en/shop" />
-</noscript>
+  {/* 3 PRODUCT GRID */}
+  <section class="funnel-section">
+    <div class="funnel-wrap">
+      <p class="funnel-overline center" data-i18n="shop.featured_desc">{pick('shop.featured_desc')}</p>
+      <h2 class="funnel-h2 center" data-i18n="shop.featured_title">{pick('shop.featured_title')}</h2>
+      <div class="courses-grid" style="margin-top:28px;">
+        {products.map(p=>(
+          <article class="course-card" data-cat={p.category}>
+            <div class="course-card__img">
+              <img src={p.image} alt={pick(p.nameKey, p.nameEn)} width="400" height="300" loading="lazy" decoding="async" />
+            </div>
+            <div class="course-card__body">
+              <h4 class="course-card__t" data-i18n={p.nameKey}>{pick(p.nameKey, p.nameEn)}</h4>
+              <p class="course-card__d" data-i18n={p.descKey}>{pick(p.descKey, p.descEn)}</p>
+              <div class="course-card__meta">
+                <span>⭐ {p.rating}</span>
+                <span style="text-transform:capitalize;">{p.category}</span>
+              </div>
+            </div>
+            <footer class="course-card__foot">
+              <span class="course-card__price">${p.price}</span>
+              <button class="btn btn-sm btn-primary" onclick="addToCart({id:p.id,name:pick(p.nameKey,p.nameEn),price:p.price,image:p.image})">{pick('shop','Add to Cart')}</button>
+            </footer>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {/* 4 BUNDLES */}
+  <section class="funnel-section funnel-section--paper">
+    <div class="funnel-wrap">
+      <p class="funnel-overline center" data-i18n="shop.bundle_desc">{pick('shop.bundle_desc')}</p>
+      <h2 class="funnel-h2 center" data-i18n="shop.bundle_title">{pick('shop.bundle_title')}</h2>
+      <div class="funnel-why-grid" style="margin-top:28px;">
+        {bundles.map((b,i)=>(
+          <div class="funnel-why">
+            <div class="funnel-why__icon">{['🧹','🧘','⚖️'][i]}</div>
+            <div class="funnel-why__t" data-i18n={b.nameKey}>{pick(b.nameKey)}</div>
+            <span style="display:inline-block;background:#8C5A2B;color:#FFF6DD;font-size:11px;padding:3px 10px;border-radius:999px;font-weight:600;margin-top:6px;" data-i18n={b.tagKey}>{pick(b.tagKey)}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {/* 5 FAQ */}
+  <section class="funnel-section">
+    <div class="funnel-wrap">
+      <p class="funnel-overline center" data-i18n="shop.faq_desc">{pick('shop.faq_desc')}</p>
+      <h2 class="funnel-h2 center" data-i18n="shop.faq_title">{pick('shop.faq_title')}</h2>
+      <div class="funnel-faq" style="margin-top:28px;">
+        {[1,2,3].map(i=>(
+          <details class="funnel-faq__item" open={i===1}>
+            <summary data-i18n={`shop.faq_q_${i}`}>{pick(`shop.faq_q_${i}`)}</summary>
+            <p data-i18n={`shop.faq_a_${i}`}>{pick(`shop.faq_a_${i}`)}</p>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {/* 6 CTA */}
+  <section class="funnel-cta">
+    <div class="funnel-wrap funnel-cta__inner">
+      <div class="funnel-cta__copy">
+        <h2 class="funnel-h2">{pick('shop.hero_title')}</h2>
+        <p class="funnel-sub">{pick('shop.hero_desc')}</p>
+      </div>
+      <div class="funnel-cta-row">
+        <a class="btn btn-primary btn-lg" href={href('/element-test')}>{pick('home.hero_cta','Five Elements Test')}</a>
+        <a class="btn btn-ghost btn-lg" href={href('/contact')}>{pick('contact.title','Contact')}</a>
+      </div>
+    </div>
+  </section>
+
+  <p style="text-align:center;font-size:12px;color:#9A7B4D;padding:24px 16px 40px;max-width:860px;margin:0 auto;line-height:1.7;font-style:italic;" data-i18n="shop.disclaimer">{pick('shop.disclaimer')}</p>
+</main>
 
 <script is:inline>
-  (function() {
-    try {
-      var saved = localStorage.getItem('ov-lang');
-      var accept = (navigator.language || 'en').toLowerCase();
-      var want = saved === 'zh' ? 'zh' : (saved === 'en' ? 'en' : (accept.indexOf('zh') >= 0 ? 'zh' : 'en'));
-      var current = window.location.pathname.replace(/\/+$/, '');
-      var target = '/' + want;
-      if ('/shop' !== '/') target += '/shop';
-      else target += '/';
-      if (window.location.pathname !== target) window.location.replace(target);
-    } catch(e) { window.location.replace('/en/'); }
+  // Category filter
+  (function(){
+    var pills = document.querySelectorAll('.courses-pill[data-filter]');
+    var cards = document.querySelectorAll('.course-card[data-cat]');
+    if (!pills.length || !cards.length) return;
+    pills.forEach(function(p){
+      p.addEventListener('click',function(){
+        pills.forEach(function(pp){pp.classList.remove('is-active');});
+        p.classList.add('is-active');
+        var f = p.getAttribute('data-filter');
+        cards.forEach(function(c){
+          c.style.display = (f==='all'||c.getAttribute('data-cat')===f) ? '' : 'none';
+        });
+      });
+    });
+    // Only first pill active
+    pills.forEach(function(p,i){if(i>0)p.classList.remove('is-active');});
   })();
+  // Add to cart stub
+  window.addToCart = function(item) {
+    try {
+      var cart = JSON.parse(localStorage.getItem('ov-cart') || '[]');
+      cart.push(item);
+      localStorage.setItem('ov-cart', JSON.stringify(cart));
+      window.dispatchEvent(new CustomEvent('ov-cart-updated'));
+      alert(item.name + ' added to cart!');
+    } catch(e) { alert('Added to cart!'); }
+  };
 </script>
-  <main style="padding:120px 24px;text-align:center;color:#555;">
-    <h1 style="font-size:18px;">Redirecting to localized site…</h1>
-    <p><a href="/en/shop">Continue to English site</a> · <a href="/zh/shop">前往繁體中文網站</a></p>
-  </main>
 
+<style is:global>
+.funnel--shop .course-card__foot .btn-sm{cursor:pointer;}
+</style>

@@ -715,7 +715,10 @@
     "email_sent_title": "Report Sent!",
     "email_sent_msg": "Your Five Elements report has been sent to your email. Please check your inbox (and spam folder).",
     "email_sent_close": "Got it",
-    "disclaimer": "* The Five Elements Test is for entertainment, self-reflection, and cultural exploration purposes. It is based on traditional Chinese philosophy and is not a scientifically validated assessment tool. Not a substitute for professional medical, psychological, financial, or legal advice. Results are for personal enjoyment only."
+    "disclaimer": "* The Five Elements Test is for entertainment, self-reflection, and cultural exploration purposes. It is based on traditional Chinese philosophy and is not a scientifically validated assessment tool. Not a substitute for professional medical, psychological, financial, or legal advice. Results are for personal enjoyment only.",
+    "title": "Five Elements Test",
+    "subtitle": "Discover your personal energy profile",
+    "description": "Coming soon. This interactive test will help you identify your dominant element and receive personalized recommendations."
   },
   "blog": {
     "hero_subtitle": "Insights & Wisdom",
@@ -1027,7 +1030,15 @@
     "compare_energy": "Energy Reading",
     "compare_bracelet": "Welcome Bracelet",
     "compare_priority": "Priority Booking",
-    "compare_support": "Support"
+    "compare_support": "Support",
+    "starter_feat_4": "Welcome crystal gift",
+    "starter_feat_5": "Monthly newsletter",
+    "harmony_feat_5": "Exclusive member webinars",
+    "premium_feat_6": "Personal dedicated support",
+    "cta_title": "Ready to Join the Circle?",
+    "cta_subtitle": "Choose the tier that best suits your journey and start enjoying exclusive benefits today.",
+    "cta_button": "Join the Circle",
+    "disclaimer": "Membership fees are annual and non-refundable. Benefits subject to change with 30 days notice."
   },
   "admin": {
     "title": "Admin Dashboard",
@@ -1373,7 +1384,15 @@
     "faq_services": "Consultation Services",
     "faq_payment": "Payment Methods",
     "faq_more_text": "More questions?",
-    "faq_view_all": "View Full FAQ"
+    "faq_view_all": "View Full FAQ",
+    "form_name": "Your Name",
+    "form_email": "Your Email",
+    "form_message": "Your Message",
+    "form_submit": "Send Message",
+    "success_msg": "Thank you for your message! We will get back to you within 24 hours.",
+    "whatsapp_cta": "Prefer WhatsApp?",
+    "whatsapp_text": "Chat with us on WhatsApp for quick answers and consultation bookings.",
+    "disclaimer": "This form is for general inquiries only. For urgent matters, please contact us via WhatsApp."
   },
   "faq": {
     "title": "Frequently Asked Questions",
@@ -1415,7 +1434,27 @@
     "trust_authentic": "100% Authentic Crystals",
     "trust_packaging": "Sacred Ceremonial Packaging",
     "trust_shipping": "Worldwide Shipping",
-    "trust_satisfaction": "30-Day Satisfaction Guarantee"
+    "trust_satisfaction": "30-Day Satisfaction Guarantee",
+    "q_1": "What is space energy?",
+    "a_1": "Space energy, also known as Feng Shui, is an ancient Chinese practice that examines how the arrangement of your environment affects the flow of energy (Qi) and influences your well-being, relationships, and success.",
+    "q_2": "How does a BaZi reading work?",
+    "a_2": "BaZi, or Four Pillars of Destiny, analyzes your birth date and time to reveal your elemental composition, personality traits, life path, and optimal timing for important decisions. Master Xu Wei personally provides detailed reports through his authentic lineage method.",
+    "q_3": "How do I choose the right crystal for my space?",
+    "a_3": "Choosing the right crystal depends on your specific intention. We recommend starting with our Five Elements Test to understand your elemental profile, then selecting crystals that complement or balance your energy. Each product includes detailed guidance on its energetic properties.",
+    "q_4": "Do you offer international shipping?",
+    "a_4": "Yes, we ship worldwide to the United States, Canada, the European Union, the United Kingdom, Australia, New Zealand, and many other countries. Shipping costs are calculated at checkout. Free standard shipping is available on orders over  within the continental US.",
+    "q_5": "What is your return policy?",
+    "a_5": "We offer a 30-day return policy for most physical products. Items must be unused and in their original packaging. Certain items such as opened space clearing kits and personalized consultation reports are non-returnable.",
+    "q_6": "Are online courses self-paced?",
+    "a_6": "Yes, all our online courses are self-paced. Once you enroll, you have lifetime access to the course materials, including video lessons, worksheets, and any future updates.",
+    "q_7": "How can I become a member?",
+    "a_7": "You can join our membership program by visiting the Membership page and selecting the tier that best suits your needs. We offer three tiers — Starter, Harmony, and Premium — each with increasing benefits including exclusive discounts and priority booking.",
+    "q_8": "Can I get a consultation remotely?",
+    "a_8": "Absolutely! All services are personally delivered by Master Xu Wei worldwide via Zoom video consultation. Simply share photos or a video walkthrough of your space, and you will receive a detailed analysis with personalized recommendations. Over 60% of our clients are international.",
+    "q_9": "How do Eastern energy principles apply to Western homes?",
+    "a_9": "Eastern energy principles are universal — based on natural laws of balance, flow, and harmony that transcend culture. We adapt these principles specifically for Western architecture, open-plan layouts, and modern lifestyles, focusing on practical guidance like furniture placement, color selection, and crystal positioning.",
+    "q_10": "Are your crystals genuine and ethically sourced?",
+    "a_10": "Yes, 100%. Every crystal in our collection is natural, untreated, and ethically sourced from trusted mines in Brazil, Uruguay, Madagascar, and China. We work directly with small-scale miners and artisan workshops to ensure fair labor practices and environmental responsibility."
   },
   "ai": {
     "title": "Oriental Vibe AI",

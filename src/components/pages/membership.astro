@@ -1,31 +1,170 @@
 ---
-// Legacy route wrapper — redirects /membership → /en/membership or /zh/...
-// This top-level page is kept for inbound historic links and as the
-// shared-rendering Astro component imported by locale wrappers.
+/**
+ * PageMembership.astro — Membership tiers page
+ *
+ * Layout: Hero → 3 tier cards (starter/harmony/premium) → comparison table → CTA
+ * Design tokens match BrandFunnel.astro earthy palette.
+ * Harmony highlighted as popular tier with border-color: #C79F60.
+ * All copy via i18n `membership.*` keys. Locale from Astro.props.locale.
+ */
+import { translations } from '../../i18n/index.js';
+
+const props = Astro.props || {};
+let locale = (typeof props.locale === 'string') ? props.locale : 'en';
+if (locale !== 'zh' && locale !== 'en') locale = 'en';
+const L = locale;
+const T = translations[L] || translations.en;
+const pick = (k, fb) => k.split('.').reduce((acc, p) => acc?.[p], T) ?? fb ?? k;
+
+const imgBase = 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=';
+const heroBg = `${imgBase}minimalist%20zen%20meditation%20space%20crystals%20warm%20light%20elegant&image_size=landscape_16_9`;
+
+const prefix = '/' + L;
+const href = (p) => prefix + p;
+
+const tiers = [
+  {
+    nameKey: 'membership.starter_name',
+    nameFb: 'Starter Circle',
+    priceKey: 'membership.starter_price',
+    priceFb: '$99/year',
+    featKeys: ['membership.starter_feat_1', 'membership.starter_feat_2', 'membership.starter_feat_3', 'membership.starter_feat_4', 'membership.starter_feat_5'],
+    popular: false,
+  },
+  {
+    nameKey: 'membership.harmony_name',
+    nameFb: 'Harmony Circle',
+    priceKey: 'membership.harmony_price',
+    priceFb: '$299/year',
+    featKeys: ['membership.harmony_feat_1', 'membership.harmony_feat_2', 'membership.harmony_feat_3', 'membership.harmony_feat_4', 'membership.harmony_feat_5'],
+    popular: true,
+  },
+  {
+    nameKey: 'membership.premium_name',
+    nameFb: 'Premium Circle',
+    priceKey: 'membership.premium_price',
+    priceFb: '$699/year',
+    featKeys: ['membership.premium_feat_1', 'membership.premium_feat_2', 'membership.premium_feat_3', 'membership.premium_feat_4', 'membership.premium_feat_5', 'membership.premium_feat_6'],
+    popular: false,
+  },
+];
+
+const compareRows = [
+  { labelKey: 'membership.compare_discount', labelFb: 'Discount', starters: ['5%', '12%', '25%'] },
+  { labelKey: 'membership.compare_consult', labelFb: 'Free consultations', starters: ['1', '1', '6'] },
+  { labelKey: 'membership.compare_home', labelFb: 'Home Consultation', starters: ['—', '1', '2'] },
+  { labelKey: 'membership.compare_gift', labelFb: 'Welcome gift', starters: ['—', '—', 'Crystal Bracelet'] },
+  { labelKey: 'membership.compare_webinar', labelFb: 'Monthly webinars', starters: ['—', '✓', '✓'] },
+  { labelKey: 'membership.compare_booking', labelFb: 'Priority booking', starters: ['—', '✓', 'VIP'] },
+];
 ---
+<main class="funnel funnel--membership">
+  {/* 1 HERO */}
+  <section class="funnel-hero">
+    <div class="funnel-hero__bg" style={`background-image: url(${heroBg});`}></div>
+    <div class="funnel-wrap funnel-hero__inner" style="grid-template-columns:1fr;text-align:center;">
+      <div class="funnel-hero__copy" style="max-width:700px;margin-inline:auto;">
+        <p class="funnel-overline center" data-i18n="membership.hero_subtitle">{pick('membership.hero_subtitle', 'Exclusive Community')}</p>
+        <h1 class="funnel-h1" data-i18n="membership.hero_title">{pick('membership.hero_title', 'Member Circle')}</h1>
+        <p class="funnel-sub" data-i18n="membership.hero_desc">{pick('membership.hero_desc', 'Unlock exclusive benefits and deepen your energy journey')}</p>
+      </div>
+    </div>
+  </section>
 
-<!-- Auto-extracted from src/pages/membership.astro by scripts/extract_page_components.cjs — DO NOT edit by hand. -->
+  {/* 2 TIER CARDS */}
+  <section class="funnel-section">
+    <div class="funnel-wrap">
+      <p class="funnel-overline center">{pick('membership.tiers_title', 'Choose Your Plan')}</p>
+      <h2 class="funnel-h2 center" data-i18n="membership.tiers_title">{pick('membership.tiers_title', 'Choose Your Plan')}</h2>
+      <p class="funnel-p center" style="margin-bottom:36px;" data-i18n="membership.tiers_desc">{pick('membership.tiers_desc', 'Select the membership tier that aligns with your spiritual journey.')}</p>
+      <div class="membership-grid">
+        {tiers.map(tier => (
+          <div class={`membership-card${tier.popular ? ' membership-card--popular' : ''}`}>
+            {tier.popular && <div class="membership-badge" data-i18n="common.most_popular">{pick('common.most_popular', 'Most Popular')}</div>}
+            <h3 class="membership-card__name" data-i18n={tier.nameKey}>{pick(tier.nameKey, tier.nameFb)}</h3>
+            <div class="membership-card__price" data-i18n={tier.priceKey}>{pick(tier.priceKey, tier.priceFb)}</div>
+            <ul class="membership-card__feats">
+              {tier.featKeys.map((fk, fi) => (
+                <li data-i18n={fk}>{pick(fk, `Feature ${fi + 1}`)}</li>
+              ))}
+            </ul>
+            <a href={href('/contact')} class={`btn ${tier.popular ? 'btn-primary' : 'btn-outline'} btn-lg`} style="width:100%;text-align:center;" data-i18n="membership.select_tier">{pick('membership.select_tier', 'Select')}</a>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
 
-<noscript>
-  <meta http-equiv="refresh" content="0; url=/en/membership" />
-</noscript>
+  {/* 3 COMPARISON TABLE */}
+  <section class="funnel-section funnel-section--paper">
+    <div class="funnel-wrap">
+      <h2 class="funnel-h2 center" data-i18n="membership.compare_title">{pick('membership.compare_title', 'Compare Memberships')}</h2>
+      <p class="funnel-p center" style="margin-bottom:28px;" data-i18n="membership.compare_desc">{pick('membership.compare_desc', 'Compare the features and benefits across all membership tiers.')}</p>
+      <div class="membership-compare">
+        <table>
+          <thead>
+            <tr>
+              <th data-i18n="membership.compare_benefit">{pick('membership.compare_benefit', 'Benefit')}</th>
+              <th data-i18n="membership.compare_starter">{pick('membership.compare_starter', 'Starter')}</th>
+              <th data-i18n="membership.compare_harmony">{pick('membership.compare_harmony', 'Harmony')}</th>
+              <th data-i18n="membership.compare_premium">{pick('membership.compare_premium', 'Premium')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {compareRows.map(row => (
+              <tr>
+                <td data-i18n={row.labelKey}>{pick(row.labelKey, row.labelFb)}</td>
+                {row.starters.map((val, vi) => (
+                  <td class={vi === 1 ? 'col-highlight' : ''}>{val}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
 
-<script is:inline>
-  (function() {
-    try {
-      var saved = localStorage.getItem('ov-lang');
-      var accept = (navigator.language || 'en').toLowerCase();
-      var want = saved === 'zh' ? 'zh' : (saved === 'en' ? 'en' : (accept.indexOf('zh') >= 0 ? 'zh' : 'en'));
-      var current = window.location.pathname.replace(/\/+$/, '');
-      var target = '/' + want;
-      if ('/membership' !== '/') target += '/membership';
-      else target += '/';
-      if (window.location.pathname !== target) window.location.replace(target);
-    } catch(e) { window.location.replace('/en/'); }
-  })();
-</script>
-  <main style="padding:120px 24px;text-align:center;color:#555;">
-    <h1 style="font-size:18px;">Redirecting to localized site…</h1>
-    <p><a href="/en/membership">Continue to English site</a> · <a href="/zh/membership">前往繁體中文網站</a></p>
-  </main>
+  {/* 4 CTA */}
+  <section class="funnel-cta">
+    <div class="funnel-wrap funnel-cta__inner">
+      <div class="funnel-cta__copy">
+        <h2 class="funnel-h2" data-i18n="membership.cta_title">{pick('membership.cta_title', 'Ready to Join the Circle?')}</h2>
+        <p class="funnel-sub" data-i18n="membership.cta_subtitle">{pick('membership.cta_subtitle', 'Choose the tier that best suits your journey.')}</p>
+      </div>
+      <div class="funnel-cta-row">
+        <a class="btn btn-primary btn-lg" href={href('/contact')} data-i18n="membership.cta_button">{pick('membership.cta_button', 'Join the Circle')}</a>
+      </div>
+    </div>
+  </section>
 
+  {/* Disclaimer */}
+  <p style="text-align:center;font-size:12px;color:#9A7B4D;padding:24px 16px 40px;max-width:700px;margin:0 auto;line-height:1.7;" data-i18n="membership.disclaimer">{pick('membership.disclaimer', 'Membership fees are annual and non-refundable.')}</p>
+</main>
+
+<style is:global>
+.membership-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;align-items:stretch;}
+.membership-card{background:#fff;border:1px solid #EFE6D2;border-radius:16px;padding:32px 24px;display:flex;flex-direction:column;position:relative;transition:transform .3s,box-shadow .3s;}
+.membership-card:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(110,80,40,.12);}
+.membership-card--popular{border:2px solid #C79F60;box-shadow:0 8px 32px rgba(199,159,96,.18);}
+.membership-badge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:#C79F60;color:#fff;font-size:11px;font-weight:700;padding:5px 18px;border-radius:999px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;}
+.membership-card__name{font-family:'Playfair Display','STKaiti',Georgia,serif;font-size:22px;color:#1A1715;margin:0 0 8px;text-align:center;}
+.membership-card__price{font-family:'Playfair Display',Georgia,serif;font-size:28px;font-weight:600;color:#8C5A2B;text-align:center;margin-bottom:20px;}
+.membership-card__feats{list-style:none;padding:0;margin:0 0 24px;flex:1;display:flex;flex-direction:column;gap:10px;}
+.membership-card__feats li{font-size:14px;color:#56514B;line-height:1.5;padding-left:22px;position:relative;}
+.membership-card__feats li::before{content:'✓';position:absolute;left:0;color:#C79F60;font-weight:700;}
+.btn-outline{display:inline-block;padding:12px 24px;border:2px solid #8C5A2B;border-radius:8px;color:#8C5A2B;background:transparent;font-weight:600;font-size:15px;text-decoration:none;text-align:center;transition:all .2s;}
+.btn-outline:hover{background:#8C5A2B;color:#fff;}
+.membership-compare{overflow-x:auto;}
+.membership-compare table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #EFE6D2;}
+.membership-compare th,.membership-compare td{padding:14px 16px;text-align:center;font-size:14px;border-bottom:1px solid #EFE6D2;}
+.membership-compare th{background:#F3EBDB;font-weight:600;color:#1A1715;font-size:13px;letter-spacing:.04em;text-transform:uppercase;}
+.membership-compare td:first-child{text-align:left;font-weight:600;color:#1A1715;}
+.membership-compare .col-highlight{background:#FFFBF2;color:#8C5A2B;font-weight:600;}
+@media (max-width:860px){
+  .membership-grid{grid-template-columns:1fr;max-width:420px;margin-inline:auto;}
+}
+@media (max-width:640px){
+  .membership-compare th,.membership-compare td{padding:10px 8px;font-size:12px;}
+}
+</style>

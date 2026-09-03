@@ -1,31 +1,174 @@
 ---
-// Legacy route wrapper — redirects / → /en/ or /zh/...
-// This top-level page is kept for inbound historic links and as the
-// shared-rendering Astro component imported by locale wrappers.
+/**
+ * PageIndex.astro — Homepage
+ *
+ * 7-section funnel: Hero → Stats → Categories → Bundle → Why Us → Testimonials → Newsletter CTA
+ * Design tokens match BrandFunnel/MasterProfile earthy palette.
+ * All copy via i18n `home.*` keys. Locale from Astro.props.locale.
+ */
+import { translations } from '../../i18n/index.js';
+
+const props = Astro.props || {};
+let locale = (typeof props.locale === 'string') ? props.locale : 'en';
+if (locale !== 'zh' && locale !== 'en') locale = 'en';
+const L = locale;
+const T = translations[L] || translations.en;
+const pick = (k, fb) => k.split('.').reduce((acc, p) => acc?.[p], T) ?? fb ?? k;
+
+const imgBase = 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=';
+const heroBg = `${imgBase}serene%20japandi%20living%20room%20with%20crystals%20bamboo%20warm%20sunlight%20minimalist%20zen%20aesthetic&image_size=landscape_16_9`;
+const bundleImg = `${imgBase}minimalist%20crystal%20set%20white%20sage%20brass%20bowl%20flat%20lay%20nordic%20wooden%20table&image_size=square`;
+const ctgIcons = ['🏠','🏢','📜','📚'];
+const ctgImgs = [
+  `${imgBase}minimalist%20living%20room%20with%20crystals%20plants%20nordic%20interior%20natural%20light&image_size=landscape_4_3`,
+  `${imgBase}minimalist%20office%20desk%20with%20plant%20crystal%20modern%20workspace%20clean&image_size=landscape_4_3`,
+  `${imgBase}ancient%20chinese%20scroll%20with%20bazi%20chart%20on%20dark%20wood%20desk%20warm%20light&image_size=landscape_4_3`,
+  `${imgBase}zen%20study%20desk%20with%20scrolls%20crystals%20ink%20brush%20warm%20window%20light&image_size=landscape_4_3`,
+];
+const ctgHrefs = ['/shop','/services','/services','/courses'];
+
+const whyIcons = ['🌉','🌍','🔄'];
+const testimonialImgs = [
+  `${imgBase}calm%20woman%20meditating%20in%20japandi%20bedroom%20soft%20morning%20light&image_size=square`,
+  `${imgBase}professional%20man%20in%20modern%20minimalist%20office%20natural%20light%20calm&image_size=square`,
+  `${imgBase}confident%20woman%20in%20minimalist%20berlin%20apartment%20with%20plants%20warm%20light&image_size=square`,
+];
+
+const prefix = '/' + L;
+const href = (p) => prefix + p;
 ---
+<main class="funnel funnel--home">
+  {/* 1 HERO */}
+  <section class="funnel-hero">
+    <div class="funnel-hero__bg" style={`background-image: url(${heroBg});`}></div>
+    <div class="funnel-wrap funnel-hero__inner" style="min-height:520px;align-items:center;">
+      <div class="funnel-hero__copy" style="max-width:660px;">
+        <p class="funnel-overline" data-i18n="home.hero_subtitle">{pick('home.hero_subtitle')}</p>
+        <h1 class="funnel-h1" data-i18n="home.hero_title">{pick('home.hero_title')}</h1>
+        <p class="funnel-sub" data-i18n="home.hero_description">{pick('home.hero_description')}</p>
+        <div class="funnel-cta-row">
+          <a class="btn btn-primary btn-lg" href={href('/element-test')} data-i18n="home.hero_cta">{pick('home.hero_cta')}</a>
+          <a class="btn btn-ghost btn-lg" href={href('/shop')}>{pick('shop','Shop')}</a>
+        </div>
+      </div>
+    </div>
+  </section>
 
-<!-- Auto-extracted from src/pages/index.astro by scripts/extract_page_components.cjs — DO NOT edit by hand. -->
+  {/* 2 STATS */}
+  <section class="funnel-stats">
+    <div class="funnel-wrap funnel-stats__grid">
+      <div class="funnel-stat"><div class="funnel-stat__icon">👥</div><div class="funnel-stat__n" data-i18n="home.trust_1">{pick('home.trust_1')}</div><div class="funnel-stat__l">{pick('home.trust_1')}</div></div>
+      <div class="funnel-stat"><div class="funnel-stat__icon">⭐</div><div class="funnel-stat__n" data-i18n="home.trust_2">{pick('home.trust_2')}</div><div class="funnel-stat__l">{pick('home.trust_2')}</div></div>
+      <div class="funnel-stat"><div class="funnel-stat__icon">🧘</div><div class="funnel-stat__n" data-i18n="home.trust_3">{pick('home.trust_3')}</div><div class="funnel-stat__l">{pick('home.trust_3')}</div></div>
+    </div>
+  </section>
 
-<noscript>
-  <meta http-equiv="refresh" content="0; url=/en/" />
-</noscript>
+  {/* 3 CATEGORIES */}
+  <section class="funnel-section">
+    <div class="funnel-wrap">
+      <p class="funnel-overline center">{pick('home.hero_subtitle')}</p>
+      <h2 class="funnel-h2 center">{pick('home.hero_title')}</h2>
+      <div class="home-categories" style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:32px;">
+        {[1,2,3,4].map(i=>(
+          <a class="home-ctg" href={href(ctgHrefs[i-1])} style="display:block;text-decoration:none;color:inherit;border-radius:14px;overflow:hidden;border:1px solid #EFE6D2;transition:transform .3s,box-shadow .3s;background:#fff;">
+            <div style="aspect-ratio:4/3;overflow:hidden;background:#F3EBDB;">
+              <img src={ctgImgs[i-1]} alt="" width="400" height="300" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;transition:transform .5s;" />
+            </div>
+            <div style="padding:16px;">
+              <div style="font-size:24px;margin-bottom:6px;">{ctgIcons[i-1]}</div>
+              <div style="font-family:'Playfair Display','STKaiti',Georgia,serif;font-size:17px;color:#1A1715;margin-bottom:4px;" data-i18n={`home.category_${i}`}>{pick(`home.category_${i}`)}</div>
+              <div style="font-size:13px;color:#625B51;" data-i18n={`home.category_${i}_desc`}>{pick(`home.category_${i}_desc`)}</div>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
 
-<script is:inline>
-  (function() {
-    try {
-      var saved = localStorage.getItem('ov-lang');
-      var accept = (navigator.language || 'en').toLowerCase();
-      var want = saved === 'zh' ? 'zh' : (saved === 'en' ? 'en' : (accept.indexOf('zh') >= 0 ? 'zh' : 'en'));
-      var current = window.location.pathname.replace(/\/+$/, '');
-      var target = '/' + want;
-      if ('/' !== '/') target += '/';
-      else target += '/';
-      if (window.location.pathname !== target) window.location.replace(target);
-    } catch(e) { window.location.replace('/en/'); }
-  })();
-</script>
-  <main style="padding:120px 24px;text-align:center;color:#555;">
-    <h1 style="font-size:18px;">Redirecting to localized site…</h1>
-    <p><a href="/en/">Continue to English site</a> · <a href="/zh/">前往繁體中文網站</a></p>
-  </main>
+  {/* 4 BUNDLE */}
+  <section class="funnel-section funnel-section--paper">
+    <div class="funnel-wrap" style="display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;">
+      <div style="border-radius:14px;overflow:hidden;aspect-ratio:1;background:#F3EBDB;">
+        <img src={bundleImg} alt="" width="400" height="400" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;" />
+      </div>
+      <div>
+        <span class="funnel-overline" style="color:#8C5A2B;" data-i18n="home.bundle_tag">{pick('home.bundle_tag')}</span>
+        <h2 class="funnel-h2" data-i18n="home.bundle_title">{pick('home.bundle_title')}</h2>
+        <p class="funnel-p" data-i18n="home.bundle_description">{pick('home.bundle_description')}</p>
+        <a class="btn btn-primary btn-lg" href={href('/shop')} data-i18n="home.bundle_cta" style="margin-top:12px;">{pick('home.bundle_cta')}</a>
+      </div>
+    </div>
+  </section>
 
+  {/* 5 WHY US */}
+  <section class="funnel-section">
+    <div class="funnel-wrap">
+      <p class="funnel-overline center" data-i18n="home.why_subtitle">{pick('home.why_subtitle')}</p>
+      <h2 class="funnel-h2 center" data-i18n="home.why_title">{pick('home.why_title')}</h2>
+      <div class="funnel-why-grid" style="margin-top:28px;">
+        {[1,2,3].map(i=>(
+          <div class="funnel-why">
+            <div class="funnel-why__icon">{whyIcons[i-1]}</div>
+            <div class="funnel-why__t" data-i18n={`home.why_${i}_title`}>{pick(`home.why_${i}_title`)}</div>
+            <div class="funnel-why__d" data-i18n={`home.why_${i}_desc`}>{pick(`home.why_${i}_desc`)}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {/* 6 TESTIMONIALS */}
+  <section class="funnel-section funnel-section--paper">
+    <div class="funnel-wrap">
+      <p class="funnel-overline center" data-i18n="home.testimonials_subtitle">{pick('home.testimonials_subtitle')}</p>
+      <h2 class="funnel-h2 center" data-i18n="home.testimonials_title">{pick('home.testimonials_title')}</h2>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:28px;">
+        {[1,2,3].map(i=>(
+          <div style="background:#fff;border:1px solid #EFE6D2;border-radius:14px;overflow:hidden;">
+            <div style="aspect-ratio:1;overflow:hidden;background:#F3EBDB;">
+              <img src={testimonialImgs[i-1]} alt="" width="200" height="200" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;" />
+            </div>
+            <div style="padding:18px;">
+              <p style="font-size:14px;color:#56514B;line-height:1.7;font-style:italic;margin:0 0 14px;" data-i18n={`home.testimonial_${i}_text`}>{pick(`home.testimonial_${i}_text`)}</p>
+              <div style="font-weight:600;font-size:14px;color:#1A1715;" data-i18n={`home.testimonial_${i}_name`}>{pick(`home.testimonial_${i}_name`)}</div>
+              <div style="font-size:12px;color:#9A7B4D;" data-i18n={`home.testimonial_${i}_location`}>{pick(`home.testimonial_${i}_location`)}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {/* 7 NEWSLETTER CTA */}
+  <section class="funnel-cta">
+    <div class="funnel-wrap funnel-cta__inner">
+      <div class="funnel-cta__copy">
+        <h2 class="funnel-h2" data-i18n="home.newsletter_title">{pick('home.newsletter_title')}</h2>
+        <p class="funnel-sub" data-i18n="home.newsletter_description">{pick('home.newsletter_description')}</p>
+        <p style="font-size:13px;color:#8C5A2B;font-weight:600;margin:6px 0 0;" data-i18n="home.newsletter_gift">{pick('home.newsletter_gift')}</p>
+      </div>
+      <form style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;" onsubmit="event.preventDefault();alert('Subscribed!')">
+        <input type="email" placeholder={pick('home.newsletter_placeholder')} style="padding:12px 16px;border:1px solid #EFE6D2;border-radius:8px;font-size:14px;min-width:260px;flex:1;background:#fff;font-family:inherit;" />
+        <button type="submit" class="btn btn-primary" data-i18n="home.newsletter_button">{pick('home.newsletter_button')}</button>
+      </form>
+    </div>
+  </section>
+
+  {/* Disclaimer */}
+  <p style="text-align:center;font-size:12px;color:#9A7B4D;padding:24px 16px 40px;max-width:860px;margin:0 auto;line-height:1.7;font-style:italic;" data-i18n="home.disclaimer">{pick('home.disclaimer')}</p>
+</main>
+
+<style is:global>
+.funnel--home .funnel-hero__inner{min-height:520px;align-items:center;}
+.funnel--home .funnel-hero__copy{max-width:660px;}
+@media (max-width:980px){
+  .home-categories{grid-template-columns:repeat(2,1fr)!important;}
+  .funnel--home .funnel-wrap[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important;}
+}
+@media (max-width:640px){
+  .home-categories{grid-template-columns:1fr!important;}
+  .funnel--home div[style*="grid-template-columns:repeat(3,1fr)"]{grid-template-columns:1fr!important;}
+}
+.home-ctg:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(110,80,40,.12);border-color:#D6C9A8;}
+.home-ctg:hover img{transform:scale(1.05);}
+</style>
