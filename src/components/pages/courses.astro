@@ -1,31 +1,442 @@
 ---
-// Legacy route wrapper — redirects /courses → /en/courses or /zh/...
-// This top-level page is kept for inbound historic links and as the
-// shared-rendering Astro component imported by locale wrappers.
+/**
+ * PageCourses.astro
+ *
+ * Shared by /en/courses & /zh/courses · 7-section funnel layout.
+ *   1 Hero                5 Advantages x3
+ *   2 Stats strip x4      6 FAQ x3
+ *   3 Category nav pills  7 Final dual CTA
+ *   4 5 Curriculum systems × 16 courses
+ *
+ * Pure SSR: copy pulled from i18n `courses.*` keys at build time.
+ * Locale is determined by the `locale` prop passed by the locale
+ * wrapper page (/en/* → 'en', /zh/* → 'zh'). No client-side locale
+ * switching on this page — language isolation rules apply.
+ */
+import { translations } from '../../i18n/index.js';
+import { courseCategories, courses } from '../../data/courses.js';
+
+const props = Astro.props || {};
+let locale = (typeof props.locale === 'string') ? props.locale : 'en';
+if (locale !== 'zh' && locale !== 'en') locale = 'en';
+const L = locale;
+const T = translations[L] || translations.en;
+const pick = (k, fb) => k.split('.').reduce((acc, p) => acc?.[p], T) ?? fb ?? k;
+
+const imgBase = 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=';
+const heroBg = `${imgBase}serene%20zen%20study%20desk%20with%20ancient%20chinese%20scrolls%20ink%20brush%20crystals%20warm%20window%20light%20japandi%20aesthetic&image_size=landscape_16_9`;
+const curriculumArt = `${imgBase}top%20down%20flat%20lay%20of%20five%20ancient%20chinese%20study%20manuals%20with%20brush%20ink%20stone%20crystals%20on%20dark%20wood%20desk%20warm%20light%20elegant&image_size=landscape_4_3`;
+
+const statIcons = ['📚','🎓','🕯️','⏳'];
+const stats = [
+  { nKey:'courses.page_stats_01_n', lKey:'courses.page_stats_01_l', nFb:'5',    lFb:'Curriculum Systems' },
+  { nKey:'courses.page_stats_02_n', lKey:'courses.page_stats_02_l', nFb:'16',   lFb:'Structured Courses' },
+  { nKey:'courses.page_stats_03_n', lKey:'courses.page_stats_03_l', nFb:'4',    lFb:'Levels of Depth' },
+  { nKey:'courses.page_stats_04_n', lKey:'courses.page_stats_04_l', nFb:'40+',  lFb:'Years Lineage Study' },
+];
+
+const advIcons = ['♾️','🧭','🤝'];
+const advs = [
+  { tKey:'courses.adv_1_title', dKey:'courses.adv_1_desc' },
+  { tKey:'courses.adv_2_title', dKey:'courses.adv_2_desc' },
+  { tKey:'courses.adv_3_title', dKey:'courses.adv_3_desc' },
+];
+
+const faqs = Array.from({length:3}, (_,i)=>({
+  qKey: `courses.page_faq_0${i+1}_q`,
+  aKey: `courses.page_faq_0${i+1}_a`,
+}));
+
+// Group courses by category, preserving data-file order
+const byCat = (catId) => courses.filter(c => c.cat === catId);
+
+const prefix = '/' + L;
+const href = (p) => prefix + p;
 ---
+<main class="funnel funnel--courses">
+  {/* 1 HERO */}
+  <section class="funnel-hero">
+    <div class="funnel-hero__bg" style={`background-image: url(${heroBg});`}></div>
+    <div class="funnel-wrap funnel-hero__inner">
+      <div class="funnel-hero__copy">
+        <p class="funnel-overline" data-i18n="courses.page_overline">{pick('courses.page_overline','WISDOM CURRICULUM')}</p>
+        <p class="funnel-kicker" data-i18n="courses.page_hero_kicker">{pick('courses.page_hero_kicker')}</p>
+        <h1 class="funnel-h1" data-i18n="courses.page_hero_title">{pick('courses.page_hero_title')}</h1>
+        <p class="funnel-sub" data-i18n="courses.page_hero_subtitle">{pick('courses.page_hero_subtitle')}</p>
+        <p class="funnel-p" data-i18n="courses.page_hero_desc">{pick('courses.page_hero_desc')}</p>
+        <div class="funnel-cta-row">
+          <a class="btn btn-primary btn-lg" href="#curriculum" data-i18n="courses.page_hero_cta_explore">{pick('courses.page_hero_cta_explore')}</a>
+          <a class="btn btn-ghost btn-lg" href={href('/master')} data-i18n="courses.page_hero_cta_master">{pick('courses.page_hero_cta_master')}</a>
+        </div>
+      </div>
+      <div class="funnel-hero__art">
+        <img src={curriculumArt} alt="" loading="lazy" />
+      </div>
+    </div>
+  </section>
 
-<!-- Auto-extracted from src/pages/courses.astro by scripts/extract_page_components.cjs — DO NOT edit by hand. -->
+  {/* 2 STATS */}
+  <section class="funnel-stats">
+    <div class="funnel-wrap funnel-stats__grid">
+      {stats.map((s,i)=>(
+        <div class="funnel-stat" key={i}>
+          <div class="funnel-stat__icon">{statIcons[i]}</div>
+          <div class="funnel-stat__n" data-i18n={s.nKey}>{pick(s.nKey, s.nFb)}</div>
+          <div class="funnel-stat__l" data-i18n={s.lKey}>{pick(s.lKey, s.lFb)}</div>
+        </div>
+      ))}
+    </div>
+  </section>
 
-<noscript>
-  <meta http-equiv="refresh" content="0; url=/en/courses" />
-</noscript>
+  {/* 3 CURRICULUM NAV (sticky pills) */}
+  <nav class="courses-nav" aria-label="Curriculum categories">
+    <div class="funnel-wrap courses-nav__inner">
+      <span class="courses-nav__label" data-i18n="courses.page_filter_label">{pick('courses.page_filter_label')}</span>
+      <div class="courses-nav__pills" role="tablist">
+        <button class="courses-pill is-active" data-target="all" role="tab" aria-selected="true" data-i18n="courses.page_filter_all">{pick('courses.page_filter_all')}</button>
+        {courseCategories.map((c)=>(
+          <button class="courses-pill" data-target={c.id} role="tab" aria-selected="false" key={c.id}>
+            <span class="courses-pill__icon">{c.icon}</span>
+            <span data-i18n={c.titleKey}>{pick(c.titleKey, c.titleText)}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  </nav>
+
+  {/* 4 CURRICULUM — 5 SYSTEMS */}
+  <section id="curriculum" class="funnel-section">
+    <div class="funnel-wrap">
+      <p class="funnel-overline center" data-i18n="courses.page_curr_overline">{pick('courses.page_curr_overline','THE FIVE SYSTEMS')}</p>
+      <h2 class="funnel-h2 center" data-i18n="courses.page_curr_title">{pick('courses.page_curr_title')}</h2>
+      <p class="funnel-sub center" style="max-width:760px;margin:4px auto 32px;" data-i18n="courses.page_curr_intro">{pick('courses.page_curr_intro')}</p>
+
+      {courseCategories.map((cat, ci)=>(
+        <div class="courses-system" data-cat={cat.id} key={cat.id}>
+          <header class="courses-system__head">
+            <div class="courses-system__icon">{cat.icon}</div>
+            <div class="courses-system__txt">
+              <h3 class="courses-system__t" data-i18n={cat.titleKey}>{pick(cat.titleKey, cat.titleText)}</h3>
+              <p class="courses-system__tag" data-i18n={cat.taglineKey}>{pick(cat.taglineKey, cat.taglineText)}</p>
+            </div>
+            <div class="courses-system__count">{byCat(cat.id).length} {pick('courses.page_count_label','Courses')}</div>
+          </header>
+          <div class={`courses-grid courses-grid--${ci === courseCategories.length - 1 ? 'mastery' : 'levels'}`}>
+            {byCat(cat.id).map((co)=>(
+              <article class={`course-card ${co.level === 'Mastery' ? 'course-card--mastery' : ''}`} key={co.id}>
+                <div class="course-card__img">
+                  <img src={co.image} alt="" loading="lazy" />
+                  <span class={`course-card__level course-card__level--${co.level.toLowerCase()}`} data-i18n={co.levelKey}>{pick(co.levelKey, co.level)}</span>
+                </div>
+                <div class="course-card__body">
+                  <h4 class="course-card__t" data-i18n={co.titleKey}>{pick(co.titleKey, co.titleText)}</h4>
+                  <p class="course-card__d" data-i18n={co.descKey}>{pick(co.descKey, co.descText)}</p>
+                  <div class="course-card__meta">
+                    <span class="course-card__modules">{co.modules}</span>
+                  </div>
+                </div>
+                <footer class="course-card__foot">
+                  {co.priceUsd > 0 ? (
+                    <span class="course-card__price">{co.price}</span>
+                  ) : (
+                    <span class="course-card__price course-card__price--mastery" data-i18n="courses.page_price_by_app">{pick('courses.page_price_by_app','By Application')}</span>
+                  )}
+                  <a class="btn btn-sm btn-primary" href={href(co.priceUsd > 0 ? '/shop' : '/contact')} data-i18n={co.priceUsd > 0 ? 'common.enroll_now' : 'common.book_now'}>{pick(co.priceUsd > 0 ? 'common.enroll_now' : 'common.book_now')}</a>
+                </footer>
+              </article>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  {/* 5 ADVANTAGES */}
+  <section class="funnel-section funnel-section--paper">
+    <div class="funnel-wrap">
+      <p class="funnel-overline center" data-i18n="courses.advantages_title">{pick('courses.advantages_title')}</p>
+      <h2 class="funnel-h2 center" data-i18n="courses.page_adv_title">{pick('courses.page_adv_title')}</h2>
+      <div class="funnel-why-grid">
+        {advs.map((a,i)=>(
+          <div class="funnel-why" key={i}>
+            <div class="funnel-why__icon">{advIcons[i]}</div>
+            <div class="funnel-why__t" data-i18n={a.tKey}>{pick(a.tKey)}</div>
+            <div class="funnel-why__d" data-i18n={a.dKey}>{pick(a.dKey)}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {/* 6 FAQ */}
+  <section class="funnel-section">
+    <div class="funnel-wrap">
+      <p class="funnel-overline center" data-i18n="courses.page_faq_overline">{pick('courses.page_faq_overline','FAQ')}</p>
+      <h2 class="funnel-h2 center" data-i18n="courses.page_faq_title">{pick('courses.page_faq_title')}</h2>
+      <div class="funnel-faq">
+        {faqs.map((f,i)=>(
+          <details class="funnel-faq__item" open={i===0} key={i}>
+            <summary data-i18n={f.qKey}>{pick(f.qKey)}</summary>
+            <p data-i18n={f.aKey}>{pick(f.aKey)}</p>
+          </details>
+        ))}
+      </div>
+      <p class="courses-disclaimer" data-i18n="courses.disclaimer">{pick('courses.disclaimer')}</p>
+    </div>
+  </section>
+
+  {/* 7 FINAL DUAL CTA */}
+  <section class="funnel-cta">
+    <div class="funnel-wrap funnel-cta__inner">
+      <div class="funnel-cta__copy">
+        <h2 class="funnel-h2" data-i18n="courses.page_cta_title">{pick('courses.page_cta_title')}</h2>
+        <p class="funnel-sub" data-i18n="courses.page_cta_subtitle">{pick('courses.page_cta_subtitle')}</p>
+      </div>
+      <div class="funnel-cta-row">
+        <a class="btn btn-primary btn-lg" href={href('/services')} data-i18n="courses.page_cta_primary">{pick('courses.page_cta_primary')}</a>
+        <a class="btn btn-ghost btn-lg" href={href('/element-test')} data-i18n="courses.page_cta_secondary">{pick('courses.page_cta_secondary')}</a>
+      </div>
+    </div>
+  </section>
+</main>
 
 <script is:inline>
-  (function() {
-    try {
-      var saved = localStorage.getItem('ov-lang');
-      var accept = (navigator.language || 'en').toLowerCase();
-      var want = saved === 'zh' ? 'zh' : (saved === 'en' ? 'en' : (accept.indexOf('zh') >= 0 ? 'zh' : 'en'));
-      var current = window.location.pathname.replace(/\/+$/, '');
-      var target = '/' + want;
-      if ('/courses' !== '/') target += '/courses';
-      else target += '/';
-      if (window.location.pathname !== target) window.location.replace(target);
-    } catch(e) { window.location.replace('/en/'); }
+  // Category filter — show/hide system blocks based on selected pill
+  (function () {
+    var pills = document.querySelectorAll('.courses-pill');
+    var systems = document.querySelectorAll('.courses-system');
+    if (!pills.length || !systems.length) return;
+
+    pills.forEach(function (pill) {
+      pill.addEventListener('click', function () {
+        var target = pill.getAttribute('data-target');
+        pills.forEach(function (p) {
+          p.classList.toggle('is-active', p === pill);
+          p.setAttribute('aria-selected', p === pill ? 'true' : 'false');
+        });
+        systems.forEach(function (sys) {
+          var show = (target === 'all') || (sys.getAttribute('data-cat') === target);
+          sys.style.display = show ? '' : 'none';
+        });
+        // Smooth scroll back to curriculum top for context
+        var curr = document.getElementById('curriculum');
+        if (curr && target !== 'all') {
+          var top = curr.getBoundingClientRect().top + window.pageYOffset - 90;
+          window.scrollTo({ top: top, behavior: 'smooth' });
+        }
+      });
+    });
   })();
 </script>
-  <main style="padding:120px 24px;text-align:center;color:#555;">
-    <h1 style="font-size:18px;">Redirecting to localized site…</h1>
-    <p><a href="/en/courses">Continue to English site</a> · <a href="/zh/courses">前往繁體中文網站</a></p>
-  </main>
 
+<style is:global>
+/* ---------- courses page ---------- */
+.funnel--courses{color:#2d2b29;}
+
+/* 3 Curriculum nav */
+.courses-nav{
+  position:sticky;
+  top:72px;
+  z-index:50;
+  background:rgba(253,251,246,0.94);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  border-top:1px solid #EFE6D2;
+  border-bottom:1px solid #EFE6D2;
+  padding:14px 0;
+}
+.courses-nav__inner{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.courses-nav__label{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#9A7B4D;font-weight:600;flex-shrink:0;}
+.courses-nav__pills{display:flex;gap:8px;flex-wrap:wrap;}
+.courses-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:8px 14px;
+  border-radius:999px;
+  border:1px solid #EFE6D2;
+  background:#fff;
+  color:#56514B;
+  font-size:13px;
+  font-weight:500;
+  cursor:pointer;
+  transition:all .2s ease;
+  font-family:inherit;
+  white-space:nowrap;
+}
+.courses-pill__icon{font-size:15px;line-height:1;}
+.courses-pill:hover{border-color:#C79F60;color:#3A250A;}
+.courses-pill.is-active{
+  background:#1A1715;
+  color:#F7EED5;
+  border-color:#1A1715;
+}
+.courses-pill.is-active .courses-pill__icon{color:#C79F60;}
+
+/* 4 Curriculum systems */
+.courses-system{margin-top:48px;padding-top:32px;border-top:1px dashed #EFE6D2;}
+.courses-system:first-of-type{border-top:none;margin-top:8px;padding-top:0;}
+.courses-system__head{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  gap:18px;
+  align-items:center;
+  margin-bottom:24px;
+}
+.courses-system__icon{
+  width:56px;height:56px;
+  border-radius:14px;
+  background:linear-gradient(135deg,#F7EED5,#EFE6D2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;
+  border:1px solid #EFE6D2;
+}
+.courses-system__t{
+  font-family:'Playfair Display','STKaiti','KaiTi',Georgia,serif;
+  font-size:clamp(22px,2.4vw,30px);
+  line-height:1.2;
+  color:#1A1715;
+  margin:0 0 4px;
+}
+.courses-system__tag{color:#625B51;font-size:14px;margin:0;line-height:1.6;}
+.courses-system__count{
+  font-size:12px;
+  color:#9A7B4D;
+  font-weight:600;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  background:#FFFBF2;
+  border:1px solid #EFE6D2;
+  padding:6px 12px;
+  border-radius:999px;
+  white-space:nowrap;
+}
+@media (max-width:780px){
+  .courses-system__head{grid-template-columns:auto 1fr;}
+  .courses-system__count{grid-column:1 / -1;justify-self:start;}
+}
+
+/* Course cards */
+.courses-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:20px;
+}
+.courses-grid--mastery{grid-template-columns:repeat(2,minmax(0,1fr));}
+@media (max-width:980px){.courses-grid{grid-template-columns:repeat(2,1fr);}}
+@media (max-width:640px){.courses-grid,.courses-grid--mastery{grid-template-columns:1fr;}}
+
+.course-card{
+  background:#fff;
+  border:1px solid #EFE6D2;
+  border-radius:14px;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  transition:transform .3s ease, box-shadow .3s ease, border-color .3s ease;
+}
+.course-card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 18px 40px rgba(110,80,40,.12);
+  border-color:#D6C9A8;
+}
+.course-card--mastery{
+  border-color:#C79F60;
+  background:linear-gradient(180deg,#FFFBF2 0%,#FFF5E0 100%);
+}
+.course-card__img{
+  position:relative;
+  aspect-ratio:4/3;
+  overflow:hidden;
+  background:#F3EBDB;
+}
+.course-card__img img{
+  width:100%;height:100%;
+  object-fit:cover;
+  transition:transform .5s ease;
+}
+.course-card:hover .course-card__img img{transform:scale(1.05);}
+.course-card__level{
+  position:absolute;
+  top:12px;left:12px;
+  background:rgba(26,23,21,0.85);
+  color:#F7EED5;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  padding:5px 10px;
+  border-radius:999px;
+  backdrop-filter:blur(6px);
+}
+.course-card__level--foundation{background:rgba(106,70,30,0.85);}
+.course-card__level--intermediate{background:rgba(91,123,105,0.9);}
+.course-card__level--advanced{background:rgba(26,23,21,0.9);}
+.course-card__level--mastery{
+  background:linear-gradient(135deg,#8C5A2B,#C79F60);
+  color:#FFF6DD;
+}
+.course-card__body{padding:18px 18px 8px;flex:1;display:flex;flex-direction:column;}
+.course-card__t{
+  font-family:'Playfair Display','STKaiti','KaiTi',Georgia,serif;
+  font-size:18px;
+  line-height:1.3;
+  color:#1A1715;
+  margin:0 0 8px;
+}
+.course-card__d{
+  color:#56514B;
+  font-size:13.5px;
+  line-height:1.65;
+  margin:0 0 12px;
+  flex:1;
+}
+.course-card__meta{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:12px;
+  color:#9A7B4D;
+  font-weight:500;
+  letter-spacing:.04em;
+}
+.course-card__modules::before{content:'🎬 ';margin-right:2px;}
+.course-card__foot{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:14px 18px;
+  border-top:1px solid #EFE6D2;
+  background:#FFFBF2;
+}
+.course-card--mastery .course-card__foot{background:#FFF5E0;}
+.course-card__price{
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:22px;
+  color:#8C5A2B;
+  font-weight:600;
+  line-height:1;
+}
+.course-card__price--mastery{
+  font-size:13px;
+  font-weight:600;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  color:#8C5A2B;
+  font-family:inherit;
+}
+.course-card__foot .btn-sm{padding:8px 14px;font-size:12px;}
+
+/* 6 Disclaimer */
+.courses-disclaimer{
+  margin:32px auto 0;
+  max-width:860px;
+  font-size:12px;
+  color:#9A7B4D;
+  line-height:1.7;
+  text-align:center;
+  font-style:italic;
+  opacity:.85;
+}
+</style>
